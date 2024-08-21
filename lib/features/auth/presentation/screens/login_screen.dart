@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationScreen extends StatefulWidget {
-  const AuthenticationScreen({Key? key}) : super(key: key);
+  const AuthenticationScreen({super.key});
 
   @override
   State<AuthenticationScreen> createState() => _AuthenticationScreenState();
@@ -131,22 +131,22 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               fillColor: TextFieldgraycolor, // Color de fondo
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: Colors.transparent), // Sin borde inicialmente
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: Colors.transparent), // Borde sin color por defecto
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: primaryColor, width: 2.0), // Borde azul al enfocarse
               ),
-              suffixIcon: Icon(Icons.mail_outline,
+              suffixIcon: const Icon(Icons.mail_outline,
                   color: Colors.grey), // Icono al final
-              contentPadding: EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                   vertical: 20.0, horizontal: 12.0), // Espacio vertical
             ),
             initialValue: email,
@@ -177,17 +177,17 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               fillColor: TextFieldgraycolor, // Color de fondo
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: Colors.transparent), // Sin borde inicialmente
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: Colors.transparent), // Borde sin color por defecto
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: primaryColor,
                     width: 2.0), // Borde de color primario al enfocarse
               ),
@@ -203,7 +203,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                   color: grayColor,
                 ),
               ),
-              contentPadding: EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                   vertical: 20.0, horizontal: 12.0), // Espacio vertical
             ),
             initialValue: password,

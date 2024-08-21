@@ -42,14 +42,14 @@ class MyTheme {
       ),
       textButtonTheme: const TextButtonThemeData(
         style: ButtonStyle(
-            shadowColor: MaterialStatePropertyAll(transparent),
-            elevation: MaterialStatePropertyAll(0.0),
-            iconSize: MaterialStatePropertyAll(20.0),
+            shadowColor: WidgetStatePropertyAll(transparent),
+            elevation: WidgetStatePropertyAll(0.0),
+            iconSize: WidgetStatePropertyAll(20.0),
             splashFactory: NoSplash.splashFactory,
-            overlayColor: MaterialStatePropertyAll(
+            overlayColor: WidgetStatePropertyAll(
               (transparent),
             ),
-            padding: MaterialStatePropertyAll(EdgeInsets.zero)),
+            padding: WidgetStatePropertyAll(EdgeInsets.zero)),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         elevation: 3,

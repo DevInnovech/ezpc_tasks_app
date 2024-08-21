@@ -7,7 +7,7 @@ import 'custom_text.dart';
 
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
-    Key? key,
+    super.key,
     this.maximumSize = const Size(double.infinity, 52),
     required this.text,
     this.fontSize = 14.0,
@@ -16,7 +16,7 @@ class PrimaryButton extends StatelessWidget {
     this.bgColor = primaryColor,
     this.minimumSize = const Size(double.infinity, 52),
     this.borderRadiusSize = 10.0,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 
@@ -34,15 +34,15 @@ class PrimaryButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(bgColor),
+        backgroundColor: WidgetStateProperty.all(bgColor),
         splashFactory: NoSplash.splashFactory,
-        shadowColor: MaterialStateProperty.all(transparent),
-        overlayColor: MaterialStateProperty.all(transparent),
-        elevation: MaterialStateProperty.all(0.0),
-        shape: MaterialStateProperty.all(
+        shadowColor: WidgetStateProperty.all(transparent),
+        overlayColor: WidgetStateProperty.all(transparent),
+        elevation: WidgetStateProperty.all(0.0),
+        shape: WidgetStateProperty.all(
             RoundedRectangleBorder(borderRadius: borderRadius)),
-        minimumSize: MaterialStateProperty.all(minimumSize),
-        maximumSize: MaterialStateProperty.all(maximumSize),
+        minimumSize: WidgetStateProperty.all(minimumSize),
+        maximumSize: WidgetStateProperty.all(maximumSize),
       ),
       child: Padding(
         padding: Utils.only(bottom: 2.0),

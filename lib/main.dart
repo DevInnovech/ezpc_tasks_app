@@ -17,7 +17,7 @@ Future<void> main() async {
 }
 
 class Ezpc extends StatelessWidget {
-  const Ezpc({Key? key}) : super(key: key);
+  const Ezpc({super.key});
 
   @override
   Widget build(BuildContext context) {

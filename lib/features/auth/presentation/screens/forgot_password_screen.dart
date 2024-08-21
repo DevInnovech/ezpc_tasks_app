@@ -100,7 +100,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: BorderSide(
+                                    borderSide: const BorderSide(
                                         color: primaryColor, width: 2.0),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(

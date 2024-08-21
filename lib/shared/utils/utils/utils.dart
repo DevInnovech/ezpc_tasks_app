@@ -76,15 +76,15 @@ class Utils {
   // }
 
   static String formatDate(var date) {
-    late DateTime _dateTime;
+    late DateTime dateTime;
     if (date is String) {
-      _dateTime = DateTime.parse(date);
+      dateTime = DateTime.parse(date);
     } else {
-      _dateTime = date;
+      dateTime = date;
     }
 
     // return DateFormat.MMMEd().format(_dateTime.toLocal());
-    return DateFormat.yMMMMd().format(_dateTime.toLocal());
+    return DateFormat.yMMMMd().format(dateTime.toLocal());
   }
 
   static String dataAndTimeFormat(String time) {
@@ -101,13 +101,13 @@ class Utils {
   }
 
   static String timeAgo(var date) {
-    late DateTime _dateTime;
+    late DateTime dateTime;
     if (date is String) {
-      _dateTime = DateTime.now();
+      dateTime = DateTime.now();
     } else {
-      _dateTime = date;
+      dateTime = date;
     }
-    return DateFormat.jm().format(_dateTime);
+    return DateFormat.jm().format(dateTime);
   }
 
   // static String timeAgo(String? time) {
@@ -489,10 +489,10 @@ class Utils {
 
 class InfoLabel extends StatelessWidget {
   const InfoLabel({
-    Key? key,
+    super.key,
     this.label,
     this.text,
-  }) : super(key: key);
+  });
   final String? label;
   final String? text;
 
