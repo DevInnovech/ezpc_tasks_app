@@ -1,5 +1,8 @@
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/cliente_provider_selector.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_employer_selector.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_selector.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/selector_fogottpassword.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/verification.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
@@ -17,6 +20,12 @@ class RouteNames {
 
   static const String resetOptionSelectionScreen =
       '/ResetOptionSelectionScreen';
+
+  static const String accountTypeSelectionScreen =
+      '/accountTypeSelectionScreen';
+  static const String providerTypeSelectionScreen =
+      '/providerTypeSelectionScreen';
+  static const String providerSelectionEmployer = '/providerSelectionEmployer';
 
   // static const String registrationScreen = '/registrationScreen';
   static const String changePasswordScreen = '/changePasswordScreen';
@@ -71,6 +80,18 @@ class RouteNames {
       case RouteNames.verificationCodeScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const VerificationCodeScreen());
+
+      case RouteNames.accountTypeSelectionScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => AccountTypeSelectionScreen());
+      case RouteNames.providerTypeSelectionScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => ProviderTypeSelectionScreen());
+      case RouteNames.providerSelectionEmployer:
+        return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => IndependentProviderSelectionScreen());
+
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

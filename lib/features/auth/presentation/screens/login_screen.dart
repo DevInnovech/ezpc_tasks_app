@@ -313,8 +313,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
           height: 1.6,
         ),
         GestureDetector(
-          onTap: () =>
-              Navigator.pushNamed(context, RouteNames.registerProviderScreen),
+          onTap: () => Navigator.pushNamed(
+              context, RouteNames.accountTypeSelectionScreen),
           child: const CustomText(
             text: 'Sign Up',
             fontSize: 16.0,
