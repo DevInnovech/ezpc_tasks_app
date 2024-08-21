@@ -9,8 +9,10 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/error_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/exit_dialog.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ezpc_tasks_app/features/auth/data/auth_service.dart';
 
 class AuthenticationScreen extends StatefulWidget {
   const AuthenticationScreen({super.key});
@@ -21,10 +23,12 @@ class AuthenticationScreen extends StatefulWidget {
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
   SharedPreferences? _preferences;
+  final AuthService _authService = AuthService();
   String? email;
   String? password;
   bool isRemember = false;
   bool showPassword = false;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -90,11 +94,65 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 Utils.verticalSpace(20.0),
                 PrimaryButton(
                   text: 'Login',
-                  onPressed: () {
-                    Utils.closeKeyBoard(context);
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, RouteNames.mainScreen, (route) => false);
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          setState(() {
+                            isLoading = true;
+                          });
+
+                          Utils.closeKeyBoard(context);
+
+                          // Basic validation on the frontend
+                          if (email == null ||
+                              email!.isEmpty ||
+                              password == null ||
+                              password!.isEmpty) {
+                            // Show an error message to the user
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Please fill in all fields') // "Por favor, completa todos los campos"
+                                    ));
+                            setState(() {
+                              isLoading = false;
+                            });
+                            return;
+                          }
+
+                          // Attempt to log in using the AuthService
+                          try {
+                            UserCredential? userCredential = await _authService
+                                .signInWithEmailAndPassword(email!, password!);
+
+                            if (userCredential != null) {
+                              // Successful login
+                              await _authService.savePreferences(
+                                  email!, password!, isRemember);
+                              Navigator.pushNamedAndRemoveUntil(context,
+                                  RouteNames.mainScreen, (route) => false);
+                            } else {
+                              // Login failed, show an error message to the user
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Incorrect email or password') // "Correo electrónico o contraseña incorrectos"
+                                      ));
+                            }
+                          } catch (e) {
+                            // Handle other potential errors
+                            print('Error during login: $e');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'An error occurred during login') // "Ocurrió un error durante el inicio de sesión"
+                                    ));
+                          } finally {
+                            setState(() {
+                              isLoading = false;
+                            });
+                          }
+                        },
                 ),
                 _buildRemember(),
                 Utils.verticalSpace(12.0),
