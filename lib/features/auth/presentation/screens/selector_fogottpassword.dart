@@ -38,19 +38,19 @@ class ResetOptionSelectionScreen extends StatelessWidget {
                   border: Border.all(color: primaryColor),
                   borderRadius: BorderRadius.circular(12.0),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
                     Icon(Icons.phone_android, color: primaryColor),
-                    const SizedBox(width: 12.0),
+                    SizedBox(width: 12.0),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CustomText(
+                        CustomText(
                           text: 'Via sms:',
                           fontSize: 16.0,
                           fontWeight: FontWeight.w700,
                         ),
-                        const CustomText(
+                        CustomText(
                           text: '+1 *** *** 1234',
                           fontSize: 14.0,
                         ),
@@ -72,19 +72,19 @@ class ResetOptionSelectionScreen extends StatelessWidget {
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(12.0),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
                     Icon(Icons.email, color: primaryColor),
-                    const SizedBox(width: 12.0),
+                    SizedBox(width: 12.0),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CustomText(
+                        CustomText(
                           text: 'Via Email:',
                           fontSize: 16.0,
                           fontWeight: FontWeight.w700,
                         ),
-                        const CustomText(
+                        CustomText(
                           text: '****oe@email.com',
                           fontSize: 14.0,
                         ),

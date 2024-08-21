@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class CustomText extends StatelessWidget {
   const CustomText({
-    Key? key,
+    super.key,
     required this.text,
     this.fontWeight = FontWeight.w400,
     this.fontSize = 14.0,
@@ -15,7 +15,7 @@ class CustomText extends StatelessWidget {
     this.decoration = TextDecoration.none,
     this.overflow = TextOverflow.ellipsis,
     this.textAlign = TextAlign.start,
-  }) : super(key: key);
+  });
   final String text;
   final Color color;
   final double fontSize;

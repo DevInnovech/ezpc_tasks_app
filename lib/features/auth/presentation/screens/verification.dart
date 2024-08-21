@@ -97,8 +97,8 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                 ],
               ),
             ),
-            Center(
-              child: const CustomText(
+            const Center(
+              child: CustomText(
                 text: 'Request new code in 00:30s',
                 fontSize: 12.0,
               ),

@@ -9,22 +9,21 @@ class SocialButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const SocialButton({
-    Key? key,
+    super.key,
     this.icon,
     this.imagePath,
     required this.color,
     this.borderColor,
     required this.onTap,
   })  : assert(icon != null || imagePath != null,
-            'Either icon or imagePath must be provided.'),
-        super(key: key);
+            'Either icon or imagePath must be provided.');
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Colors.grey[200], // Background color
           shape: BoxShape.rectangle, // Rectangle shape
@@ -47,7 +46,7 @@ class SocialButton extends StatelessWidget {
     } else if (imagePath != null) {
       return CustomImage(path: imagePath!);
     }
-    return SizedBox
+    return const SizedBox
         .shrink(); // In case both icon and imagePath are null, though it shouldn't happen due to assert.
   }
 }

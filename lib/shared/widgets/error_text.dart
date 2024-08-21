@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 class ErrorText extends StatelessWidget {
   const ErrorText({
-    Key? key,
+    super.key,
     required this.text,
-  }) : super(key: key);
+  });
   final String text;
 
   @override

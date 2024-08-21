@@ -1,6 +1,8 @@
+import 'package:ezpc_tasks_app/firebase_options.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_theme.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_string.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Importa Riverpod
@@ -13,11 +15,15 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const ProviderScope(child: Ezpc())); // Envuelve Ezpc con ProviderScope
 }
 
 class Ezpc extends StatelessWidget {
-  const Ezpc({Key? key}) : super(key: key);
+  const Ezpc({super.key});
 
   @override
   Widget build(BuildContext context) {

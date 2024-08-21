@@ -58,7 +58,7 @@ class ForgotPasswordNotifier extends StateNotifier<PasswordStateModel> {
 
     try {
       // Simulate a network request
-      await Future.delayed(Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
       state = PasswordStateModel(
         email: state.email,
         passwordState:

@@ -7,14 +7,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class CustomImage extends StatelessWidget {
   const CustomImage({
-    Key? key,
+    super.key,
     required this.path,
     this.fit = BoxFit.contain,
     this.height,
     this.width,
     this.color,
     this.isFile = false,
-  }) : super(key: key);
+  });
   final String? path;
   final BoxFit fit;
   final double? height, width;
