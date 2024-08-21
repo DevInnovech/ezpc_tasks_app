@@ -55,7 +55,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       child: Scaffold(
         backgroundColor: scaffoldBgColor,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(automaticallyImplyLeading: false),
+        // appBar: AppBar(automaticallyImplyLeading: false),
         body: Container(
           height: size.height,
           width: size.width,
@@ -67,7 +67,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Utils.verticalSpace(1.0),
+                Utils.verticalSpace(15.0),
                 CustomImage(
                   path: KImages.appLayer,
                   height: size.height * .25,

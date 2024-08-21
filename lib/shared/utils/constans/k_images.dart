@@ -1,6 +1,8 @@
 class KImages {
   static const String appLogo = 'assets/icons/logo.svg';
   static const String appLayer = 'assets/images/layer.png';
+
+  static const String appLayersvg = 'assets/icons/layer.svg';
   static const String splashBg = 'assets/icons/splash_bg.svg';
   static const String circlePattern = 'assets/icons/circle_pattern.svg';
   static const String onBoarding01 = 'assets/icons/on_boarding01.svg';

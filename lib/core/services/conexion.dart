@@ -1,6 +1,4 @@
-import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // Importar kIsWeb
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 abstract class InternetStatusState {
@@ -29,47 +27,13 @@ final internetStatusProvider =
 );
 
 class InternetStatusNotifier extends StateNotifier<InternetStatusState> {
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription? _subscription;
-
   InternetStatusNotifier() : super(const InternetStatusInitial()) {
-    // Si la plataforma es web, omitir la verificación de conectividad
-    if (kIsWeb) {
-      state = const InternetStatusBackState('Web platform: Assuming connected');
-    } else {
-      // Verificación inicial de la conectividad
-      _initializeConnectivity();
-
-      // Escuchar cambios en la conectividad
-      _subscription = _connectivity.onConnectivityChanged.listen((result) {
-        _updateConnectivityState(result as ConnectivityResult);
-      });
-    }
+    _assumeInternetConnectivity();
   }
 
-  Future<void> _initializeConnectivity() async {
-    if (!kIsWeb) {
-      try {
-        final result = await _connectivity.checkConnectivity();
-        _updateConnectivityState(result as ConnectivityResult);
-      } catch (e) {
-        state = const InternetStatusLostState('Failed to check connectivity');
-      }
-    }
-  }
-
-  void _updateConnectivityState(ConnectivityResult result) {
-    if (result == ConnectivityResult.mobile ||
-        result == ConnectivityResult.wifi) {
-      state = const InternetStatusBackState('Your internet was restored');
-    } else {
-      state = const InternetStatusLostState('No internet connection');
-    }
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
+  void _assumeInternetConnectivity() {
+    // Asume que siempre hay conexión
+    state = const InternetStatusBackState(
+        'Internet connection is assumed to be available');
   }
 }

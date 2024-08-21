@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-
 import 'package:ezpc_tasks_app/core/services/conexion.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
@@ -51,14 +50,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.initState();
     initializeController();
 
-    // Navega después de 3 segundos si hay conexión a Internet
+    // Verifica el estado de la conectividad después de 2 segundos
     Future.delayed(const Duration(seconds: 2), () {
-      final internetState = ref.read(internetStatusProvider);
-      print("revise");
-      if (internetState is InternetStatusBackState) {
-        Navigator.pushNamedAndRemoveUntil(
-            context, RouteNames.onBoardingScreen, (route) => false);
-      }
+      // Siempre asumimos que hay conexión
+      Navigator.pushNamedAndRemoveUntil(
+          context, RouteNames.onBoardingScreen, (route) => false);
     });
   }
 
@@ -72,14 +68,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
 
-    // Usando Consumer para escuchar el estado de la conectividad
+    // Escuchando el estado de la conectividad, aunque ahora siempre asumimos que hay conexión
     ref.listen<InternetStatusState>(internetStatusProvider, (previous, state) {
       if (state is InternetStatusBackState) {
         Utils.showSnackBar(context, state.message);
         Navigator.pushNamedAndRemoveUntil(
             context, RouteNames.onBoardingScreen, (route) => false);
-      } else if (state is InternetStatusLostState) {
-        Utils.showSnackBar(context, state.message);
       }
     });
 
