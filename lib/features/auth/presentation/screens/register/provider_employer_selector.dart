@@ -1,3 +1,5 @@
+import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/accounts_selector.dart';
@@ -5,15 +7,16 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class IndependentProviderSelectionScreen extends StatefulWidget {
+class IndependentProviderSelectionScreen extends ConsumerStatefulWidget {
   @override
   _IndependentProviderSelectionScreenState createState() =>
       _IndependentProviderSelectionScreenState();
 }
 
 class _IndependentProviderSelectionScreenState
-    extends State<IndependentProviderSelectionScreen> {
+    extends ConsumerState<IndependentProviderSelectionScreen> {
   String? selectedIndependentType;
 
   @override
@@ -76,15 +79,23 @@ class _IndependentProviderSelectionScreenState
                   ? null
                   : () {
                       if (selectedIndependentType == 'Independent') {
-                        /*   Navigator.pushNamed(
+                        ref
+                            .read(accountTypeProvider.notifier)
+                            .selectAccountType(AccountType.independentProvider);
+
+                        Navigator.pushNamed(
                           context,
-                          RouteNames.registerIndependentProvider,
-                        );*/
+                          RouteNames.createAccountScreen,
+                        );
                       } else if (selectedIndependentType == 'Employee') {
-                        /* Navigator.pushNamed(
+                        ref
+                            .read(accountTypeProvider.notifier)
+                            .selectAccountType(AccountType.employeeProvider);
+
+                        Navigator.pushNamed(
                           context,
-                          RouteNames.registerEmployee,
-                        );*/
+                          RouteNames.signUpWithBusinessCodeScreen,
+                        );
                       }
                     },
             ),

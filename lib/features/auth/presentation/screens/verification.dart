@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
@@ -30,7 +31,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
             const SizedBox(height: 8.0),
             const CustomText(
               text:
-                  'A 6-digit code was sent to your phone number. Please enter the code to continue.',
+                  'A 6-digit code was sent to your phone number OR email. Please enter the code to continue.',
               fontSize: 16.0,
             ),
             const SizedBox(height: 30.0),
@@ -71,6 +72,8 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
               onPressed: () {
                 // Handle OTP verification
                 print('Entered OTP: $_otpCode');
+                Navigator.pushNamedAndRemoveUntil(context,
+                    RouteNames.verificationCompletedScreen, (route) => false);
                 // Add your verification logic here
               },
             ),

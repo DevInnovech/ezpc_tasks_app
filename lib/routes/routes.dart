@@ -1,8 +1,18 @@
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/greates_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/background_check.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/bank_acount.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/basic_register.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/businees_register.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/cliente_provider_selector.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/employer_register.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/password.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/pay_methos.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_employer_selector.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_selector.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/regitered_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/verification_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/selector_fogottpassword.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/verification.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
@@ -28,6 +38,24 @@ class RouteNames {
   static const String providerSelectionEmployer = '/providerSelectionEmployer';
 
   // static const String registrationScreen = '/registrationScreen';
+  static const String createAccountScreen = '/createAccountScreen';
+  static const String signUpBusinessAccountScreen =
+      '/signUpBusinessAccountScreen';
+  static const String clientRegistrationExistingScreen =
+      '/clientRegistrationExistingScreen';
+  static const String signUpWithBusinessCodeScreen =
+      '/signUpWithBusinessCodeScreen';
+  static const String passwordAccountpage = '/passwordAccountpage';
+  static const String addCardPaymentMethodScreen =
+      '/addCardPaymentMethodScreen';
+  static const String backgroundCheckScreen = '/backgroundCheckScreen';
+  static const String addBankAccountInformationScreen =
+      '/addBankAccountInformationScreen';
+  static const String verificationSelectionScreen =
+      '/verificationSelectionScreen';
+  static const String verificationCompletedScreen =
+      '/verificationCompletedScreen';
+
   static const String changePasswordScreen = '/changePasswordScreen';
   static const String mainScreen = '/mainScreen';
   static const String homeScreen = '/homeScreen';
@@ -91,6 +119,44 @@ class RouteNames {
         return MaterialPageRoute(
             settings: settings,
             builder: (_) => IndependentProviderSelectionScreen());
+      case RouteNames.createAccountScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => CreateAccountPage1());
+
+      case RouteNames.signUpBusinessAccountScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => BusinessAccountScreen());
+
+      case RouteNames.clientRegistrationExistingScreen:
+        return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => ClientRegistrationExistingScreen());
+
+      case RouteNames.signUpWithBusinessCodeScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => SignUpWithBusinessCodeScreen());
+
+      case RouteNames.passwordAccountpage:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => PasswordAccountpage());
+
+      case RouteNames.addCardPaymentMethodScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => PaymentInformationScreen());
+
+      case RouteNames.backgroundCheckScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => BackgroundCheckPage());
+
+      case RouteNames.addBankAccountInformationScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => AddBankAccountPage());
+      case RouteNames.verificationSelectionScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => VerificationSelectionScreen());
+      case RouteNames.verificationCompletedScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => VerificationCompletedScreen());
 
       /*  
       case RouteNames.registerProviderScreen:

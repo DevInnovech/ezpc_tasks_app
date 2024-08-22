@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_selector.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -9,15 +10,16 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AccountTypeSelectionScreen extends StatefulWidget {
+class AccountTypeSelectionScreen extends ConsumerStatefulWidget {
   @override
   _AccountTypeSelectionScreenState createState() =>
       _AccountTypeSelectionScreenState();
 }
 
 class _AccountTypeSelectionScreenState
-    extends State<AccountTypeSelectionScreen> {
+    extends ConsumerState<AccountTypeSelectionScreen> {
   String? selectedType;
 
   @override
@@ -80,7 +82,11 @@ class _AccountTypeSelectionScreenState
                   ? null
                   : () {
                       if (selectedType == 'Client') {
-                        //   Navigator.pushNamed(context, RouteNames.registerClient);
+                        ref
+                            .read(accountTypeProvider.notifier)
+                            .selectAccountType(AccountType.client);
+                        Navigator.pushNamed(
+                            context, RouteNames.createAccountScreen);
                       } else if (selectedType == 'Provider') {
                         Navigator.push(
                           context,

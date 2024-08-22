@@ -1,4 +1,6 @@
+import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_employer_selector.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -8,15 +10,16 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProviderTypeSelectionScreen extends StatefulWidget {
+class ProviderTypeSelectionScreen extends ConsumerStatefulWidget {
   @override
   _ProviderTypeSelectionScreenState createState() =>
       _ProviderTypeSelectionScreenState();
 }
 
 class _ProviderTypeSelectionScreenState
-    extends State<ProviderTypeSelectionScreen> {
+    extends ConsumerState<ProviderTypeSelectionScreen> {
   String? selectedProviderType;
 
   @override
@@ -88,10 +91,14 @@ class _ProviderTypeSelectionScreenState
                           ),
                         );
                       } else if (selectedProviderType == 'Corporate') {
-                        /* Navigator.pushNamed(
+                        ref
+                            .read(accountTypeProvider.notifier)
+                            .selectAccountType(AccountType.corporateProvider);
+
+                        Navigator.pushNamed(
                           context,
-                          RouteNames.registerCorporateProvider,
-                        );*/
+                          RouteNames.signUpBusinessAccountScreen,
+                        );
                       }
                     },
             ),
