@@ -44,14 +44,17 @@ class PrimaryButton extends StatelessWidget {
         minimumSize: WidgetStateProperty.all(minimumSize),
         maximumSize: WidgetStateProperty.all(maximumSize),
       ),
-      child: Padding(
-        padding: Utils.only(bottom: 2.0),
-        child: CustomText(
-          text: text,
-          color: textColor,
-          fontSize: fontSize.sp,
-          height: 1.5.h,
-          fontWeight: FontWeight.w500,
+      child: Center(
+        child: Padding(
+          padding: Utils.only(bottom: 0.0),
+          child: CustomText(
+            text: text,
+            textAlign: TextAlign.center,
+            color: textColor,
+            fontSize: fontSize.sp,
+            height: 1.5.h,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
