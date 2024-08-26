@@ -33,8 +33,8 @@ class RouteNames {
 
   static const String accountTypeSelectionScreen =
       '/accountTypeSelectionScreen';
-  static const String providerTypeSelectionScreen =
-      '/providerTypeSelectionScreen';
+  /* static const String providerTypeSelectionScreen =
+      '/providerTypeSelectionScreen';*/
   static const String providerSelectionEmployer = '/providerSelectionEmployer';
 
   // static const String registrationScreen = '/registrationScreen';
@@ -112,9 +112,9 @@ class RouteNames {
       case RouteNames.accountTypeSelectionScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => AccountTypeSelectionScreen());
-      case RouteNames.providerTypeSelectionScreen:
+      /* case RouteNames.providerTypeSelectionScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => ProviderTypeSelectionScreen());
+            settings: settings, builder: (_) => ProviderTypeSelectionScreen());*/
       case RouteNames.providerSelectionEmployer:
         return MaterialPageRoute(
             settings: settings,

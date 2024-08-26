@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_employer_selector.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_selector.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/accounts_selector.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -43,22 +46,40 @@ class _AccountTypeSelectionScreenState
               fontWeight: FontWeight.bold,
               color: primaryColor,
             ),
+            Utils.verticalSpace(10.0),
+            AccountTypeSelector(
+              title: 'Business Provider',
+              description:
+                  'A company that offers tasks to clients through a network of agents or professionals.',
+              iconOrImage: CustomImage(
+                path: KImages.corporatesvg,
+                height: iconSize,
+                width: iconSize,
+              ),
+              isSelected: selectedType == 'Corporate',
+              onTap: () {
+                setState(() {
+                  selectedType = 'Corporate';
+                });
+              },
+            ),
             const SizedBox(height: 24.0),
             AccountTypeSelector(
-              title: 'Provider',
-              description: 'Provide tasks to customers',
+              title: 'Independent Provider',
+              description: 'Provide tasks as an independent contractor',
               iconOrImage: Icon(
                 Icons.engineering,
                 color: primaryColor,
                 size: iconSize,
               ),
-              isSelected: selectedType == 'Provider',
+              isSelected: selectedType == 'Independent',
               onTap: () {
                 setState(() {
-                  selectedType = 'Provider';
+                  selectedType = 'Independent';
                 });
               },
             ),
+            Utils.verticalSpace(10.0),
             Utils.verticalSpace(10.0),
             AccountTypeSelector(
               title: 'Client',
@@ -87,12 +108,19 @@ class _AccountTypeSelectionScreenState
                             .selectAccountType(AccountType.client);
                         Navigator.pushNamed(
                             context, RouteNames.createAccountScreen);
-                      } else if (selectedType == 'Provider') {
-                        Navigator.push(
+                      } else if (selectedType == 'Independent') {
+                        ref
+                            .read(accountTypeProvider.notifier)
+                            .selectAccountType(AccountType.independentProvider);
+
+                        Navigator.pushNamed(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => ProviderTypeSelectionScreen(),
-                          ),
+                          RouteNames.createAccountScreen,
+                        );
+                      } else if (selectedType == 'Corporate') {
+                        Navigator.pushNamed(
+                          context,
+                          RouteNames.providerSelectionEmployer,
                         );
                       }
                     },

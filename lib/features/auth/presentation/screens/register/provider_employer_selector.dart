@@ -1,9 +1,11 @@
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/accounts_selector.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -40,19 +42,20 @@ class _IndependentProviderSelectionScreenState
               fontWeight: FontWeight.bold,
               color: primaryColor,
             ),
-            const SizedBox(height: 24.0),
+            Utils.verticalSpace(10.0),
             AccountTypeSelector(
-              title: 'Independent Provider',
-              description: 'Provide tasks as an independent contractor',
-              iconOrImage: Icon(
-                Icons.engineering,
-                color: primaryColor,
-                size: iconSize,
+              title: 'Corporate Provider',
+              description:
+                  'A company that offers tasks to clients through a network of agents or professionals.',
+              iconOrImage: CustomImage(
+                path: KImages.corporatesvg,
+                height: iconSize,
+                width: iconSize,
               ),
-              isSelected: selectedIndependentType == 'Independent',
+              isSelected: selectedIndependentType == 'Corporate',
               onTap: () {
                 setState(() {
-                  selectedIndependentType = 'Independent';
+                  selectedIndependentType = 'Corporate';
                 });
               },
             ),
@@ -78,14 +81,14 @@ class _IndependentProviderSelectionScreenState
               onPressed: selectedIndependentType == null
                   ? null
                   : () {
-                      if (selectedIndependentType == 'Independent') {
+                      if (selectedIndependentType == 'Corporate') {
                         ref
                             .read(accountTypeProvider.notifier)
-                            .selectAccountType(AccountType.independentProvider);
+                            .selectAccountType(AccountType.corporateProvider);
 
                         Navigator.pushNamed(
                           context,
-                          RouteNames.createAccountScreen,
+                          RouteNames.signUpBusinessAccountScreen,
                         );
                       } else if (selectedIndependentType == 'Employee') {
                         ref
