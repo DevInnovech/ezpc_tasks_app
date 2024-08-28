@@ -38,7 +38,11 @@ class KImages {
   static const String bookingActive = 'assets/icons/booking_active.svg';
   static const String service = 'assets/icons/service.svg';
   static const String serviceActive = 'assets/icons/service_active.svg';
+  static const String person = 'assets/icons/person.svg';
+  static const String personActive = 'assets/icons/personActive.svg';
+
   static const String wallet = 'assets/icons/wallet.svg';
+
   static const String walletActive = 'assets/icons/wallet_active.svg';
   //static const String placeholderImage = 'assets/icons/place_holder_image.svg';
 //navbar icon start

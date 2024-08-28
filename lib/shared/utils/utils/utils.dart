@@ -1,4 +1,6 @@
+import 'package:ezpc_tasks_app/features/home/setting/providerset.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,9 +13,9 @@ class Utils {
 
   static final _initialTime = TimeOfDay.now();
 
-/*  static String formatPrice(BuildContext context, var price) {
-    final currency = context.read<WebsiteSetupCubit>().setting!.currencyIcon;
-    //String currency = '\$';
+  String formatPrice(BuildContext context, WidgetRef ref, var price) {
+    final currency = ref.read(appSettingsProvider).currencyIcon;
+
     if (price is double) return '$currency${price.toStringAsFixed(0)}';
     if (price is String) {
       final p = double.tryParse(price) ?? 0;
@@ -22,8 +24,8 @@ class Utils {
     if (price is int) {
       return '$currency${price.toStringAsFixed(0)}';
     }
-    return price.toStringAsFixed(0);
-  }*/
+    return price.toString();
+  }
 
   static String formatPriceIcon(BuildContext context, var price) {
     // final currency =

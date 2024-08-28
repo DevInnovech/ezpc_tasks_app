@@ -15,6 +15,8 @@ import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/regit
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/verification_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/selector_fogottpassword.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/verification.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -157,6 +159,12 @@ class RouteNames {
       case RouteNames.verificationCompletedScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => VerificationCompletedScreen());
+      case RouteNames.homeScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const HomeScreen());
+      case RouteNames.mainScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const MainScreen());
 
       /*  
       case RouteNames.registerProviderScreen:
@@ -260,13 +268,8 @@ class RouteNames {
         return MaterialPageRoute(
             settings: settings, builder: (_) => const AboutUsScreen());
 
-      case RouteNames.mainScreen:
-        return MaterialPageRoute(
-            settings: settings, builder: (_) => const MainScreen());
-
-      case RouteNames.homeScreen:
-        return MaterialPageRoute(
-            settings: settings, builder: (_) => const HomeScreen());
+      
+      
       case RouteNames.bookingScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const BookingScreen());
