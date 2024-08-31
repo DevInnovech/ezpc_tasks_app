@@ -17,6 +17,8 @@ import 'package:ezpc_tasks_app/features/auth/presentation/screens/selector_fogot
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/verification.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/screens/detail_scren.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -165,7 +167,13 @@ class RouteNames {
       case RouteNames.mainScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const MainScreen());
-
+      case RouteNames.serviceDetailsScreen:
+        final id = settings.arguments as String;
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => ServiceDetailsScreen(id: id));
+      case RouteNames.addNewServiceScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const AddNewTaskScreen());
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(
@@ -183,10 +191,7 @@ class RouteNames {
       //   return MaterialPageRoute(
       //       settings: settings, builder: (_) => const CreateProviderScreen());
       //
-      case RouteNames.serviceDetailsScreen:
-        final id = settings.arguments as String;
-        return MaterialPageRoute(
-            settings: settings, builder: (_) => ServiceDetailsScreen(id: id));
+      
 
       case RouteNames.reviewScreen:
         return MaterialPageRoute(
@@ -201,9 +206,7 @@ class RouteNames {
       //   return MaterialPageRoute(
       //       settings: settings, builder: (_) => SingleReviewScreen(id: id));
       //
-      case RouteNames.addNewServiceScreen:
-        return MaterialPageRoute(
-            settings: settings, builder: (_) => const AddNewServiceScreen());
+  
 
       case RouteNames.bookingDetailsScreen:
         final id = settings.arguments as String;

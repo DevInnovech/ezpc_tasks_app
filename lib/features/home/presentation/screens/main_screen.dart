@@ -1,4 +1,5 @@
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/shared/widgets/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,7 +31,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     screenList = [
       const HomeScreen(),
       const HomeScreen(),
-      const HomeScreen(),
+      const ServiceScreen(),
       const HomeScreen(),
       const HomeScreen(),
 

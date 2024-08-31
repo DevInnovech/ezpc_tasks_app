@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 const primaryColor = Color(0xFF404C8C);
+const bluecontras = Color(0xFFB3CAFF);
 const secondaryColor = Color(0xFFFE9900);
 const blackColor = Color(0xFF061533);
+
 const grayColor = Color(0xFF535769);
 const TextFieldgraycolor = Color.fromARGB(150, 217, 217, 217);
 Color hintTextColor = const Color(0xFF000000).withOpacity(0.2);

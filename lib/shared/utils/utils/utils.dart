@@ -233,6 +233,8 @@ class Utils {
         return const Color(0xffFEEEEE);
       case "pending":
         return const Color(0xffFEEEEE);
+      case "Active":
+        return const Color(0xFFB3CAFF).withOpacity(1);
       case "active":
         return const Color(0xff00BF8C).withOpacity(0.2);
       case "approved_by_provider":
