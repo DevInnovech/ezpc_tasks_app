@@ -102,7 +102,7 @@ class ProviderDashBoardModel extends Equatable {
     int? totalService,
   }) {
     return ProviderDashBoardModel(
-      currencyIcon: currencycon ?? this.currencyIcon,
+      currencyIcon: currencycon ?? currencyIcon,
       todayTotalOrder: todayTotalOrder ?? this.todayTotalOrder,
       todayTotalAwatingOrder:
           todayTotalAwatingOrder ?? this.todayTotalAwatingOrder,

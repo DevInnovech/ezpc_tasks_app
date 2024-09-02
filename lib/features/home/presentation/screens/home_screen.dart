@@ -12,12 +12,11 @@ import 'package:ezpc_tasks_app/shared/widgets/empty_widget.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/end_drawer_menu.dart';
 import 'package:ezpc_tasks_app/features/withdraw/model.dart';
 import 'package:ezpc_tasks_app/features/home/models/provider_dashboard_model.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/balance_card.dart';
 
 // Provider para manejar la lista de retiros simulada
 final withdrawProvider = Provider<List<WithdrawModel>>((ref) {
   return [
-    WithdrawModel(
+    const WithdrawModel(
       typetrasations: true,
       id: 1,
       userId: 1,
@@ -31,7 +30,7 @@ final withdrawProvider = Provider<List<WithdrawModel>>((ref) {
       createdAt: '2023-08-01 15:00:00',
       updatedAt: '2023-08-01 15:00:00',
     ),
-    WithdrawModel(
+    const WithdrawModel(
       typetrasations: false,
       id: 1,
       userId: 1,
@@ -45,7 +44,7 @@ final withdrawProvider = Provider<List<WithdrawModel>>((ref) {
       createdAt: '2023-08-01 15:00:00',
       updatedAt: '2023-08-01 15:00:00',
     ),
-    WithdrawModel(
+    const WithdrawModel(
       typetrasations: true,
       id: 2,
       userId: 1,
@@ -74,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
     final withdraws = ref.watch(withdrawProvider);
 
     // Simulación de los datos del dashboard
-    final providerDashBoard = ProviderDashBoardModel(
+    const providerDashBoard = ProviderDashBoardModel(
       currencyIcon: CurrencyIconModel(icon: AutofillHints.language),
       todayTotalOrder: 10,
       todayTotalAwatingOrder: 2,
@@ -133,7 +132,7 @@ class HomeScreen extends ConsumerWidget {
                           color: whiteColor.withOpacity(0.8),
                         ),
                         //nombre de usuario
-                        CustomText(
+                        const CustomText(
                           text: 'John Doe',
                           fontSize: 22.0,
                           fontWeight: FontWeight.w700,
@@ -141,7 +140,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
 
                         ///aqui va la verificacion de tipo de cuenta que se debe llamr en login
-                        CustomText(
+                        const CustomText(
                           text: 'Role: Provider',
                           fontSize: 14.0,
                           fontWeight: FontWeight.normal,
@@ -216,14 +215,14 @@ class HomeScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomText(
+                        const CustomText(
                           text: 'Recent Transactions',
                           fontSize: 18.0,
                           fontWeight: FontWeight.w700,
                           color: blackColor,
                         ),
                         GestureDetector(
-                          child: CustomText(
+                          child: const CustomText(
                             text: 'view all',
                             fontSize: 14.0,
                             fontWeight: FontWeight.w500,

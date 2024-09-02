@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class IndependentProviderSelectionScreen extends ConsumerStatefulWidget {
+  const IndependentProviderSelectionScreen({super.key});
+
   @override
   _IndependentProviderSelectionScreenState createState() =>
       _IndependentProviderSelectionScreenState();
@@ -29,7 +31,7 @@ class _IndependentProviderSelectionScreenState
     final iconSize = screenWidth * 0.1; // 10% del ancho de la pantalla
 
     return Scaffold(
-      appBar: CustomAppBar(title: ''),
+      appBar: const CustomAppBar(title: ''),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(

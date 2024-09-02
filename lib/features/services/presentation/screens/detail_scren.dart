@@ -5,7 +5,6 @@ import 'package:ezpc_tasks_app/features/services/presentation/widgets/service_bo
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_sliver_app_bar.dart';
@@ -23,7 +22,7 @@ class ServiceDetailsScreen extends ConsumerWidget {
     final serviceState = ref.watch(serviceProvider);
 
     // Find the service by id
-    final ServiceProductStateModel? service = serviceState.services.firstWhere(
+    final ServiceProductStateModel service = serviceState.services.firstWhere(
       (service) => service.id == id,
       // Return null if not found
     );

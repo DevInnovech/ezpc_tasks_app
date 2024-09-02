@@ -10,6 +10,8 @@ import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 class BackgroundCheckPage extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
 
+  BackgroundCheckPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
@@ -22,7 +24,7 @@ class BackgroundCheckPage extends StatelessWidget {
     final TextEditingController zipCodeController = TextEditingController();
 
     return Scaffold(
-      appBar: CustomAppBar(title: ""),
+      appBar: const CustomAppBar(title: ""),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -54,7 +56,7 @@ class BackgroundCheckPage extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: CustomForm2(
                         label: 'Last Name',
@@ -73,7 +75,7 @@ class BackgroundCheckPage extends StatelessWidget {
                 CustomForm2(
                   label: 'SSN Information',
                   controller: ssnController,
-                  suffixIcon: Icon(Icons.credit_card),
+                  suffixIcon: const Icon(Icons.credit_card),
                   hintText: ' Social Security Number',
                   textValidator: (value) {
                     if (value == null || value.isEmpty) {
@@ -140,7 +142,7 @@ class BackgroundCheckPage extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: CustomForm2(
                         label: 'Zip Code',

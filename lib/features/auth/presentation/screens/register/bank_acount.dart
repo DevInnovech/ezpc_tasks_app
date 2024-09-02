@@ -10,6 +10,8 @@ import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AddBankAccountPage extends ConsumerStatefulWidget {
+  const AddBankAccountPage({super.key});
+
   @override
   ConsumerState<AddBankAccountPage> createState() => _AddBankAccountPageState();
 }
@@ -29,7 +31,7 @@ class _AddBankAccountPageState extends ConsumerState<AddBankAccountPage> {
         TextEditingController();
 
     return Scaffold(
-      appBar: CustomAppBar(title: ""),
+      appBar: const CustomAppBar(title: ""),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -71,7 +73,7 @@ class _AddBankAccountPageState extends ConsumerState<AddBankAccountPage> {
                       CustomForm2(
                         label: 'Bank Name',
                         controller: bankNameController,
-                        suffixIcon: Icon(Icons.corporate_fare_rounded,
+                        suffixIcon: const Icon(Icons.corporate_fare_rounded,
                             color: Colors.grey),
                         hintText: 'Enter your Bank Name',
                         textValidator: (value) {

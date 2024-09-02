@@ -9,10 +9,12 @@ import 'package:flutter/material.dart';
 class ClientRegistrationExistingScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
 
+  ClientRegistrationExistingScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: "",
       ),
       body: Padding(

@@ -10,7 +10,6 @@ import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/emplo
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/password.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/pay_methos.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_employer_selector.dart';
-import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_selector.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/regitered_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/verification_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/selector_fogottpassword.dart';
@@ -115,14 +114,14 @@ class RouteNames {
 
       case RouteNames.accountTypeSelectionScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => AccountTypeSelectionScreen());
+            settings: settings, builder: (_) => const AccountTypeSelectionScreen());
       /* case RouteNames.providerTypeSelectionScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => ProviderTypeSelectionScreen());*/
       case RouteNames.providerSelectionEmployer:
         return MaterialPageRoute(
             settings: settings,
-            builder: (_) => IndependentProviderSelectionScreen());
+            builder: (_) => const IndependentProviderSelectionScreen());
       case RouteNames.createAccountScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => CreateAccountPage1());
@@ -142,7 +141,7 @@ class RouteNames {
 
       case RouteNames.passwordAccountpage:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => PasswordAccountpage());
+            settings: settings, builder: (_) => const PasswordAccountpage());
 
       case RouteNames.addCardPaymentMethodScreen:
         return MaterialPageRoute(
@@ -154,13 +153,13 @@ class RouteNames {
 
       case RouteNames.addBankAccountInformationScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => AddBankAccountPage());
+            settings: settings, builder: (_) => const AddBankAccountPage());
       case RouteNames.verificationSelectionScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => VerificationSelectionScreen());
+            settings: settings, builder: (_) => const VerificationSelectionScreen());
       case RouteNames.verificationCompletedScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => VerificationCompletedScreen());
+            settings: settings, builder: (_) => const VerificationCompletedScreen());
       case RouteNames.homeScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const HomeScreen());

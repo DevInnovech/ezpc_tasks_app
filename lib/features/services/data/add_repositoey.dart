@@ -1,6 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
-import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/special_days_widget.dart';
 
 // Proveedor para controlar si la licencia es requerida

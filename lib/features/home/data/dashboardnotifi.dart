@@ -11,10 +11,10 @@ class BalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Simular balance
-    final double simulatedBalance = 1200.0;
+    const double simulatedBalance = 1200.0;
 
     // Devolver el widget con el balance simulado
-    return LoadedBalanceWidget(balance: simulatedBalance);
+    return const LoadedBalanceWidget(balance: simulatedBalance);
   }
 }
 
@@ -64,9 +64,9 @@ class LoadedBalanceWidget extends StatelessWidget {
           ),
           ElevatedButton.icon(
             style: ButtonStyle(
-              minimumSize: MaterialStatePropertyAll(
+              minimumSize: WidgetStatePropertyAll(
                   Size(Utils.hSize(112.0), Utils.vSize(45.0))),
-              backgroundColor: const MaterialStatePropertyAll(primaryColor),
+              backgroundColor: const WidgetStatePropertyAll(primaryColor),
             ),
             onPressed: () => showDialog(
               barrierDismissible: false,

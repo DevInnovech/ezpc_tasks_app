@@ -5,11 +5,11 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 
 class ServiceImage extends StatelessWidget {
-  const ServiceImage({Key? key}) : super(key: key);
+  const ServiceImage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final image = ''; // Replace with image state
+    const image = ''; // Replace with image state
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -37,9 +37,9 @@ class ServiceImage extends StatelessWidget {
                 color: Colors.blue,
                 dashPattern: const [6, 3],
                 strokeCap: StrokeCap.square,
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(Icons.image_outlined, color: Colors.blue),
                     SizedBox(width: 5.0),
                     CustomText(
@@ -62,7 +62,7 @@ class ServiceImage extends StatelessWidget {
                 width: double.infinity,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
-                  child: CustomImage(
+                  child: const CustomImage(
                     path: image,
                     isFile: true,
                     fit: BoxFit.cover,

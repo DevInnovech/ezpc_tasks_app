@@ -1,12 +1,10 @@
 import 'package:ezpc_tasks_app/features/services/data/sevices_repository.dart';
-import 'package:ezpc_tasks_app/features/services/models/services_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/widgets/services_appbar.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/widgets/services_component.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/fetch_error_text.dart';
@@ -57,10 +55,10 @@ class ServiceScreen extends ConsumerWidget {
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CustomImage(
             path: KImages.emptyBookingImage,
           ),

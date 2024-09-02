@@ -18,10 +18,12 @@ class BusinessAccountScreen extends StatelessWidget {
   final TextEditingController dobController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
+  BusinessAccountScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: ""),
+      appBar: const CustomAppBar(title: ""),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -81,7 +83,7 @@ class BusinessAccountScreen extends StatelessWidget {
                 },
               ),
               // generar el codigo que deseen
-              EmployeeCodeField(employeeCode: "BSC76823"),
+              const EmployeeCodeField(employeeCode: "BSC76823"),
               Utils.verticalSpace(15),
               /*  CustomForm2(
                 label: "Employee code assigned",
@@ -110,7 +112,7 @@ class BusinessAccountScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: CustomForm2(
                       label: 'Phone Number',

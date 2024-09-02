@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 
 class LicenseDocumentInput extends StatelessWidget {
-  const LicenseDocumentInput({Key? key}) : super(key: key);
+  const LicenseDocumentInput({super.key});
 
   @override
   Widget build(BuildContext context) {

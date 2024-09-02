@@ -17,10 +17,12 @@ class SignUpWithBusinessCodeScreen extends StatelessWidget {
   final TextEditingController birthDateController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
+  SignUpWithBusinessCodeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: ""),
+      appBar: const CustomAppBar(title: ""),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(

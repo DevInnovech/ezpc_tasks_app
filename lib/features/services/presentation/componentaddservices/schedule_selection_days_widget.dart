@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DaysSelector extends ConsumerWidget {
-  const DaysSelector({Key? key}) : super(key: key);
+  const DaysSelector({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

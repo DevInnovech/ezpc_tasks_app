@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class PriceInputWidget extends StatelessWidget {
-  const PriceInputWidget({Key? key}) : super(key: key);
+  const PriceInputWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class PriceInputWidget extends StatelessWidget {
                     fontSize: 16.0,
                     color: Color(0xFF8D8D8D),
                   ),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: InputBorder.none,
                     focusedBorder:
                         InputBorder.none, // Eliminar borde cuando está enfocado

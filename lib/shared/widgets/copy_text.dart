@@ -8,8 +8,8 @@ class EmployeeCodeField extends StatelessWidget {
 
   const EmployeeCodeField({
     required this.employeeCode,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +45,9 @@ class EmployeeCodeField extends StatelessWidget {
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: employeeCode));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text("Employee code copied to clipboard"),
-                      duration: const Duration(seconds: 2),
+                    const SnackBar(
+                      content: Text("Employee code copied to clipboard"),
+                      duration: Duration(seconds: 2),
                     ),
                   );
                 },

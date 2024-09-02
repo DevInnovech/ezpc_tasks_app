@@ -9,14 +9,14 @@ class CustomCheckboxListTile extends StatelessWidget {
   final Color checkColor;
 
   const CustomCheckboxListTile({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.onChanged,
     this.titleColor,
     this.activeColor = Colors.blue, // Valor predeterminado
     this.checkColor = Colors.white, // Valor predeterminado
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

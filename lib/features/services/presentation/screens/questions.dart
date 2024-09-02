@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class QuestionsStep extends ConsumerWidget {
-  const QuestionsStep({Key? key}) : super(key: key);
+  const QuestionsStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

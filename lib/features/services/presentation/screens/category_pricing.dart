@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CategoryPricingStep extends ConsumerWidget {
-  const CategoryPricingStep({Key? key}) : super(key: key);
+  const CategoryPricingStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

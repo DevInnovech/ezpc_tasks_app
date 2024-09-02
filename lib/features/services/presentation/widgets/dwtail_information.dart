@@ -8,7 +8,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/features/services/models/services_model.dart';
 
 class DetailInformation extends StatefulWidget {
-  const DetailInformation({Key? key, required this.service}) : super(key: key);
+  const DetailInformation({super.key, required this.service});
   final ServiceProductStateModel service;
 
   @override

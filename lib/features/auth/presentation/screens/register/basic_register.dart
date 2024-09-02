@@ -6,10 +6,12 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_form2.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateAccountPage1 extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
+
+  CreateAccountPage1({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class CreateAccountPage1 extends StatelessWidget {
     final TextEditingController phoneController = TextEditingController();
 
     return Scaffold(
-      appBar: CustomAppBar(title: ""),
+      appBar: const CustomAppBar(title: ""),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -66,7 +68,7 @@ class CreateAccountPage1 extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: CustomForm2(
                         label: 'Last Name',
@@ -98,7 +100,7 @@ class CreateAccountPage1 extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: CustomForm2(
                         label: 'Phone Number',
@@ -116,12 +118,27 @@ class CreateAccountPage1 extends StatelessWidget {
                 ),
                 PrimaryButton(
                   text: 'Continue',
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      // Llamar a la función de registro con los datos ingresados
+                      // Obtener los datos ingresados
+                      String email = emailController.text;
+                      String name = nameController.text;
+                      String lastName = lastNameController.text;
+                      //              DateTime dob = DateTime.parse(dobController.text); // Asegúrate de que este formato sea correcto
+                      String phoneNumber = phoneController.text;
+
                       // Proceed to next page
                       Navigator.pushNamed(
                         context,
                         RouteNames.passwordAccountpage,
+                        arguments: {
+                          'email': email,
+                          'name': name,
+                          'lastName': lastName,
+                          //     'dob': dob,
+                          'phoneNumber': phoneNumber,
+                        },
                       );
                     }
                   },

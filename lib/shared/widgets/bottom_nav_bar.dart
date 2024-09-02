@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class MyBottomNavigationBar extends StatelessWidget {
-  const MyBottomNavigationBar({Key? key}) : super(key: key);
+  const MyBottomNavigationBar({super.key});
 
   @override
   Widget build(BuildContext context) {

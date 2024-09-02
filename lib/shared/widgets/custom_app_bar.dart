@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
-import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'custom_text.dart';
 
@@ -31,11 +30,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Stack(
           children: [
             if (isShowBackButton)
-              Positioned(
+              const Positioned(
                 left: 16.0,
                 top: 0,
                 bottom: 0,
-                child: const BackButtonWidget(),
+                child: BackButtonWidget(),
               ),
             Center(
               child: CustomText(

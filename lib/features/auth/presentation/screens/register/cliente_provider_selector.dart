@@ -1,8 +1,5 @@
-import 'dart:convert';
 
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
-import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_employer_selector.dart';
-import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/provider_selector.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -16,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AccountTypeSelectionScreen extends ConsumerStatefulWidget {
+  const AccountTypeSelectionScreen({super.key});
+
   @override
   _AccountTypeSelectionScreenState createState() =>
       _AccountTypeSelectionScreenState();

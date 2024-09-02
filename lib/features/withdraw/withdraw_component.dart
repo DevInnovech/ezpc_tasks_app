@@ -12,7 +12,7 @@ class WithdrawComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String type_trasations = withdraw.typetrasations ? "+" : "-";
+    final String typeTrasations = withdraw.typetrasations ? "+" : "-";
 
     final active = withdraw.status == 1;
     return Container(
@@ -108,7 +108,7 @@ class WithdrawComponent extends StatelessWidget {
             ),
           ),
           CustomText(
-            text: "$type_trasations\$" + withdraw.totalAmount.toString(),
+            text: "$typeTrasations\$${withdraw.totalAmount}",
             fontSize: 18.0,
             fontWeight: FontWeight.w600,
             color: primaryColor,

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,7 +28,7 @@ final specialDaysProvider = StateProvider<List<SpecialDay>>((ref) {
 });
 
 class SpecialDaysStep extends ConsumerWidget {
-  const SpecialDaysStep({Key? key}) : super(key: key);
+  const SpecialDaysStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -127,7 +126,7 @@ class SpecialDaysStep extends ConsumerWidget {
                 ),
               ),
             );
-          }).toList(),
+          }),
           ListTile(
             leading: const Icon(Icons.add, color: Colors.deepPurple),
             title: const Text(

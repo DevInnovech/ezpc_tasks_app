@@ -1,11 +1,3 @@
-import 'package:ezpc_tasks_app/features/home/data/dashboardprovider.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
-import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
-import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
-import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 /*/*
 // Provider que maneja el balance disponible del perfil
 final balanceProvider = FutureProvider<double?>((ref) async {

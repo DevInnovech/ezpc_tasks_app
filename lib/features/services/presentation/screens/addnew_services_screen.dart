@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AddNewTaskScreen extends ConsumerStatefulWidget {
-  const AddNewTaskScreen({Key? key}) : super(key: key);
+  const AddNewTaskScreen({super.key});
 
   @override
   _AddNewTaskScreenState createState() => _AddNewTaskScreenState();

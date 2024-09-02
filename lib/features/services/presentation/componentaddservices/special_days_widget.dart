@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 
 class SpecialDaysWidget extends ConsumerWidget {
-  const SpecialDaysWidget({Key? key}) : super(key: key);
+  const SpecialDaysWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

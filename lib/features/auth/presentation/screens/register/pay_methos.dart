@@ -17,10 +17,12 @@ class PaymentInformationScreen extends StatelessWidget {
   final TextEditingController stateController = TextEditingController();
   final TextEditingController zipCodeController = TextEditingController();
 
+  PaymentInformationScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: ""),
+      appBar: const CustomAppBar(title: ""),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -80,7 +82,7 @@ class PaymentInformationScreen extends StatelessWidget {
                       label: "Card number",
                       hintText: "Enter your card number",
                       controller: cardNumberController,
-                      suffixIcon: Icon(Icons.credit_card, color: Colors.grey),
+                      suffixIcon: const Icon(Icons.credit_card, color: Colors.grey),
                       textValidator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Card number is required";

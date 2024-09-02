@@ -24,7 +24,7 @@ class ServiceBottomNavBar extends ConsumerWidget {
     // Find the service by id
     final service = serviceState.services.firstWhere(
       (service) => service.id == id,
-      orElse: () => ServiceProductStateModel(
+      orElse: () => const ServiceProductStateModel(
         id: '',
         name: '',
         slug: '',

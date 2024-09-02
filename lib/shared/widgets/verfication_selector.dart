@@ -16,8 +16,8 @@ class VerificationOptionSelector extends StatelessWidget {
     required this.icon,
     required this.isSelected,
     required this.onTap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

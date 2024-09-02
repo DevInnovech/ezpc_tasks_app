@@ -8,10 +8,9 @@ import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
-import 'package:ezpc_tasks_app/features/services/models/adding_model.dart';
 
 class ServiceComponent extends StatelessWidget {
-  const ServiceComponent({Key? key, required this.service}) : super(key: key);
+  const ServiceComponent({super.key, required this.service});
   final ServiceProductStateModel service;
 
   @override
@@ -86,9 +85,9 @@ class ServiceComponent extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: EdgeInsets.only(right: 1.0),
+                padding: const EdgeInsets.only(right: 1.0),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                       horizontal: 6.0,
                       vertical: 2.0), // Adjust the padding as needed
                   decoration: BoxDecoration(

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WorkingHoursSelector extends ConsumerWidget {
-  const WorkingHoursSelector({Key? key}) : super(key: key);
+  const WorkingHoursSelector({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -193,7 +193,7 @@ class WorkingHoursSelector extends ConsumerWidget {
                         : null,
                   ),
                 );
-              }).toList(),
+              }),
           ],
         ),
       ),

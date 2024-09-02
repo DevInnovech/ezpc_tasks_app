@@ -10,11 +10,10 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_dialog.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
-import 'package:ezpc_tasks_app/shared/widgets/fetch_error_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
 
   @override
   _MainScreenState createState() => _MainScreenState();

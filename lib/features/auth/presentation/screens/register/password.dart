@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/auth/data/auth_service.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -9,6 +10,8 @@ import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PasswordAccountpage extends ConsumerStatefulWidget {
+  const PasswordAccountpage({super.key});
+
   @override
   ConsumerState<PasswordAccountpage> createState() =>
       _PasswordAccountpageState();
@@ -24,8 +27,17 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
     final TextEditingController confirmPasswordController =
         TextEditingController();
 
+    // Obtener los argumentos de la página anterior
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+    String email = args['email'];
+    String name = args['name'];
+    String lastName = args['lastName'];
+    //  DateTime dob = args['dob'];
+    String phoneNumber = args['phoneNumber'];
+
     return Scaffold(
-      appBar: AppBar(title: Text('Create Account')),
+      appBar: AppBar(title: const Text('Create Account')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -86,41 +98,61 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                 Row(
                   children: [
                     Checkbox(value: true, onChanged: (val) {}),
-                    Text('I agree to the Terms and Conditions')
+                    const Text('I agree to the Terms and Conditions')
                   ],
                 ),
                 PrimaryButton(
                   text: 'Continue',
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Proceed to next page
+                      // Llamar a la función de registro
+                      String username = usernameController.text;
+                      String password = passwordController.text;
 
                       final accountType = ref.watch(accountTypeProvider);
 
-                      if (accountType == AccountType.client) {
-                        // Lógica para cliente
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.addCardPaymentMethodScreen,
-                        );
-                      } else if (accountType == AccountType.corporateProvider) {
-                        // Lógica para proveedor corporativo
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.addBankAccountInformationScreen,
-                        );
-                      } else if (accountType ==
-                          AccountType.independentProvider) {
-                        // Lógica para proveedor independiente
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.addBankAccountInformationScreen,
-                        );
-                      } else if (accountType == AccountType.employeeProvider) {
-                        // Lógica para proveedor empleado
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.addBankAccountInformationScreen,
+                      // Crear instancia de AuthService
+                      var authService =
+                          AuthService(); // Instancia de AuthService
+
+                      // Llamar a la función de registro
+                      var user = await authService.SignUpMethod(
+                        email: email,
+                        name: name,
+                        lastName: lastName,
+                        //       dob: dob,
+                        phoneNumber: phoneNumber,
+                        username: username,
+                        password: password,
+                        role: accountType == AccountType.client
+                            ? 'Client'
+                            : accountType == AccountType.corporateProvider
+                                ? 'Corporate Provider'
+                                : accountType == AccountType.independentProvider
+                                    ? 'Independent Provider'
+                                    : accountType ==
+                                            AccountType.employeeProvider
+                                        ? 'Employee Provider'
+                                        : '',
+                      );
+
+                      if (user != null) {
+                        // Navegar a la siguiente pantalla dependiendo del tipo de cuenta
+                        if (accountType == AccountType.client) {
+                          Navigator.pushNamed(
+                            context,
+                            RouteNames.addCardPaymentMethodScreen,
+                          );
+                        } else {
+                          Navigator.pushNamed(
+                            context,
+                            RouteNames.addBankAccountInformationScreen,
+                          );
+                        }
+                      } else {
+                        // Manejo de error si el registro falla
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to create account')),
                         );
                       }
                     }

@@ -20,7 +20,7 @@ class EndDrawerMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.sizeOf(context);
     final profile = ref.watch(dashboardNotifierProvider);
-    final image = KImages.pp;
+    const image = KImages.pp;
     return SafeArea(
       child: Drawer(
         backgroundColor: blackColor,
@@ -47,7 +47,7 @@ class EndDrawerMenu extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  Column(
+                  const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(

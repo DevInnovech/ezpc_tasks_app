@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProviderTypeSelectionScreen extends ConsumerStatefulWidget {
+  const ProviderTypeSelectionScreen({super.key});
+
   @override
   _ProviderTypeSelectionScreenState createState() =>
       _ProviderTypeSelectionScreenState();
@@ -30,7 +32,7 @@ class _ProviderTypeSelectionScreenState
     final iconSize = screenWidth * 0.1; // 10% del ancho de la pantalla
 
     return Scaffold(
-      appBar: CustomAppBar(title: ""),
+      appBar: const CustomAppBar(title: ""),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -87,7 +89,7 @@ class _ProviderTypeSelectionScreenState
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                IndependentProviderSelectionScreen(),
+                                const IndependentProviderSelectionScreen(),
                           ),
                         );
                       } else if (selectedProviderType == 'Corporate') {

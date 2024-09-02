@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class VerificationSelectionScreen extends ConsumerStatefulWidget {
+  const VerificationSelectionScreen({super.key});
+
   @override
   _VerificationSelectionScreenState createState() =>
       _VerificationSelectionScreenState();
@@ -20,7 +22,7 @@ class _VerificationSelectionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: ''),
+      appBar: const CustomAppBar(title: ''),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(

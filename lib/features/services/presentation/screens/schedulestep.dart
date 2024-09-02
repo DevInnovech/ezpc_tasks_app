@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ScheduleStep extends ConsumerWidget {
-  const ScheduleStep({Key? key}) : super(key: key);
+  const ScheduleStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

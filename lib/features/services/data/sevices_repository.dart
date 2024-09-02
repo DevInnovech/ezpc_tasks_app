@@ -37,7 +37,7 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
   void _loadServices() {
     // Simula datos cargados
     final services = [
-      ServiceProductStateModel(
+      const ServiceProductStateModel(
         id: "pp",
         name: 'Service 1',
         slug: 'service-1',
@@ -61,7 +61,7 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
         ],
         status: 'Active',
       ),
-      ServiceProductStateModel(
+      const ServiceProductStateModel(
         id: "ss",
         name: 'Service 2',
         slug: 'service-2',

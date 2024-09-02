@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
-import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
@@ -9,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 
 class VerificationCompletedScreen extends ConsumerWidget {
+  const VerificationCompletedScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
@@ -19,7 +20,7 @@ class VerificationCompletedScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CustomImage(
+            const CustomImage(
               path: KImages.verificationCompletedIcon, // Icono de verificación
               height: 100.0,
               width: 100.0,
