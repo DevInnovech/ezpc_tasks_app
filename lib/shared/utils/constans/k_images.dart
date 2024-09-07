@@ -10,6 +10,15 @@ class KImages {
   static const String onBoarding02 = 'assets/icons/on_boarding02.svg';
   static const String withdrawIcon = 'assets/icons/withdraw_icon.svg';
   static const String googleIcon = 'assets/icons/google.svg';
+  static const String priceTag = 'assets/icons/tag.svg';
+  static const String starSolid = 'assets/icons/star-solid.svg';
+
+  static const String offer = 'assets/images/offer.png';
+  static const String Referalflayer = 'assets/images/Referral.png';
+
+  static const String filterMenu = 'assets/icons/filter-menu.svg';
+  static const String searchIcon = 'assets/icons/search.svg';
+  static const String thumbsIcon = 'assets/icons/thumbs-up.svg';
   static const String facebookIcon = 'assets/icons/facebook.svg';
   static const String kNetworkImage = "https://picsum.photos/320";
   static const String trashIcon = "assets/icons/trash_icon.svg";
@@ -30,6 +39,32 @@ class KImages {
   static const String donationIcon = "assets/icons/donation_icon.svg";
   static const String declinedIcon = "assets/icons/declined_icon.svg";
   static const String paymentIcon = "assets/icons/payment_icon.svg";
+
+  //bottom-nav icons
+  static const String homeclient = 'assets/icons/home-outline.svg';
+  static const String homeActiveclient = 'assets/icons/home-solid.svg';
+  static const String order = 'assets/icons/order-outline.svg';
+  static const String orderActive = 'assets/icons/order-solid.svg';
+  static const String inbox = 'assets/icons/chat-outline.svg';
+  static const String inboxActive = 'assets/icons/chat-solid.svg';
+  static const String more = 'assets/icons/more-outline.svg';
+  static const String moreActive = 'assets/icons/more-solid.svg';
+
+  //drawer items
+  static const String drawerCategory = 'assets/icons/apps.svg';
+  static const String editProfile = 'assets/icons/user.svg';
+  static const String lock = 'assets/icons/lock.svg';
+  static const String faq = 'assets/icons/book-help.svg';
+  static const String aboutUs = 'assets/icons/report.svg';
+  static const String privacy = 'assets/icons/view-privacy.svg';
+  static const String payment = 'assets/icons/wallet.svg';
+  static const String collection = 'assets/images/collection.svg';
+  static const String logout = 'assets/icons/logout.svg';
+  static const String drawerStar = 'assets/icons/drawer-star.svg';
+  static const String downArrow = 'assets/icons/down-arrow.svg';
+  static const String supportIcon = 'assets/icons/support-icon.svg';
+  static const String sendIcon = "assets/icons/send-icon.svg";
+  static const String attachmentIcon = "assets/icons/attachment-icon.svg";
 
 //navbar icon start
   static const String home = 'assets/icons/home.svg';

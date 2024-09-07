@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -11,17 +12,19 @@ import 'package:ezpc_tasks_app/shared/widgets/exit_dialog.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ezpc_tasks_app/features/auth/data/auth_service.dart';
 
-class AuthenticationScreen extends StatefulWidget {
+class AuthenticationScreen extends ConsumerStatefulWidget {
   const AuthenticationScreen({super.key});
 
   @override
-  State<AuthenticationScreen> createState() => _AuthenticationScreenState();
+  ConsumerState<AuthenticationScreen> createState() =>
+      _AuthenticationScreenState();
 }
 
-class _AuthenticationScreenState extends State<AuthenticationScreen> {
+class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
   SharedPreferences? _preferences;
   final AuthService _authService = AuthService();
   String? email;
@@ -50,6 +53,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userType = ref.watch(accountTypeProvider);
     final size = MediaQuery.sizeOf(context);
     return WillPopScope(
       onWillPop: () async {
@@ -97,6 +101,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                   onPressed: isLoading
                       ? null
                       : () async {
+                          Navigator.pushNamedAndRemoveUntil(context,
+                              RouteNames.ClientmainScreen, (route) => false);
+/*
+
                           setState(() {
                             isLoading = true;
                           });
@@ -129,8 +137,16 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                               // Successful login
                               await _authService.savePreferences(
                                   email!, password!, isRemember);
-                              Navigator.pushNamedAndRemoveUntil(context,
-                                  RouteNames.mainScreen, (route) => false);
+
+                              if (userType == AccountType.client) {
+                                Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    RouteNames.ClientmainScreen,
+                                    (route) => false);
+                              } else {
+                                Navigator.pushNamedAndRemoveUntil(context,
+                                    RouteNames.mainScreen, (route) => false);
+                              }
                             } else {
                               // Login failed, show an error message to the user
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -152,6 +168,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                               isLoading = false;
                             });
                           }
+                      */
                         },
                 ),
                 _buildRemember(),

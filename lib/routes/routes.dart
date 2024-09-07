@@ -14,6 +14,7 @@ import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/regit
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/verification_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/selector_fogottpassword.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/verification.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
@@ -61,6 +62,7 @@ class RouteNames {
 
   static const String changePasswordScreen = '/changePasswordScreen';
   static const String mainScreen = '/mainScreen';
+  static const String ClientmainScreen = '/clientmainScreen';
   static const String homeScreen = '/homeScreen';
   static const String bookingScreen = '/bookingScreen';
   static const String serviceScreen = '/serviceScreen';
@@ -114,7 +116,8 @@ class RouteNames {
 
       case RouteNames.accountTypeSelectionScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const AccountTypeSelectionScreen());
+            settings: settings,
+            builder: (_) => const AccountTypeSelectionScreen());
       /* case RouteNames.providerTypeSelectionScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => ProviderTypeSelectionScreen());*/
@@ -156,16 +159,21 @@ class RouteNames {
             settings: settings, builder: (_) => const AddBankAccountPage());
       case RouteNames.verificationSelectionScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const VerificationSelectionScreen());
+            settings: settings,
+            builder: (_) => const VerificationSelectionScreen());
       case RouteNames.verificationCompletedScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const VerificationCompletedScreen());
+            settings: settings,
+            builder: (_) => const VerificationCompletedScreen());
       case RouteNames.homeScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const HomeScreen());
       case RouteNames.mainScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const MainScreen());
+      case RouteNames.ClientmainScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const ClientMainScreen());
       case RouteNames.serviceDetailsScreen:
         final id = settings.arguments as String;
         return MaterialPageRoute(

@@ -14,7 +14,6 @@ class TaskNotifier extends StateNotifier<Task?> {
 
   TaskNotifier(this._repository) : super(null);
 
-  // Método para actualizar el estado de la tarea
   void updateTask(Task Function(Task?) updater) {
     final updatedTask = updater(state);
     if (updatedTask != null) {
@@ -22,7 +21,6 @@ class TaskNotifier extends StateNotifier<Task?> {
     }
   }
 
-  // Asegurarse de que todos los campos estén llenos
   Task _ensureAllFieldsFilled(Task task) {
     return task.copyWith(
       id: task.id.isNotEmpty ? task.id : const Uuid().v4(),
@@ -45,19 +43,18 @@ class TaskNotifier extends StateNotifier<Task?> {
       licenseExpirationDate: task.licenseExpirationDate.isNotEmpty
           ? task.licenseExpirationDate
           : state?.licenseExpirationDate ?? '',
-      workingDays: task.workingDays != null && task.workingDays!.isNotEmpty
+      workingDays: task.workingDays?.isNotEmpty == true
           ? task.workingDays
           : state?.workingDays ?? [],
-      workingHours: task.workingHours != null && task.workingHours!.isNotEmpty
+      workingHours: task.workingHours?.isNotEmpty == true
           ? task.workingHours
           : state?.workingHours ?? {},
-      specialDays: task.specialDays != null && task.specialDays!.isNotEmpty
+      specialDays: task.specialDays?.isNotEmpty == true
           ? task.specialDays
           : state?.specialDays ?? [],
     );
   }
 
-  // Método para guardar una tarea
   Future<void> saveTask(Task task) async {
     try {
       final taskToSave = _ensureAllFieldsFilled(task);
@@ -72,61 +69,7 @@ class TaskNotifier extends StateNotifier<Task?> {
     }
   }
 
-  // Método para resetear la tarea
   void resetTask() {
     state = null;
-  }
-
-  // Método para actualizar la categoría
-  void setCategory(String category) {
-    updateTask((task) => (task ??
-            Task(
-              id: '',
-              name: '',
-              category: category,
-              subCategory: '',
-              price: 0.0,
-              imageUrl: '',
-              requiresLicense: false,
-              licenseType: '',
-              licenseNumber: '',
-              licenseExpirationDate: '',
-              workingDays: const [],
-              workingHours: const {},
-              specialDays: const [],
-            ))
-        .copyWith(category: category));
-  }
-
-  // Métodos adicionales para actualizar otros campos
-  void setName(String name) {
-    updateTask((task) {
-      return (task ?? _createEmptyTask()).copyWith(name: name);
-    });
-  }
-
-  void setPrice(double price) {
-    updateTask((task) {
-      return (task ?? _createEmptyTask()).copyWith(price: price);
-    });
-  }
-
-  // Método privado para crear una tarea vacía
-  Task _createEmptyTask() {
-    return const Task(
-      id: '',
-      name: '',
-      category: '',
-      subCategory: '',
-      price: 0.0,
-      imageUrl: '',
-      requiresLicense: false,
-      licenseType: '',
-      licenseNumber: '',
-      licenseExpirationDate: '',
-      workingDays: [],
-      workingHours: {},
-      specialDays: [],
-    );
   }
 }
