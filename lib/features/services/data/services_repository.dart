@@ -1,14 +1,13 @@
-import 'package:ezpc_tasks_app/features/services/models/services_model.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ezpc_tasks_app/features/services/models/services_model.dart';
 
-// Simulación de un estado de carga para los servicios
+// Definición del estado de los servicios
 final serviceProvider =
     StateNotifierProvider<ServiceNotifier, ServiceState>((ref) {
   return ServiceNotifier();
 });
 
-// Definición del estado de los servicios
 class ServiceState {
   final bool isLoading;
   final List<ServiceProductStateModel> services;
@@ -29,13 +28,51 @@ class ServiceState {
 
 // Notificador de estado para manejar la lógica
 class ServiceNotifier extends StateNotifier<ServiceState> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   ServiceNotifier() : super(ServiceState.loading()) {
-    _loadServices();
+    _loadServicesFromFirebase();
   }
 
-  // Simulación de carga de datos sin retraso
+  // Carga de datos desde Firebase
+  Future<void> _loadServicesFromFirebase() async {
+    try {
+      // Obtenemos la colección de "services" de Firebase
+      final QuerySnapshot snapshot =
+          await _firestore.collection('services').get();
+
+      // Convertimos los documentos de Firebase a objetos ServiceProductStateModel
+      final List<ServiceProductStateModel> services = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return ServiceProductStateModel.fromJson(data as String);
+      }).toList();
+
+      // Actualizamos el estado con los servicios obtenidos de Firebase
+      state = ServiceState.loaded(services);
+    } catch (e) {
+      state = ServiceState.error(e.toString());
+      print('Error loading services from Firebase: $e');
+    }
+  }
+
+  // Método para guardar un nuevo servicio en Firebase
+  Future<void> saveService(ServiceProductStateModel service) async {
+    try {
+      // Guardamos el servicio en la colección de Firebase
+      await _firestore
+          .collection('services')
+          .doc(service.id)
+          .set(service.toJson() as Map<String, dynamic>);
+
+      // Recargamos los servicios desde Firebase
+      _loadServicesFromFirebase();
+    } catch (e) {
+      print('Error saving service to Firebase: $e');
+    }
+  }
+
+  // Simulación de carga de datos (si decides no usar Firebase para pruebas locales)
   void _loadServices() {
-    // Simula datos cargados
     final services = [
       const ServiceProductStateModel(
         id: "pp",
@@ -45,7 +82,7 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
         categoryId: '1',
         subCategoryId: '1.1',
         details: 'Details for service 1',
-        image: KImages.s01,
+        image: 'https://example.com/image.png',
         packageFeature: ['Feature 1', 'Feature 2'],
         benefits: ['Benefit 1', 'Benefit 2'],
         whatYouWillProvide: ['Provide 1', 'Provide 2'],
@@ -69,7 +106,7 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
         categoryId: '2',
         subCategoryId: '2.1',
         details: 'Details for service 2',
-        image: KImages.s01,
+        image: 'https://example.com/image.png',
         packageFeature: ['Feature A', 'Feature B'],
         benefits: ['Benefit A', 'Benefit B'],
         whatYouWillProvide: ['Provide A', 'Provide B'],

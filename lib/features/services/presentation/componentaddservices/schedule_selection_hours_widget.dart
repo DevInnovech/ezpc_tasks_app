@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WorkingHoursSelector extends ConsumerWidget {
-  const WorkingHoursSelector({super.key});
+  const WorkingHoursSelector(
+      {super.key,
+      Map<String, Map<String, String>>? initialHours,
+      required Null Function(Map<String, Map<String, String>> workingHours)
+          onHoursSelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

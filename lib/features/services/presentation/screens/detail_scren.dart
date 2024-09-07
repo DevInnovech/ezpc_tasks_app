@@ -1,16 +1,17 @@
-import 'package:ezpc_tasks_app/features/services/data/sevices_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/models/services_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/widgets/dwtail_information.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/widgets/service_botton_bar.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_sliver_app_bar.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/fetch_error_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/loading_widget.dart';
+import 'package:ezpc_tasks_app/features/services/data/services_repository.dart'; // Importa serviceProvider
+import 'package:collection/collection.dart'; // Importa esta librería para usar firstWhereOrNull
 
 class ServiceDetailsScreen extends ConsumerWidget {
   const ServiceDetailsScreen({super.key, required this.id});
@@ -21,11 +22,9 @@ class ServiceDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serviceState = ref.watch(serviceProvider);
 
-    // Find the service by id
-    final ServiceProductStateModel service = serviceState.services.firstWhere(
-      (service) => service.id == id,
-      // Return null if not found
-    );
+    // Encontrar el servicio por id utilizando firstWhereOrNull
+    final ServiceProductStateModel? service = serviceState.services
+        .firstWhereOrNull((service) => service.id == id);
 
     return Scaffold(
       body: serviceState.isLoading
@@ -92,8 +91,7 @@ class LoadedServiceDetailWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPackageInfo(
-      BuildContext context, ServiceProductStateModel service) {
+  Widget _buildPackageInfo(BuildContext context, ServiceProductStateModel service) {
     return Container(
       padding: Utils.only(bottom: 20.0),
       margin: Utils.symmetric(h: 0.0, v: 20.0),

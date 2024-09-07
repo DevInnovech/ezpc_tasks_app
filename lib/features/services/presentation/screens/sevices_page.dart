@@ -1,4 +1,4 @@
-import 'package:ezpc_tasks_app/features/services/data/sevices_repository.dart';
+import 'package:ezpc_tasks_app/features/services/data/services_repository.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/widgets/services_appbar.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/widgets/services_component.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';

@@ -2,9 +2,10 @@ import 'package:ezpc_tasks_app/features/services/presentation/screens/category_p
 import 'package:ezpc_tasks_app/features/services/presentation/screens/questions.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/schedulestep.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/special_days.dart';
-import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart'; // Corrección del import
+import 'package:ezpc_tasks_app/features/services/data/services_repository.dart'; // Correcto import
 
 class AddNewTaskScreen extends ConsumerStatefulWidget {
   const AddNewTaskScreen({super.key});
@@ -47,8 +48,7 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
           children: [
             if (_currentStep > 0)
               Expanded(
-                child: PrimaryButton(
-                  text: "Back",
+                child: ElevatedButton(
                   onPressed: () {
                     if (_currentStep > 0) {
                       setState(() {
@@ -60,12 +60,12 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
                       });
                     }
                   },
+                  child: const Text('Back'),
                 ),
               ),
             if (_currentStep > 0) const SizedBox(width: 16.0),
             Expanded(
-              child: PrimaryButton(
-                text: _currentStep == _steps.length - 1 ? 'Submit' : 'Next',
+              child: ElevatedButton(
                 onPressed: () {
                   if (_currentStep < _steps.length - 1) {
                     setState(() {
@@ -76,14 +76,64 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
                       );
                     });
                   } else {
-                    // Lógica para la última página (ej. enviar el formulario)
+                    _saveTask(context);
                   }
                 },
+                child:
+                    Text(_currentStep == _steps.length - 1 ? 'Submit' : 'Next'),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _saveTask(BuildContext context) async {
+    final task = ref.read(taskProvider);
+    if (task != null) {
+      try {
+        await ref.read(taskProvider.notifier).saveTask(task);
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Success'),
+              content: const Text('Task saved successfully!'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+
+        ref.read(taskProvider.notifier).resetTask();
+      } catch (e) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: Text('Failed to save task: ${e.toString()}'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
   }
 }

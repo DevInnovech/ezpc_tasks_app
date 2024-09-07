@@ -9,6 +9,10 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../data/task_provider.dart';
 
 class CategoryPricingStep extends ConsumerWidget {
   const CategoryPricingStep({super.key});
@@ -20,14 +24,55 @@ class CategoryPricingStep extends ConsumerWidget {
     final isLicenseRequired = ref.watch(isLicenseRequiredProvider);
     final isRateAppliedToSubcategories =
         ref.watch(isRateAppliedToSubcategoriesProvider);
+    final task = ref.watch(taskProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ServiceImage(),
-          const CategorySelector(),
+          ServiceImage(
+            onImageSelected: (String imageUrl) {
+              ref.read(taskProvider.notifier).updateTask((currentTask) {
+                return Task(
+                  id: currentTask?.id ?? const Uuid().v4(),
+                  name: currentTask?.name ?? '',
+                  category: currentTask?.category ?? '',
+                  subCategory: currentTask?.subCategory ?? '',
+                  price: currentTask?.price ?? 0.0,
+                  imageUrl: imageUrl,
+                  requiresLicense: currentTask?.requiresLicense ?? false,
+                  workingDays: currentTask?.workingDays ?? [],
+                  workingHours: currentTask?.workingHours ?? {},
+                  specialDays: currentTask?.specialDays ?? [],
+                  licenseType: '',
+                  licenseNumber: '',
+                  licenseExpirationDate: '',
+                );
+              });
+            },
+          ),
+          CategorySelector(
+            onCategorySelected: (String category) {
+              ref.read(taskProvider.notifier).updateTask((currentTask) {
+                return Task(
+                  id: currentTask?.id ?? const Uuid().v4(),
+                  name: currentTask?.name ?? '',
+                  category: category,
+                  subCategory: currentTask?.subCategory ?? '',
+                  price: currentTask?.price ?? 0.0,
+                  imageUrl: currentTask?.imageUrl ?? '',
+                  requiresLicense: currentTask?.requiresLicense ?? false,
+                  workingDays: currentTask?.workingDays ?? [],
+                  workingHours: currentTask?.workingHours ?? {},
+                  specialDays: currentTask?.specialDays ?? [],
+                  licenseType: '',
+                  licenseNumber: '',
+                  licenseExpirationDate: '',
+                );
+              });
+            },
+          ),
           if (selectedCategory != null) ...[
             const PriceInputWidget(),
             CustomCheckboxListTile(
@@ -36,16 +81,15 @@ class CategoryPricingStep extends ConsumerWidget {
               onChanged: (bool? value) {
                 ref.read(isRateAppliedToSubcategoriesProvider.notifier).state =
                     value ?? false;
+                // Nota: isRateAppliedToSubcategories no está en el modelo Task,
+                // así que no lo actualizamos aquí.
               },
-              activeColor:
-                  primaryColor, // Puedes pasar cualquier color que desees
-              checkColor:
-                  Colors.white, // Puedes personalizar el color del check
+              activeColor: primaryColor,
+              checkColor: Colors.white,
             ),
-
             const SubCategorySelector(),
             if (selectedSubCategory != null && !isRateAppliedToSubcategories)
-              const PriceInputWidget(), // Rate for SubCategory if not applied to all
+              const PriceInputWidget(),
           ],
           CustomCheckboxListTile(
             title: 'I hold a professional license',
@@ -53,10 +97,26 @@ class CategoryPricingStep extends ConsumerWidget {
             onChanged: (bool? value) {
               ref.read(isLicenseRequiredProvider.notifier).state =
                   value ?? false;
+              ref.read(taskProvider.notifier).updateTask((currentTask) {
+                return Task(
+                  id: currentTask?.id ?? const Uuid().v4(),
+                  name: currentTask?.name ?? '',
+                  category: currentTask?.category ?? '',
+                  subCategory: currentTask?.subCategory ?? '',
+                  price: currentTask?.price ?? 0.0,
+                  imageUrl: currentTask?.imageUrl ?? '',
+                  requiresLicense: value ?? false,
+                  workingDays: currentTask?.workingDays ?? [],
+                  workingHours: currentTask?.workingHours ?? {},
+                  specialDays: currentTask?.specialDays ?? [],
+                  licenseType: '',
+                  licenseNumber: '',
+                  licenseExpirationDate: '',
+                );
+              });
             },
-            activeColor:
-                primaryColor, // Puedes pasar cualquier color que desees
-            checkColor: Colors.white, // Puedes personalizar el color del check
+            activeColor: primaryColor,
+            checkColor: Colors.white,
           ),
           AbsorbPointer(
             absorbing: !isLicenseRequired,

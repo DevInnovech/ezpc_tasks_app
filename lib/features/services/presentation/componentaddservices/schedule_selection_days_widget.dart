@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DaysSelector extends ConsumerWidget {
-  const DaysSelector({super.key});
+  const DaysSelector(
+      {super.key,
+      required List<String> initialSelection,
+      required Null Function(List<String> selectedDays) onDaysSelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

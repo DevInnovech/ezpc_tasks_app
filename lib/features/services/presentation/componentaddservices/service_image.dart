@@ -5,7 +5,8 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 
 class ServiceImage extends StatelessWidget {
-  const ServiceImage({super.key});
+  const ServiceImage(
+      {super.key, required Null Function(String imageUrl) onImageSelected});
 
   @override
   Widget build(BuildContext context) {

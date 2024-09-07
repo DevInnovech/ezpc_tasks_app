@@ -1,38 +1,18 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/cupertino.dart';
-
-// Modelo para SpecialDay
-class SpecialDay {
-  final String date;
-  final String startTime;
-  final String endTime;
-  bool isActive;
-
-  SpecialDay({
-    required this.date,
-    required this.startTime,
-    required this.endTime,
-    this.isActive = true,
-  });
-}
-
-// Proveedor para la lista de días especiales
-final specialDaysProvider = StateProvider<List<SpecialDay>>((ref) {
-  return [
-    SpecialDay(
-        date: "Day", startTime: "0:00 am", endTime: "0:00 pm", isActive: false)
-  ];
-});
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
+import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:uuid/uuid.dart';
 
 class SpecialDaysStep extends ConsumerWidget {
   const SpecialDaysStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final specialDays = ref.watch(specialDaysProvider.state).state;
+    final task = ref.watch(taskProvider);
+    final specialDays = task?.specialDays ?? [];
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -75,53 +55,51 @@ class SpecialDaysStep extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Checkbox(
-                      value: day.isActive,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      onChanged: (value) {
-                        ref.read(specialDaysProvider.state).state =
-                            specialDays.map((d) {
-                          if (d == day) {
-                            return SpecialDay(
-                              date: d.date,
-                              startTime: d.startTime,
-                              endTime: d.endTime,
-                              isActive: value ?? false,
-                            );
-                          }
-                          return d;
-                        }).toList();
-                      },
-                    ),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            day.date,
+                            day['date'] ?? '',
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black),
                           ),
                           Text(
-                            '${day.startTime} To ${day.endTime}',
-                            style: TextStyle(
-                              color: day.isActive ? Colors.black : Colors.grey,
-                            ),
+                            '${day['startTime']} To ${day['endTime']}',
+                            style: const TextStyle(color: Colors.black),
                           ),
                         ],
                       ),
                     ),
-                    if (day.isActive)
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          ref.read(specialDaysProvider.state).state =
-                              specialDays.where((d) => d != day).toList();
-                        },
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        ref
+                            .read(taskProvider.notifier)
+                            .updateTask((currentTask) {
+                          List<Map<String, String>> updatedSpecialDays =
+                              List.from(currentTask?.specialDays ?? []);
+                          updatedSpecialDays.remove(day);
+                          return Task(
+                            id: currentTask?.id ?? const Uuid().v4(),
+                            name: currentTask?.name ?? '',
+                            category: currentTask?.category ?? '',
+                            subCategory: currentTask?.subCategory ?? '',
+                            price: currentTask?.price ?? 0.0,
+                            imageUrl: currentTask?.imageUrl ?? '',
+                            requiresLicense:
+                                currentTask?.requiresLicense ?? false,
+                            workingDays: currentTask?.workingDays ?? [],
+                            workingHours: currentTask?.workingHours ?? {},
+                            specialDays: updatedSpecialDays,
+                            licenseType: '',
+                            licenseNumber: '',
+                            licenseExpirationDate: '',
+                          );
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -172,15 +150,31 @@ class SpecialDaysStep extends ConsumerWidget {
             ElevatedButton(
               child: const Text("Add"),
               onPressed: () {
-                final newDay = SpecialDay(
-                  date: dateController.text,
-                  startTime: startTimeController.text,
-                  endTime: endTimeController.text,
-                );
-                ref.read(specialDaysProvider.state).state = [
-                  ...ref.read(specialDaysProvider.state).state,
-                  newDay
-                ];
+                final newDay = {
+                  'date': dateController.text,
+                  'startTime': startTimeController.text,
+                  'endTime': endTimeController.text,
+                };
+                ref.read(taskProvider.notifier).updateTask((currentTask) {
+                  List<Map<String, String>> updatedSpecialDays =
+                      List.from(currentTask?.specialDays ?? []);
+                  updatedSpecialDays.add(newDay);
+                  return Task(
+                    id: currentTask?.id ?? const Uuid().v4(),
+                    name: currentTask?.name ?? '',
+                    category: currentTask?.category ?? '',
+                    subCategory: currentTask?.subCategory ?? '',
+                    price: currentTask?.price ?? 0.0,
+                    imageUrl: currentTask?.imageUrl ?? '',
+                    requiresLicense: currentTask?.requiresLicense ?? false,
+                    workingDays: currentTask?.workingDays ?? [],
+                    workingHours: currentTask?.workingHours ?? {},
+                    specialDays: updatedSpecialDays,
+                    licenseType: '',
+                    licenseNumber: '',
+                    licenseExpirationDate: '',
+                  );
+                });
                 Navigator.of(context).pop();
               },
             ),
