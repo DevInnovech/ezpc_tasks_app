@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../data/task_provider.dart';
 
 class CategoryPricingStep extends ConsumerWidget {
@@ -59,7 +58,8 @@ class CategoryPricingStep extends ConsumerWidget {
                   id: currentTask?.id ?? const Uuid().v4(),
                   name: currentTask?.name ?? '',
                   category: category,
-                  subCategory: currentTask?.subCategory ?? '',
+                  subCategory:
+                      '', // Resetear la subcategoría cuando cambie la categoría
                   price: currentTask?.price ?? 0.0,
                   imageUrl: currentTask?.imageUrl ?? '',
                   requiresLicense: currentTask?.requiresLicense ?? false,
@@ -74,22 +74,38 @@ class CategoryPricingStep extends ConsumerWidget {
             },
           ),
           if (selectedCategory != null) ...[
-            const PriceInputWidget(),
+            RateInputWidget(
+              onRateChanged: (double price) {
+                ref.read(taskProvider.notifier).updateTask((currentTask) {
+                  return currentTask!.copyWith(price: price);
+                });
+              },
+            ),
             CustomCheckboxListTile(
               title: 'Apply to all sub-category',
               value: isRateAppliedToSubcategories,
               onChanged: (bool? value) {
                 ref.read(isRateAppliedToSubcategoriesProvider.notifier).state =
                     value ?? false;
-                // Nota: isRateAppliedToSubcategories no está en el modelo Task,
-                // así que no lo actualizamos aquí.
               },
               activeColor: primaryColor,
               checkColor: Colors.white,
             ),
-            const SubCategorySelector(),
+            SubCategorySelector(
+              onSubCategorySelected: (String subCategory) {
+                ref.read(taskProvider.notifier).updateTask((currentTask) {
+                  return currentTask!.copyWith(subCategory: subCategory);
+                });
+              },
+            ),
             if (selectedSubCategory != null && !isRateAppliedToSubcategories)
-              const PriceInputWidget(),
+              RateInputWidget(
+                onRateChanged: (double price) {
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!.copyWith(price: price);
+                  });
+                },
+              ),
           ],
           CustomCheckboxListTile(
             title: 'I hold a professional license',
@@ -122,7 +138,24 @@ class CategoryPricingStep extends ConsumerWidget {
             absorbing: !isLicenseRequired,
             child: Opacity(
               opacity: isLicenseRequired ? 1.0 : 0.5,
-              child: const LicenseDocumentInput(),
+              child: LicenseDocumentInput(
+                onLicenseTypeChanged: (String licenseType) {
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!.copyWith(licenseType: licenseType);
+                  });
+                },
+                onLicenseNumberChanged: (String licenseNumber) {
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!.copyWith(licenseNumber: licenseNumber);
+                  });
+                },
+                onLicenseExpirationDateChanged: (String expirationDate) {
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!
+                        .copyWith(licenseExpirationDate: expirationDate);
+                  });
+                },
+              ),
             ),
           ),
         ],

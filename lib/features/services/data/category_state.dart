@@ -16,10 +16,10 @@ final categoryListProvider = FutureProvider<List<Category>>((ref) async {
 
 // Provider para la categoría seleccionada
 final selectedCategoryProvider = StateProvider<Category?>((ref) {
-  return null; // Estado inicial es null
+  return null;
 });
 
 // Provider para la subcategoría seleccionada
 final selectedSubCategoryProvider = StateProvider<SubCategory?>((ref) {
-  return null; // Estado inicial es null
+  return null;
 });

@@ -6,10 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CategorySelector extends ConsumerWidget {
-  final void Function(String category) onCategorySelected;
+  final void Function(String categoryName) onCategorySelected;
 
-  const CategorySelector({Key? key, required this.onCategorySelected})
-      : super(key: key);
+  const CategorySelector({super.key, required this.onCategorySelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,7 +49,8 @@ class CategorySelector extends ConsumerWidget {
             if (value != null) {
               ref.read(selectedCategoryProvider.state).state = value;
               ref.read(selectedSubCategoryProvider.state).state = null;
-              onCategorySelected(value.id); // Acción al seleccionar categoría
+              // Guardamos el nombre de la categoría en lugar del ID
+              onCategorySelected(value.name); // Guardar el nombre
             }
           },
           items:

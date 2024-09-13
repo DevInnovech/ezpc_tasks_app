@@ -4,8 +4,8 @@ import 'package:ezpc_tasks_app/features/services/presentation/screens/schedulest
 import 'package:ezpc_tasks_app/features/services/presentation/screens/special_days.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/features/services/data/task_provider.dart'; // Corrección del import
-import 'package:ezpc_tasks_app/features/services/data/services_repository.dart'; // Correcto import
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
+import '../../data/category_state.dart'; // Importamos el estado de categorías
 
 class AddNewTaskScreen extends ConsumerStatefulWidget {
   const AddNewTaskScreen({super.key});
@@ -17,6 +17,13 @@ class AddNewTaskScreen extends ConsumerStatefulWidget {
 class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refrescamos el provider de categorías para cargar las categorías desde Firebase al iniciar la pantalla
+    ref.refresh(categoryListProvider);
+  }
 
   final List<Widget> _steps = [
     const CategoryPricingStep(),

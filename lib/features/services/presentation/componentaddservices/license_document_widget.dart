@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 
 class LicenseDocumentInput extends StatelessWidget {
-  const LicenseDocumentInput({super.key});
+  const LicenseDocumentInput(
+      {super.key,
+      required Null Function(String licenseType) onLicenseTypeChanged,
+      required Null Function(String licenseNumber) onLicenseNumberChanged,
+      required Null Function(String expirationDate)
+          onLicenseExpirationDateChanged});
 
   @override
   Widget build(BuildContext context) {

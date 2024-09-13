@@ -65,6 +65,7 @@ class Task extends Equatable {
     );
   }
 
+  // Convertir Task a Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -77,12 +78,20 @@ class Task extends Equatable {
       'licenseType': licenseType,
       'licenseNumber': licenseNumber,
       'licenseExpirationDate': licenseExpirationDate,
-      'workingDays': workingDays,
-      'workingHours': workingHours,
-      'specialDays': specialDays,
+      'workingDays': workingDays ?? [],
+      'workingHours': workingHours != null
+          ? workingHours!.map((key, value) => MapEntry(
+                key,
+                value,
+              ))
+          : {},
+      'specialDays': specialDays != null
+          ? specialDays!.map((day) => Map<String, String>.from(day)).toList()
+          : [],
     };
   }
 
+  // Crear un Task desde un Map
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       id: map['id'] ?? '',
@@ -96,14 +105,19 @@ class Task extends Equatable {
       licenseNumber: map['licenseNumber'] ?? '',
       licenseExpirationDate: map['licenseExpirationDate'] ?? '',
       workingDays: List<String>.from(map['workingDays'] ?? []),
-      workingHours:
-          Map<String, Map<String, String>>.from(map['workingHours'] ?? {}),
-      specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
+      workingHours: map['workingHours'] != null
+          ? Map<String, Map<String, String>>.from(map['workingHours'])
+          : {},
+      specialDays: map['specialDays'] != null
+          ? List<Map<String, String>>.from(map['specialDays'])
+          : [],
     );
   }
 
+  // Convertir Task a JSON
   String toJson() => json.encode(toMap());
 
+  // Crear un Task desde un JSON
   factory Task.fromJson(String source) =>
       Task.fromMap(json.decode(source) as Map<String, dynamic>);
 

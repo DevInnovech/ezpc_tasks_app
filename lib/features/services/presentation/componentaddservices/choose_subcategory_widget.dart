@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SubCategorySelector extends ConsumerWidget {
-  const SubCategorySelector({super.key});
+  const SubCategorySelector(
+      {super.key,
+      required Null Function(String subCategory) onSubCategorySelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

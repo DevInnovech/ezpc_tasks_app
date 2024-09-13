@@ -14,17 +14,17 @@ class Category {
     this.pathimage,
   });
 
-  // Convertir la categoría a un mapa (para almacenar en Firebase)
+  // Convertir la categoría a un mapa
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'subCategories': subCategories.map((sub) => sub.toMap()).toList(),
-      'pathimage': pathimage, // Añade pathimage al mapa
+      'pathimage': pathimage,
     };
   }
 
-  // Crear una categoría a partir de un mapa (al leer desde Firebase)
+  // Crear una categoría a partir de un mapa
   factory Category.fromMap(Map<String, dynamic> map) {
     return Category(
       id: map['id'] ?? '',
@@ -32,14 +32,14 @@ class Category {
       subCategories: List<SubCategory>.from(
         map['subCategories']?.map((x) => SubCategory.fromMap(x)) ?? [],
       ),
-      pathimage: map['pathimage'], // Extrae el valor de pathimage del mapa
+      pathimage: map['pathimage'],
     );
   }
 
-  // Convertir la categoría a JSON
+  // Convertir a JSON
   String toJson() => json.encode(toMap());
 
-  // Crear una categoría a partir de JSON
+  // Crear desde JSON
   factory Category.fromJson(String source) =>
       Category.fromMap(json.decode(source));
 }
