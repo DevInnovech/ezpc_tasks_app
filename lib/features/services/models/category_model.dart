@@ -5,11 +5,13 @@ class Category {
   final String id;
   final String name;
   final List<SubCategory> subCategories;
+  final String? pathimage;
 
   Category({
     required this.id,
     required this.name,
     required this.subCategories,
+    this.pathimage,
   });
 
   // Convertir la categoría a un mapa (para almacenar en Firebase)
@@ -18,6 +20,7 @@ class Category {
       'id': id,
       'name': name,
       'subCategories': subCategories.map((sub) => sub.toMap()).toList(),
+      'pathimage': pathimage, // Añade pathimage al mapa
     };
   }
 
@@ -29,6 +32,7 @@ class Category {
       subCategories: List<SubCategory>.from(
         map['subCategories']?.map((x) => SubCategory.fromMap(x)) ?? [],
       ),
+      pathimage: map['pathimage'], // Extrae el valor de pathimage del mapa
     );
   }
 

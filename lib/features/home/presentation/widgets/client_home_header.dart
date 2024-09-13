@@ -89,11 +89,11 @@ class ClientHomeHeader extends ConsumerWidget {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Text(
+                              const Text(
                                 //aqui poner un if con los tipo de cuenta
 
                                 "Role: Cliente", // Asegurando que el nombre está disponible
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 14,
                                   fontFamily: 'Work Sans',
