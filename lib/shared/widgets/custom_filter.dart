@@ -1,7 +1,4 @@
-import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
-import 'package:flutter/material.dart';
-
-import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
 class GenericFilterWidget extends StatefulWidget {
@@ -17,8 +14,12 @@ class GenericFilterWidget extends StatefulWidget {
 }
 
 class _GenericFilterWidgetState extends State<GenericFilterWidget> {
-  String? _selectedOption;
-  double? _selectedRating;
+  Map<String, bool> _selectedOptions = {
+    'Same Day': false,
+    'Price: Lowest': false,
+    '+4.7': false,
+  };
+
   bool showMoreFilters = false;
   Map<String, bool> extendedFilters = {
     "Option 1": false,
@@ -29,12 +30,10 @@ class _GenericFilterWidgetState extends State<GenericFilterWidget> {
   void _applyFilters() {
     Map<String, dynamic> selectedFilters = {};
 
-    if (_selectedOption != null) {
-      selectedFilters['option'] = _selectedOption;
-    }
-    if (_selectedRating != null) {
-      selectedFilters['rating'] = _selectedRating;
-    }
+    // Include selected main options
+    _selectedOptions.forEach((key, value) {
+      if (value) selectedFilters[key] = true;
+    });
 
     // Include extended filters if any are selected
     if (extendedFilters.values.contains(true)) {
@@ -50,120 +49,134 @@ class _GenericFilterWidgetState extends State<GenericFilterWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedOption = 'Same Day';
-                });
-                _applyFilters();
-              },
-              child: Row(
-                children: [
-                  Radio<String>(
-                    value: 'Same Day',
-                    groupValue: _selectedOption,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedOption = value;
-                      });
-                      _applyFilters();
-                    },
-                  ),
-                  const Text('Same Day'),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedOption = 'Price: Lowest';
-                });
-                _applyFilters();
-              },
-              child: Row(
-                children: [
-                  Radio<String>(
-                    value: 'Price: Lowest',
-                    groupValue: _selectedOption,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedOption = value;
-                      });
-                      _applyFilters();
-                    },
-                  ),
-                  const Text('Price: Lowest'),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedRating = 4.7;
-                });
-                _applyFilters();
-              },
-              child: Row(
-                children: [
-                  Radio<double>(
-                    value: 4.7,
-                    groupValue: _selectedRating,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedRating = value;
-                      });
-                      _applyFilters();
-                    },
-                  ),
-                  const Icon(Icons.star, color: Colors.orange),
-                  const Text('+4.7'),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.more_horiz),
-              onPressed: () {
-                setState(() {
-                  showMoreFilters = !showMoreFilters;
-                });
-              },
-            ),
-          ],
-        ),
-        if (showMoreFilters)
-          Column(
-            children: extendedFilters.keys.map((filter) {
-              return GestureDetector(
-                onTap: () {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: 16.0), // Add margin to the edges
+      child: Column(
+        children: [
+          // Main options (Same Day, Price: Lowest, +4.7)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildMainOption('Same Day'),
+              _buildMainOption('Price: Lowest'),
+              _buildMainOption('+4.7',
+                  icon: const Icon(Icons.star, color: Colors.orange)),
+              IconButton(
+                icon: const Icon(Icons.more_horiz),
+                onPressed: () {
                   setState(() {
-                    extendedFilters[filter] = !extendedFilters[filter]!;
-                    _applyFilters();
+                    showMoreFilters = !showMoreFilters;
                   });
                 },
-                child: Row(
-                  children: [
-                    Radio<bool>(
-                      value: true,
-                      groupValue: extendedFilters[filter],
-                      onChanged: (value) {
-                        setState(() {
-                          extendedFilters[filter] = value ?? false;
-                        });
-                        _applyFilters();
-                      },
-                    ),
-                    Text(filter),
-                  ],
-                ),
-              );
-            }).toList(),
+              ),
+            ],
           ),
-      ],
+
+          // Show extended filters if expanded
+          if (showMoreFilters)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Column(
+                children: extendedFilters.keys.map((filter) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                        bottom: 8.0), // Adjust spacing between extended options
+                    child: _buildExtendedOption(filter),
+                  );
+                }).toList(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Main filter option with tighter spacing
+  Widget _buildMainOption(String label, {Widget? icon}) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedOptions[label] = !_selectedOptions[label]!;
+        });
+        _applyFilters();
+      },
+      child: Row(
+        children: [
+          _buildCustomCheckBox(_selectedOptions[label]!, (value) {
+            setState(() {
+              _selectedOptions[label] = value;
+            });
+            _applyFilters();
+          }),
+          const SizedBox(
+              width: 6), // Reduced spacing between checkbox and label
+          Row(
+            children: [
+              icon ?? const SizedBox(),
+              const SizedBox(width: 4), // Adjusted spacing for visibility
+              Text(label,
+                  style: const TextStyle(fontSize: 14, color: Colors.black)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Extended filter option with more spacing
+  Widget _buildExtendedOption(String label) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          extendedFilters[label] = !extendedFilters[label]!;
+        });
+        _applyFilters();
+      },
+      child: Row(
+        children: [
+          _buildCustomCheckBox(extendedFilters[label]!, (value) {
+            setState(() {
+              extendedFilters[label] = value;
+            });
+            _applyFilters();
+          }),
+          const SizedBox(
+              width: 8), // Adjusted spacing between checkbox and text
+          Text(label,
+              style: const TextStyle(fontSize: 14, color: Colors.black)),
+        ],
+      ),
+    );
+  }
+
+  // Custom round checkbox widget without checkmark (just a filled circle with a border gap)
+  Widget _buildCustomCheckBox(bool value, Function(bool) onChanged) {
+    return Container(
+      width: 20, // Adjusted width for better visibility
+      height: 20, // Adjusted height for better visibility
+      padding: const EdgeInsets.all(2.0), // Padding to create a border gap
+      decoration: BoxDecoration(
+        shape: BoxShape.circle, // Circular checkbox
+        border:
+            Border.all(color: value ? primaryColor : primaryColor, width: 2),
+      ),
+      child: GestureDetector(
+        onTap: () {
+          onChanged(!value);
+        },
+        child: value
+            ? Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: primaryColor, // Fill color when checked
+                  border: Border.all(
+                      color: Colors.white,
+                      width: 2), // Inner border to create a small gap
+                ),
+              )
+            : const SizedBox(), // Empty when unchecked
+      ),
     );
   }
 }

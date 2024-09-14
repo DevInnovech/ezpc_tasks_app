@@ -1,4 +1,7 @@
 import 'package:ezpc_tasks_app/features/home/models/service_item.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
+import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -145,18 +148,26 @@ class ClientSingleCategoryView extends StatelessWidget {
                 ),
                 Utils.verticalSpace(8),
                 PrimaryButton(
-                    text: 'Book Now',
-                    onPressed: () {
-                      /* Navigator.pushNamed(
-                        context,
-                        RouteNames.primierServiceScreen,
-                        arguments: item.slug,
-                      );*/
-                    },
-                    fontSize: 14,
-                    maximumSize: const Size(double.infinity, 32),
-                    minimumSize: const Size(double.infinity, 32),
-                    borderRadiusSize: 5.0),
+                  text: 'Book Now',
+                  onPressed: () {
+                    // Convierte el ServiceItem al ServiceModel antes de navegar
+                    final ServiceModel serviceModel = toServiceModel(item);
+
+                    Navigator.pushNamed(
+                      context,
+                      RouteNames.primierServiceScreen,
+                      arguments: {
+                        'service': serviceModel, // El servicio convertido
+                        'categories': categories, // Las categorías disponibles
+                      },
+                    );
+                  },
+                  fontSize: 14,
+                  maximumSize: const Size(double.infinity, 32),
+                  minimumSize: const Size(double.infinity, 32),
+                  borderRadiusSize: 5.0,
+                ),
+
                 // Utils.verticalSpace(4),
               ],
             ),
@@ -165,4 +176,27 @@ class ClientSingleCategoryView extends StatelessWidget {
       ),
     );
   }
+}
+
+ServiceModel toServiceModel(ServiceItem item) {
+  return ServiceModel(
+    id: item.id.toString(),
+    name: item.name,
+    slug: item.slug,
+    price: item.price.toString(),
+    categoryId: item.categoryId,
+    subCategoryId: item.category!.subCategories.isNotEmpty
+        ? item.category!.subCategories.first.id
+        : '', // Ajusta según lo que necesites
+    details: item.details,
+    image: item.image,
+    packageFeature: [],
+    benefits: [],
+    whatYouWillProvide: [],
+    licenseDocument: '',
+    workingDays: [],
+    workingHours: [],
+    specialDays: [],
+    status: 'Active', provider: item.provider, // O ajusta según tu lógica
+  );
 }

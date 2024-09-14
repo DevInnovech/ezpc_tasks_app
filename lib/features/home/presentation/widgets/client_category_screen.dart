@@ -15,56 +15,57 @@ class ClientCategoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Obtenemos el estado del controlador del home
-    final homeControllerState = ref.watch(homeControllerProvider);
+    // Obtenemos el estado del controlador del home con AsyncValue
+    final asyncHomeControllerState = ref.watch(homeControllerProvider);
 
     return Scaffold(
       appBar: const CustomAppBar(title: "All Categories"),
-      body: _buildBody(context, ref, homeControllerState),
+      body: asyncHomeControllerState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                error.toString(),
+                style: const TextStyle(color: Colors.red),
+              ),
+              const SizedBox(height: 10),
+              IconButton(
+                onPressed: () {
+                  // Refrescamos los datos
+                  ref.refresh(homeControllerProvider);
+                },
+                icon: const Icon(Icons.refresh_outlined),
+              ),
+            ],
+          ),
+        ),
+        data: (homeControllerState) {
+          // Si la data fue cargada con éxito
+          if (homeControllerState is HomeControllerLoaded) {
+            return _buildCategoryGrid(homeControllerState);
+          } else {
+            return const SizedBox(); // Caso por defecto para manejar un estado inesperado
+          }
+        },
+      ),
     );
   }
 
-  Widget _buildBody(
-      BuildContext context, WidgetRef ref, HomeControllerState state) {
-    // Manejamos los diferentes estados manualmente
-    if (state is HomeControllerLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (state is HomeControllerError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              state.message,
-              style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 10),
-            IconButton(
-              onPressed: () {
-                // Refrescamos los datos
-                ref.read(homeControllerProvider.notifier).loadHomeData();
-              },
-              icon: const Icon(Icons.refresh_outlined),
-            ),
-          ],
-        ),
-      );
-    } else if (state is HomeControllerLoaded) {
-      return GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
-        ),
-        itemCount: state.homeModel.categories.length,
-        itemBuilder: (context, index) {
-          return ClientCategoryItem(item: state.homeModel.categories[index]);
-        },
-      );
-    } else {
-      return const SizedBox(); // Caso por defecto para manejar un estado inesperado
-    }
+  Widget _buildCategoryGrid(HomeControllerLoaded state) {
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+      ),
+      itemCount: state.homeModel.categories.length,
+      itemBuilder: (context, index) {
+        return ClientCategoryItem(item: state.homeModel.categories[index]);
+      },
+    );
   }
 }
 
@@ -109,9 +110,8 @@ class ClientCategoryItem extends StatelessWidget {
                 shape: OvalBorder(),
               ),
               child: CustomImage(
-                path: item.pathimage ??
-                    KImages
-                        .booking, // Aquí puedes ajustar para que use imágenes remotas
+                path: KImages.booking,
+                // item.Image ?? // Usa la imagen si está disponible o una por defecto
               ),
             ),
             Utils.verticalSpace(8),

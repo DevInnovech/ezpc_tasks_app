@@ -20,11 +20,6 @@ class ClientHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final homeControllerState = ref.watch(homeControllerProvider);
 
-    // Inicia la carga de datos si el estado es HomeControllerLoading
-    if (homeControllerState is HomeControllerLoading) {
-      ref.read(homeControllerProvider.notifier).loadHomeData();
-    }
-
     return Column(
       children: [
         const ClientHomeHeader(),
@@ -39,12 +34,19 @@ class ClientHomeScreen extends ConsumerWidget {
             }
           },
         ),
-        if (homeControllerState is HomeControllerLoading)
-          const Center(child: CircularProgressIndicator())
-        else if (homeControllerState is HomeControllerLoaded)
-          HomeLoadedData(data: homeControllerState.homeModel)
-        else if (homeControllerState is HomeControllerError)
-          Center(child: Text('Error: ${homeControllerState.message}')),
+
+        // Manejo adecuado del AsyncValue para homeControllerState
+        homeControllerState.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Error: $error')),
+          data: (state) {
+            if (state is HomeControllerLoaded) {
+              return HomeLoadedData(data: state.homeModel);
+            } else {
+              return const SizedBox(); // Maneja cualquier otro estado inesperado
+            }
+          },
+        ),
       ],
     );
   }

@@ -17,6 +17,12 @@ import 'package:ezpc_tasks_app/features/auth/presentation/screens/verification.d
 import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/booking_step.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/request_services.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/services.dart';
+import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
+import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/detail_scren.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
@@ -59,6 +65,11 @@ class RouteNames {
       '/verificationSelectionScreen';
   static const String verificationCompletedScreen =
       '/verificationCompletedScreen';
+// services
+
+  static const String primierServiceScreen = '/primierServiceScreen';
+  static const String seconServiceScreen = '/seconServiceScreen';
+  static const String lastServiceScreen = '/lastServiceScreen';
 
   static const String changePasswordScreen = '/changePasswordScreen';
   static const String mainScreen = '/mainScreen';
@@ -181,6 +192,59 @@ class RouteNames {
       case RouteNames.addNewServiceScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const AddNewTaskScreen());
+
+      case RouteNames.primierServiceScreen:
+        // Asegúrate de recibir los argumentos correctamente como un Map
+        final arguments = settings.arguments as Map<String, dynamic>;
+        final ServiceModel service = arguments['service'] as ServiceModel;
+        final List<Category> categories =
+            arguments['categories'] as List<Category>;
+
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => PremierServiceScreen(
+            selectedService: service,
+            availableCategories: categories,
+          ),
+        );
+
+      case RouteNames.seconServiceScreen:
+        // Extract the arguments passed from the previous screen
+        final Map<String, dynamic> arguments =
+            settings.arguments as Map<String, dynamic>;
+
+        // Extract the data from the arguments map
+        final ServiceModel selectedService =
+            arguments['selectedService'] as ServiceModel;
+        final String selectedSize = arguments['selectedSize'] as String;
+        final String hours = arguments['hours'] as String;
+        final int quantity = arguments['quantity'] as int;
+
+        // Pass the extracted arguments to the Service screen
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => Service(
+            selectedService: selectedService,
+            selectedSize: selectedSize,
+            hours: hours,
+            quantity: quantity,
+          ),
+        );
+
+      case RouteNames.lastServiceScreen:
+        final args = settings.arguments
+            as Map<String, dynamic>; // Cast the arguments to the expected type
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => BookingStepScreen(
+            selectedService: args['selectedService'],
+            selectedSize: args['selectedSize'],
+            hours: args['hours'],
+            quantity: args['quantity'],
+            time: args['time'],
+          ),
+        );
+
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

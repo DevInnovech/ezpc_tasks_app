@@ -6,10 +6,10 @@ import 'package:ezpc_tasks_app/features/home/models/service_area.dart';
 import 'package:ezpc_tasks_app/features/home/models/service_item.dart';
 import 'package:ezpc_tasks_app/features/home/models/service_section.dart';
 import 'package:ezpc_tasks_app/features/home/models/slider_model.dart';
+import 'package:ezpc_tasks_app/features/lista_de_provedores.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 // Definimos los diferentes estados que puede tener el HomeController
 class HomeControllerState {
@@ -30,14 +30,16 @@ class HomeControllerError extends HomeControllerState {
 
 // Creamos el HomeControllerNotifier para manejar los estados
 class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
-  HomeControllerNotifier() : super(HomeControllerLoading());
+  final List<ProviderModel> providers;
+
+  HomeControllerNotifier(this.providers) : super(HomeControllerLoading());
 
   Future<void> loadHomeData() async {
     try {
       // Simula la carga de datos con un retardo
       await Future.delayed(const Duration(seconds: 2));
 
-      // Aquí deberías cargar tus datos reales en lugar del modelo simulado
+      // Cargamos los datos del home usando los proveedores
       final homeModel = await fetchHomeData();
 
       state = HomeControllerLoaded(homeModel);
@@ -72,6 +74,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
       ServiceArea(id: 2, name: "Service Area 2", slug: '2'),
     ];
 
+    // Asignamos los proveedores a los servicios destacados
     final featuredServices = [
       ServiceItem(
         id: 1,
@@ -79,11 +82,11 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         slug: "featured-service-1",
         image: KImages.s01,
         price: 100.0,
-        categoryId: 1,
-        providerId: 1,
+        categoryId: categories[0],
+        providerId: providers[0].id,
         makeFeatured: 1,
         isBanned: 0,
-        details: "This is a featured service",
+        details: "This is a featured service by John Doe",
         status: 1,
         createdAt: "2024-01-01",
         approveByAdmin: 1,
@@ -91,41 +94,67 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         totalReview: 10,
         totalOrder: 5,
         category: categories[0],
-        provider: ProviderModel(
-            id: 1,
-            name: "Provider 1",
-            email: '',
-            phone: '',
-            image: '',
-            createdAt: '',
-            userName: ''),
+        provider: providers[0], // John Doe
       ),
       ServiceItem(
-        id: 1,
-        name: "Featured Service 12",
+        id: 2,
+        name: "Featured Service 2",
         slug: "featured-service-2",
         image: KImages.s01,
-        price: 100.0,
-        categoryId: 1,
-        providerId: 1,
+        price: 120.0,
+        categoryId: categories[1],
+        providerId: providers[1].id,
         makeFeatured: 1,
         isBanned: 0,
-        details: "This is a featured service",
+        details: "This is a featured service by Jane Smith",
         status: 1,
         createdAt: "2024-01-01",
         approveByAdmin: 1,
         averageRating: "4.5",
         totalReview: 10,
         totalOrder: 5,
-        category: categories[0],
-        provider: ProviderModel(
-            id: 1,
-            name: "Provider 2",
-            email: '',
-            phone: '',
-            image: KImages.pp,
-            createdAt: '',
-            userName: ''),
+        category: categories[1],
+        provider: providers[1], // Jane Smith
+      ),
+      ServiceItem(
+        id: 3,
+        name: "Featured Service 3",
+        slug: "featured-service-3",
+        image: KImages.s01,
+        price: 150.0,
+        categoryId: categories[2],
+        providerId: providers[2].id,
+        makeFeatured: 1,
+        isBanned: 0,
+        details: "This is a featured service by Michael Johnson",
+        status: 1,
+        createdAt: "2024-01-01",
+        approveByAdmin: 1,
+        averageRating: "4.8",
+        totalReview: 12,
+        totalOrder: 8,
+        category: categories[2],
+        provider: providers[2], // Michael Johnson
+      ),
+      ServiceItem(
+        id: 4,
+        name: "Featured Service 4",
+        slug: "featured-service-4",
+        image: KImages.s01,
+        price: 130.0,
+        categoryId: categories[3],
+        providerId: providers[3].id,
+        makeFeatured: 1,
+        isBanned: 0,
+        details: "This is a featured service by Emily Clark",
+        status: 1,
+        createdAt: "2024-01-01",
+        approveByAdmin: 1,
+        averageRating: "4.7",
+        totalReview: 9,
+        totalOrder: 7,
+        category: categories[3],
+        provider: providers[3], // Emily Clark
       ),
     ];
 
@@ -172,7 +201,10 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   }
 }
 
-// Proveedor para HomeControllerNotifier
-final homeControllerProvider =
-    StateNotifierProvider<HomeControllerNotifier, HomeControllerState>(
-        (ref) => HomeControllerNotifier());
+// Proveedor para HomeControllerNotifier que obtiene los proveedores de la lista
+final homeControllerProvider = FutureProvider.autoDispose((ref) async {
+  final providers = await ref.watch(providerListProvider.future);
+  final homeControllerNotifier = HomeControllerNotifier(providers);
+  await homeControllerNotifier.loadHomeData();
+  return homeControllerNotifier.state;
+});
