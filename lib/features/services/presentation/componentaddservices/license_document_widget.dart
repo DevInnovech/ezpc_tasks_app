@@ -1,100 +1,98 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
+import 'package:file_picker/file_picker.dart';
 
-class LicenseDocumentInput extends StatelessWidget {
-  const LicenseDocumentInput(
-      {super.key,
-      required Null Function(String licenseType) onLicenseTypeChanged,
-      required Null Function(String licenseNumber) onLicenseNumberChanged,
-      required Null Function(String expirationDate)
-          onLicenseExpirationDateChanged});
+class LicenseDocumentInput extends StatefulWidget {
+  final void Function(String licenseType) onLicenseTypeChanged;
+  final void Function(String licenseNumber) onLicenseNumberChanged;
+  final void Function(String phone) onPhoneChanged;
+  final void Function(String service) onServiceChanged;
+  final void Function(String issueDate) onIssueDateChanged;
+  final void Function(String expirationDate) onLicenseExpirationDateChanged;
+  final void Function(File file) onDocumentSelected;
+
+  const LicenseDocumentInput({
+    super.key,
+    required this.onLicenseTypeChanged,
+    required this.onLicenseNumberChanged,
+    required this.onPhoneChanged,
+    required this.onServiceChanged,
+    required this.onIssueDateChanged,
+    required this.onLicenseExpirationDateChanged,
+    required this.onDocumentSelected,
+  });
+
+  @override
+  _LicenseDocumentInputState createState() => _LicenseDocumentInputState();
+}
+
+class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
+  String?
+      documentName; // Variable para guardar el nombre del documento seleccionado
+
+  Future<void> _pickDocument() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      File file = File(result.files.single.path!);
+      setState(() {
+        documentName =
+            result.files.single.name; // Guardamos el nombre del documento
+      });
+      widget.onDocumentSelected(file);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      title: const CustomText(text: 'License Document'),
-      initiallyExpanded: false,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const CustomText(text: "License Type:"),
-              TextFormField(
-                initialValue: "#plumber",
-                decoration: const InputDecoration(
-                  hintText: 'Enter License Type',
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                  border: UnderlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const CustomText(text: "License Number:"),
-              TextFormField(
-                initialValue: "1452746232",
-                decoration: const InputDecoration(
-                  hintText: 'Enter License Number',
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                  border: UnderlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const CustomText(text: "Phone:"),
-              TextFormField(
-                initialValue: "978-504-1010",
-                decoration: const InputDecoration(
-                  hintText: 'Enter Phone Number',
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                  border: UnderlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const CustomText(text: "Service:"),
-              TextFormField(
-                initialValue: "Cleaning",
-                decoration: const InputDecoration(
-                  hintText: 'Enter Service',
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                  border: UnderlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const CustomText(text: "Issue Date:"),
-              TextFormField(
-                initialValue: "11 May, 2024",
-                decoration: const InputDecoration(
-                  hintText: 'Enter Issue Date',
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                  border: UnderlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const CustomText(text: "Expiration Date:"),
-              TextFormField(
-                initialValue: "11 May, 2028",
-                decoration: const InputDecoration(
-                  hintText: 'Enter Expiration Date',
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                  border: UnderlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Lógica para cargar el documento de licencia
-                },
-                icon: const Icon(Icons.upload_file),
-                label: const Text('Upload License Document'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
+        TextField(
+          onChanged: widget.onLicenseTypeChanged,
+          decoration: const InputDecoration(
+            labelText: 'License Type',
           ),
+        ),
+        TextField(
+          onChanged: widget.onLicenseNumberChanged,
+          decoration: const InputDecoration(
+            labelText: 'License Number',
+          ),
+        ),
+        TextField(
+          onChanged: widget.onPhoneChanged,
+          decoration: const InputDecoration(
+            labelText: 'Phone',
+          ),
+        ),
+        TextField(
+          onChanged: widget.onServiceChanged,
+          decoration: const InputDecoration(
+            labelText: 'Service',
+          ),
+        ),
+        TextField(
+          onChanged: widget.onIssueDateChanged,
+          decoration: const InputDecoration(
+            labelText: 'Issue Date',
+          ),
+        ),
+        TextField(
+          onChanged: widget.onLicenseExpirationDateChanged,
+          decoration: const InputDecoration(
+            labelText: 'Expiration Date',
+          ),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: _pickDocument,
+          child: Text(documentName != null
+              ? documentName!
+              : 'Upload License Document'), // Mostrar el nombre del documento o el texto por defecto
         ),
       ],
     );

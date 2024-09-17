@@ -12,6 +12,10 @@ class Task extends Equatable {
   final String licenseType;
   final String licenseNumber;
   final String licenseExpirationDate;
+  final String issueDate; // Nuevo campo
+  final String phone; // Nuevo campo
+  final String service; // Nuevo campo
+  final String documentUrl; // Campo añadido para evitar el error
   final List<String>? workingDays;
   final Map<String, Map<String, String>>? workingHours;
   final List<Map<String, String>>? specialDays;
@@ -27,6 +31,10 @@ class Task extends Equatable {
     required this.licenseType,
     required this.licenseNumber,
     required this.licenseExpirationDate,
+    required this.issueDate,
+    required this.phone,
+    required this.service,
+    required this.documentUrl, // Asegúrate de que el constructor incluya este campo
     this.workingDays,
     this.workingHours,
     this.specialDays,
@@ -43,6 +51,10 @@ class Task extends Equatable {
     String? licenseType,
     String? licenseNumber,
     String? licenseExpirationDate,
+    String? issueDate,
+    String? phone,
+    String? service,
+    String? documentUrl, // Añadido en copyWith
     List<String>? workingDays,
     Map<String, Map<String, String>>? workingHours,
     List<Map<String, String>>? specialDays,
@@ -59,6 +71,11 @@ class Task extends Equatable {
       licenseNumber: licenseNumber ?? this.licenseNumber,
       licenseExpirationDate:
           licenseExpirationDate ?? this.licenseExpirationDate,
+      issueDate: issueDate ?? this.issueDate,
+      phone: phone ?? this.phone,
+      service: service ?? this.service,
+      documentUrl: documentUrl ??
+          this.documentUrl, // Asegúrate de que se copie correctamente
       workingDays: workingDays ?? this.workingDays,
       workingHours: workingHours ?? this.workingHours,
       specialDays: specialDays ?? this.specialDays,
@@ -78,6 +95,10 @@ class Task extends Equatable {
       'licenseType': licenseType,
       'licenseNumber': licenseNumber,
       'licenseExpirationDate': licenseExpirationDate,
+      'issueDate': issueDate,
+      'phone': phone,
+      'service': service,
+      'documentUrl': documentUrl, // Asegúrate de incluirlo al convertir a mapa
       'workingDays': workingDays ?? [],
       'workingHours': workingHours != null
           ? workingHours!.map((key, value) => MapEntry(
@@ -104,6 +125,10 @@ class Task extends Equatable {
       licenseType: map['licenseType'] ?? '',
       licenseNumber: map['licenseNumber'] ?? '',
       licenseExpirationDate: map['licenseExpirationDate'] ?? '',
+      issueDate: map['issueDate'] ?? '',
+      phone: map['phone'] ?? '',
+      service: map['service'] ?? '',
+      documentUrl: map['documentUrl'] ?? '', // Añadirlo en el fromMap también
       workingDays: List<String>.from(map['workingDays'] ?? []),
       workingHours: map['workingHours'] != null
           ? Map<String, Map<String, String>>.from(map['workingHours'])
@@ -133,6 +158,10 @@ class Task extends Equatable {
         licenseType,
         licenseNumber,
         licenseExpirationDate,
+        issueDate,
+        phone,
+        service,
+        documentUrl, // Asegúrate de incluirlo en las props
         workingDays,
         workingHours,
         specialDays,

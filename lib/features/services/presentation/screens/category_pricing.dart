@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:ezpc_tasks_app/features/services/data/category_state.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/choose_category_widget.dart';
@@ -33,43 +35,41 @@ class CategoryPricingStep extends ConsumerWidget {
           ServiceImage(
             onImageSelected: (String imageUrl) {
               ref.read(taskProvider.notifier).updateTask((currentTask) {
-                return Task(
-                  id: currentTask?.id ?? const Uuid().v4(),
-                  name: currentTask?.name ?? '',
-                  category: currentTask?.category ?? '',
-                  subCategory: currentTask?.subCategory ?? '',
-                  price: currentTask?.price ?? 0.0,
-                  imageUrl: imageUrl,
-                  requiresLicense: currentTask?.requiresLicense ?? false,
-                  workingDays: currentTask?.workingDays ?? [],
-                  workingHours: currentTask?.workingHours ?? {},
-                  specialDays: currentTask?.specialDays ?? [],
-                  licenseType: '',
-                  licenseNumber: '',
-                  licenseExpirationDate: '',
-                );
+                // Actualizar el Task existente con la imagen seleccionada
+                return currentTask!
+                    .copyWith(imageUrl: imageUrl, documentUrl: '');
               });
             },
           ),
           CategorySelector(
             onCategorySelected: (String category) {
               ref.read(taskProvider.notifier).updateTask((currentTask) {
-                return Task(
-                  id: currentTask?.id ?? const Uuid().v4(),
-                  name: currentTask?.name ?? '',
-                  category: category,
-                  subCategory:
-                      '', // Resetear la subcategoría cuando cambie la categoría
-                  price: currentTask?.price ?? 0.0,
-                  imageUrl: currentTask?.imageUrl ?? '',
-                  requiresLicense: currentTask?.requiresLicense ?? false,
-                  workingDays: currentTask?.workingDays ?? [],
-                  workingHours: currentTask?.workingHours ?? {},
-                  specialDays: currentTask?.specialDays ?? [],
-                  licenseType: '',
-                  licenseNumber: '',
-                  licenseExpirationDate: '',
-                );
+                // Crear un nuevo Task si no existe
+                return currentTask != null
+                    ? currentTask.copyWith(
+                        category: category,
+                        subCategory: '',
+                        documentUrl: '', // Resetear subcategoría
+                      )
+                    : Task(
+                        id: const Uuid().v4(),
+                        name: '',
+                        category: category,
+                        subCategory: '',
+                        price: 0.0,
+                        imageUrl: '',
+                        requiresLicense: false,
+                        licenseType: '',
+                        licenseNumber: '',
+                        licenseExpirationDate: '',
+                        workingDays: const [],
+                        workingHours: const {},
+                        specialDays: const [],
+                        documentUrl: '',
+                        phone: '',
+                        service: '',
+                        issueDate: '',
+                      );
               });
             },
           ),
@@ -77,7 +77,8 @@ class CategoryPricingStep extends ConsumerWidget {
             RateInputWidget(
               onRateChanged: (double price) {
                 ref.read(taskProvider.notifier).updateTask((currentTask) {
-                  return currentTask!.copyWith(price: price);
+                  // Actualizar el Task existente con el nuevo precio
+                  return currentTask!.copyWith(price: price, documentUrl: '');
                 });
               },
             ),
@@ -94,7 +95,9 @@ class CategoryPricingStep extends ConsumerWidget {
             SubCategorySelector(
               onSubCategorySelected: (String subCategory) {
                 ref.read(taskProvider.notifier).updateTask((currentTask) {
-                  return currentTask!.copyWith(subCategory: subCategory);
+                  // Actualizar el Task existente con la subcategoría seleccionada
+                  return currentTask!
+                      .copyWith(subCategory: subCategory, documentUrl: '');
                 });
               },
             ),
@@ -102,7 +105,8 @@ class CategoryPricingStep extends ConsumerWidget {
               RateInputWidget(
                 onRateChanged: (double price) {
                   ref.read(taskProvider.notifier).updateTask((currentTask) {
-                    return currentTask!.copyWith(price: price);
+                    // Actualizar el Task existente con el precio de la subcategoría
+                    return currentTask!.copyWith(price: price, documentUrl: '');
                   });
                 },
               ),
@@ -114,21 +118,9 @@ class CategoryPricingStep extends ConsumerWidget {
               ref.read(isLicenseRequiredProvider.notifier).state =
                   value ?? false;
               ref.read(taskProvider.notifier).updateTask((currentTask) {
-                return Task(
-                  id: currentTask?.id ?? const Uuid().v4(),
-                  name: currentTask?.name ?? '',
-                  category: currentTask?.category ?? '',
-                  subCategory: currentTask?.subCategory ?? '',
-                  price: currentTask?.price ?? 0.0,
-                  imageUrl: currentTask?.imageUrl ?? '',
-                  requiresLicense: value ?? false,
-                  workingDays: currentTask?.workingDays ?? [],
-                  workingHours: currentTask?.workingHours ?? {},
-                  specialDays: currentTask?.specialDays ?? [],
-                  licenseType: '',
-                  licenseNumber: '',
-                  licenseExpirationDate: '',
-                );
+                // Actualizar el Task existente con la opción de licencia
+                return currentTask!
+                    .copyWith(requiresLicense: value ?? false, documentUrl: '');
               });
             },
             activeColor: primaryColor,
@@ -141,18 +133,43 @@ class CategoryPricingStep extends ConsumerWidget {
               child: LicenseDocumentInput(
                 onLicenseTypeChanged: (String licenseType) {
                   ref.read(taskProvider.notifier).updateTask((currentTask) {
-                    return currentTask!.copyWith(licenseType: licenseType);
+                    return currentTask!
+                        .copyWith(licenseType: licenseType, documentUrl: '');
                   });
                 },
                 onLicenseNumberChanged: (String licenseNumber) {
                   ref.read(taskProvider.notifier).updateTask((currentTask) {
-                    return currentTask!.copyWith(licenseNumber: licenseNumber);
+                    return currentTask!.copyWith(
+                        licenseNumber: licenseNumber, documentUrl: '');
+                  });
+                },
+                onPhoneChanged: (String phone) {
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!.copyWith(phone: phone, documentUrl: '');
+                  });
+                },
+                onServiceChanged: (String service) {
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!
+                        .copyWith(service: service, documentUrl: '');
+                  });
+                },
+                onIssueDateChanged: (String issueDate) {
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!
+                        .copyWith(issueDate: issueDate, documentUrl: '');
                   });
                 },
                 onLicenseExpirationDateChanged: (String expirationDate) {
                   ref.read(taskProvider.notifier).updateTask((currentTask) {
-                    return currentTask!
-                        .copyWith(licenseExpirationDate: expirationDate);
+                    return currentTask!.copyWith(
+                        licenseExpirationDate: expirationDate, documentUrl: '');
+                  });
+                },
+                onDocumentSelected: (File file) {
+                  // Aquí puedes manejar el archivo seleccionado y subirlo a tu servidor o almacenamiento en la nube
+                  ref.read(taskProvider.notifier).updateTask((currentTask) {
+                    return currentTask!.copyWith(documentUrl: file.path);
                   });
                 },
               ),

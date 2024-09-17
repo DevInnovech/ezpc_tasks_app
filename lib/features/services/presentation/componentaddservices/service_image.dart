@@ -3,26 +3,43 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
+import 'dart:io';
 
-class ServiceImage extends StatelessWidget {
-  const ServiceImage(
-      {super.key, required Null Function(String imageUrl) onImageSelected});
+class ServiceImage extends StatefulWidget {
+  final void Function(String imageUrl) onImageSelected;
+
+  const ServiceImage({super.key, required this.onImageSelected});
+
+  @override
+  _ServiceImageState createState() => _ServiceImageState();
+}
+
+class _ServiceImageState extends State<ServiceImage> {
+  String? image; // Variable para guardar el path de la imagen seleccionada
+  String? fileName; // Variable para guardar el nombre del archivo seleccionado
+
+  Future<void> _pickImage() async {
+    final pickedImagePath = await Utils.pickSingleImage();
+    if (pickedImagePath != null) {
+      setState(() {
+        image = pickedImagePath; // Guardamos la ruta de la imagen
+        fileName = File(pickedImagePath)
+            .uri
+            .pathSegments
+            .last; // Extraemos el nombre del archivo
+      });
+      widget.onImageSelected(pickedImagePath);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    const image = ''; // Replace with image state
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (image.isEmpty) ...[
+        if (image == null) ...[
           GestureDetector(
-            onTap: () async {
-              final pickedImage = await Utils.pickSingleImage();
-              if (pickedImage != null) {
-                // Handle image selection
-              }
-            },
+            onTap: _pickImage,
             child: Container(
               height: 70.0,
               margin: const EdgeInsets.symmetric(vertical: 16.0),
@@ -38,13 +55,15 @@ class ServiceImage extends StatelessWidget {
                 color: Colors.blue,
                 dashPattern: const [6, 3],
                 strokeCap: StrokeCap.square,
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.image_outlined, color: Colors.blue),
-                    SizedBox(width: 5.0),
+                    const Icon(Icons.image_outlined, color: Colors.blue),
+                    const SizedBox(width: 5.0),
                     CustomText(
-                      text: "Browse Image",
+                      text: fileName != null
+                          ? fileName!
+                          : "Browse Image", // Mostrar el nombre del archivo o el texto por defecto
                       fontSize: 16.0,
                       fontWeight: FontWeight.w500,
                       color: Colors.blue,
@@ -63,8 +82,8 @@ class ServiceImage extends StatelessWidget {
                 width: double.infinity,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
-                  child: const CustomImage(
-                    path: image,
+                  child: CustomImage(
+                    path: image!,
                     isFile: true,
                     fit: BoxFit.cover,
                   ),
@@ -74,12 +93,7 @@ class ServiceImage extends StatelessWidget {
                 right: 10,
                 top: 20,
                 child: InkWell(
-                  onTap: () async {
-                    final pickedImage = await Utils.pickSingleImage();
-                    if (pickedImage != null) {
-                      // Handle image change
-                    }
-                  },
+                  onTap: _pickImage,
                   child: const CircleAvatar(
                     maxRadius: 16.0,
                     backgroundColor: Color(0xff18587A),

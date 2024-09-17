@@ -96,6 +96,10 @@ class SpecialDaysStep extends ConsumerWidget {
                             licenseType: '',
                             licenseNumber: '',
                             licenseExpirationDate: '',
+                            phone: '',
+                            service: '',
+                            issueDate: '',
+                            documentUrl: '',
                           );
                         });
                       },
@@ -173,6 +177,10 @@ class SpecialDaysStep extends ConsumerWidget {
                     licenseType: '',
                     licenseNumber: '',
                     licenseExpirationDate: '',
+                    phone: '',
+                    service: '',
+                    issueDate: '',
+                    documentUrl: '',
                   );
                 });
                 Navigator.of(context).pop();

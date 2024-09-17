@@ -45,6 +45,10 @@ class QuestionsStep extends ConsumerWidget {
                           licenseType: '',
                           licenseNumber: '',
                           licenseExpirationDate: '',
+                          phone: '',
+                          service: '',
+                          issueDate: '',
+                          documentUrl: '',
                         );
                       });
                     },

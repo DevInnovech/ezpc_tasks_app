@@ -39,6 +39,10 @@ class ScheduleStep extends ConsumerWidget {
                   licenseType: '',
                   licenseNumber: '',
                   licenseExpirationDate: '',
+                  phone: '',
+                  service: '',
+                  issueDate: '',
+                  documentUrl: '',
                 );
               });
             },
@@ -62,6 +66,10 @@ class ScheduleStep extends ConsumerWidget {
                   licenseType: '',
                   licenseNumber: '',
                   licenseExpirationDate: '',
+                  phone: '',
+                  service: '',
+                  issueDate: '',
+                  documentUrl: '',
                 );
               });
             },
