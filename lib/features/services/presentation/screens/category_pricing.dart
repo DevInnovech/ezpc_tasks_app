@@ -95,9 +95,7 @@ class CategoryPricingStep extends ConsumerWidget {
             SubCategorySelector(
               onSubCategorySelected: (String subCategory) {
                 ref.read(taskProvider.notifier).updateTask((currentTask) {
-                  // Actualizar el Task existente con la subcategoría seleccionada
-                  return currentTask!
-                      .copyWith(subCategory: subCategory, documentUrl: '');
+                  return currentTask!.copyWith(subCategory: subCategory);
                 });
               },
             ),
@@ -117,10 +115,22 @@ class CategoryPricingStep extends ConsumerWidget {
             onChanged: (bool? value) {
               ref.read(isLicenseRequiredProvider.notifier).state =
                   value ?? false;
+
               ref.read(taskProvider.notifier).updateTask((currentTask) {
-                // Actualizar el Task existente con la opción de licencia
-                return currentTask!
-                    .copyWith(requiresLicense: value ?? false, documentUrl: '');
+                // Asegúrate de que el valor de requiresLicense se mantenga actualizado
+                return currentTask!.copyWith(
+                  requiresLicense:
+                      value ?? false, // Mantén este valor actualizado
+                  licenseType: currentTask
+                      .licenseType, // Mantén otros campos sin modificar
+                  licenseNumber: currentTask.licenseNumber,
+                  licenseExpirationDate: currentTask.licenseExpirationDate,
+                  phone: currentTask.phone,
+                  service: currentTask.service,
+                  issueDate: currentTask.issueDate,
+                  documentUrl: currentTask
+                      .documentUrl, // Mantener si ya se guardó un documento
+                );
               });
             },
             activeColor: primaryColor,

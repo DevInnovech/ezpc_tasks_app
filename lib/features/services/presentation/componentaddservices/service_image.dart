@@ -1,34 +1,49 @@
+import 'dart:io';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
-import 'dart:io';
 
 class ServiceImage extends StatefulWidget {
   final void Function(String imageUrl) onImageSelected;
+  final String?
+      initialImageUrl; // Para mostrar la imagen inicial si está guardada
 
-  const ServiceImage({super.key, required this.onImageSelected});
+  const ServiceImage(
+      {super.key, required this.onImageSelected, this.initialImageUrl});
 
   @override
   _ServiceImageState createState() => _ServiceImageState();
 }
 
 class _ServiceImageState extends State<ServiceImage> {
-  String? image; // Variable para guardar el path de la imagen seleccionada
-  String? fileName; // Variable para guardar el nombre del archivo seleccionado
+  File? imageFile; // Ahora almacenamos el archivo en lugar de la cadena
+  String? fileName; // Para mostrar el nombre del archivo
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialImageUrl != null) {
+      imageFile = File(
+          widget.initialImageUrl!); // Inicializamos con la imagen existente
+      fileName = widget.initialImageUrl!
+          .split('/')
+          .last; // Extraemos el nombre del archivo
+    }
+  }
 
   Future<void> _pickImage() async {
-    final pickedImagePath = await Utils.pickSingleImage();
-    if (pickedImagePath != null) {
+    final pickedImage = await Utils
+        .pickSingleImage(); // Suponiendo que devuelve un String (la ruta del archivo)
+    if (pickedImage != null) {
       setState(() {
-        image = pickedImagePath; // Guardamos la ruta de la imagen
-        fileName = File(pickedImagePath)
-            .uri
-            .pathSegments
-            .last; // Extraemos el nombre del archivo
+        imageFile = File(pickedImage); // Creamos un File con la ruta devuelta
+        fileName = pickedImage
+            .split('/')
+            .last; // Extraemos el nombre del archivo de la ruta
       });
-      widget.onImageSelected(pickedImagePath);
+      widget.onImageSelected(pickedImage); // Guardamos la ruta en el estado
     }
   }
 
@@ -37,7 +52,7 @@ class _ServiceImageState extends State<ServiceImage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (image == null) ...[
+        if (imageFile == null) ...[
           GestureDetector(
             onTap: _pickImage,
             child: Container(
@@ -55,15 +70,13 @@ class _ServiceImageState extends State<ServiceImage> {
                 color: Colors.blue,
                 dashPattern: const [6, 3],
                 strokeCap: StrokeCap.square,
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.image_outlined, color: Colors.blue),
-                    const SizedBox(width: 5.0),
+                    Icon(Icons.image_outlined, color: Colors.blue),
+                    SizedBox(width: 5.0),
                     CustomText(
-                      text: fileName != null
-                          ? fileName!
-                          : "Browse Image", // Mostrar el nombre del archivo o el texto por defecto
+                      text: "Browse Image",
                       fontSize: 16.0,
                       fontWeight: FontWeight.w500,
                       color: Colors.blue,
@@ -83,7 +96,7 @@ class _ServiceImageState extends State<ServiceImage> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
                   child: CustomImage(
-                    path: image!,
+                    path: imageFile!.path, // Usamos la ruta del archivo
                     isFile: true,
                     fit: BoxFit.cover,
                   ),
@@ -100,6 +113,12 @@ class _ServiceImageState extends State<ServiceImage> {
                     child: Icon(Icons.edit, color: Colors.white, size: 20.0),
                   ),
                 ),
+              ),
+              Positioned(
+                bottom: 10,
+                left: 10,
+                child: Text(fileName ?? '',
+                    style: const TextStyle(color: Colors.white)),
               ),
             ],
           ),
