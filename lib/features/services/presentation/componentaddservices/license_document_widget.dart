@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Para manejar las máscaras y el formateo de entradas
-import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 class LicenseDocumentInput extends StatefulWidget {
   final void Function(String licenseType) onLicenseTypeChanged;
@@ -28,22 +27,22 @@ class LicenseDocumentInput extends StatefulWidget {
 }
 
 class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
-  File? selectedFile;
-  String fileName = "";
+  File? documentFile;
+  String? fileName;
 
   Future<void> _pickDocument() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf'],
+      allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf'], // Tipos permitidos
     );
 
     if (result != null && result.files.single.path != null) {
       setState(() {
-        selectedFile = File(result.files.single.path!);
-        fileName = result.files.single.name; // Almacenar el nombre del archivo
+        documentFile = File(result.files.single.path!); // Guardamos el archivo
+        fileName = result.files.single.name; // Guardamos el nombre del archivo
       });
-
-      widget.onDocumentSelected(selectedFile!);
+      widget
+          .onDocumentSelected(documentFile!); // Pasamos el archivo seleccionado
     }
   }
 
@@ -64,16 +63,11 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
             labelText: 'License Number',
           ),
         ),
-        TextFormField(
+        TextField(
           onChanged: widget.onPhoneChanged,
           decoration: const InputDecoration(
             labelText: 'Phone',
           ),
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            _PhoneNumberFormatter(), // Formato para xxx-xxx-xxxx
-          ],
         ),
         TextField(
           onChanged: widget.onServiceChanged,
@@ -95,41 +89,22 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
         ),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: _pickDocument, // Método para seleccionar documento
-          child: Text(selectedFile == null
-              ? 'Upload License Document'
-              : 'Selected: $fileName'), // Mostrar nombre del archivo
+          onPressed: _pickDocument,
+          child: const Text('Upload License Document'),
         ),
+        if (fileName !=
+            null) // Mostrar el nombre del archivo si se ha cargado uno
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              'File: $fileName', // Mostrar el nombre del archivo
+              style: const TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
+              ),
+            ),
+          ),
       ],
-    );
-  }
-}
-
-// Formateador de número de teléfono
-class _PhoneNumberFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = newValue.text;
-    if (text.length > 12) {
-      return oldValue; // Limitar a 12 caracteres
-    }
-
-    StringBuffer buffer = StringBuffer();
-    int selectionIndex = newValue.selection.end;
-
-    int offset = 0;
-    for (int i = 0; i < text.length; i++) {
-      if (i == 3 || i == 6) {
-        buffer.write('-');
-        offset++;
-      }
-      buffer.write(text[i]);
-    }
-
-    return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: selectionIndex + offset),
     );
   }
 }
