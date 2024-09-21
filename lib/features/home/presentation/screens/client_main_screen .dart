@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_data_model.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/Client_home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
@@ -28,7 +29,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
     super.initState();
     screenList = [
       const ClientHomeScreen(),
-      const SizedBox(),
+      const BookingScreen(),
       const ClientHomeScreen(),
     ];
 
@@ -137,7 +138,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       case 0:
         return const ClientHomeScreen();
       case 1:
-        return const SizedBox();
+        return const ClientHomeScreen();
       case 2:
         return const SizedBox();
 
