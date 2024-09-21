@@ -10,25 +10,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-class CustomerChatScreen extends StatefulWidget {
+class SupportChatScreen extends StatefulWidget {
   final String chatRoomId;
-  final String customerId;
-  final String providerId;
-  final bool isFakeData;
+  final String userId;
 
-  const CustomerChatScreen({
+  const SupportChatScreen({
     Key? key,
     required this.chatRoomId,
-    required this.customerId,
-    required this.providerId,
-    this.isFakeData = false,
+    required this.userId,
   }) : super(key: key);
 
   @override
-  _CustomerChatScreenState createState() => _CustomerChatScreenState();
+  _SupportChatScreenState createState() => _SupportChatScreenState();
 }
 
-class _CustomerChatScreenState extends State<CustomerChatScreen> {
+class _SupportChatScreenState extends State<SupportChatScreen> {
   final List<types.Message> _messages = [];
   late types.User _user;
   final TextEditingController _messageController = TextEditingController();
@@ -40,28 +36,29 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
   }
 
   void _initializeChat() {
-    if (widget.isFakeData) {
-      _user = types.User(id: 'fake_provider_id', firstName: 'Fake Provider');
-      _loadFakeMessages();
-    } else {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        _user = types.User(
-          id: currentUser.uid,
-          firstName: currentUser.displayName ?? 'Provider',
-        );
-        _loadMessages();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No user is signed in!')),
-        );
-      }
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    // Si el usuario está autenticado, lo usamos
+    if (currentUser != null) {
+      _user = types.User(
+        id: currentUser.uid,
+        firstName: currentUser.displayName ?? 'User',
+      );
     }
+    // Si no hay usuario autenticado, creamos un usuario ficticio
+    else {
+      _user = types.User(
+        id: 'guest_user', // ID ficticio para el usuario de invitado
+        firstName: 'Guest', // Nombre ficticio del usuario
+      );
+    }
+
+    _loadMessages(); // Cargar mensajes
   }
 
   void _loadMessages() {
     FirebaseFirestore.instance
-        .collection('chats')
+        .collection('supportChats')
         .doc(widget.chatRoomId)
         .collection('messages')
         .orderBy('createdAt', descending: true)
@@ -84,32 +81,6 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     });
   }
 
-  void _loadFakeMessages() {
-    final fakeMessages = [
-      types.TextMessage(
-        author: types.User(id: widget.customerId, firstName: 'Fake Customer'),
-        createdAt: DateTime.now()
-            .subtract(Duration(minutes: 5))
-            .millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        text: 'Hola, ¿en qué puedo ayudarte?',
-      ),
-      types.TextMessage(
-        author: types.User(id: widget.providerId, firstName: 'Fake Provider'),
-        createdAt: DateTime.now()
-            .subtract(Duration(minutes: 2))
-            .millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        text: 'Necesito ayuda con mi reserva.',
-      ),
-    ];
-
-    setState(() {
-      _messages.clear();
-      _messages.addAll(fakeMessages);
-    });
-  }
-
   void _handleSendPressed(String messageText) {
     if (messageText.isEmpty) return;
 
@@ -120,19 +91,17 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
       text: messageText,
     );
 
-    if (!widget.isFakeData) {
-      FirebaseFirestore.instance
-          .collection('chats')
-          .doc(widget.chatRoomId)
-          .collection('messages')
-          .doc(textMessage.id)
-          .set({
-        'authorId': _user.id,
-        'createdAt': textMessage.createdAt,
-        'id': textMessage.id,
-        'text': textMessage.text,
-      });
-    }
+    FirebaseFirestore.instance
+        .collection('supportChats')
+        .doc(widget.chatRoomId)
+        .collection('messages')
+        .doc(textMessage.id)
+        .set({
+      'authorId': _user.id,
+      'createdAt': textMessage.createdAt,
+      'id': textMessage.id,
+      'text': textMessage.text,
+    });
 
     setState(() {
       _messages.insert(0, textMessage);
@@ -175,12 +144,9 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment
-              .spaceBetween, // Asegura que los elementos se distribuyan correctamente
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Botón de retroceso
-
-            // Perfil e información
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -213,10 +179,9 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                       aspectRatio: 1,
                       child: CustomImage(
                         path: KImages.pp, // Reemplaza con la ruta de tu imagen
-                        fit: BoxFit
-                            .cover, // Ajusta la imagen para que rellene el CircleAvatar
-                        // width: 50,
-                        //  height: 50,
+                        fit: BoxFit.cover,
+                        //    width: 50,
+                        //   height: 50,
                       ),
                     ),
                   ),
@@ -228,7 +193,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
                     Text(
-                      'Cristal Pirstone',
+                      'Support Agent',
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,

@@ -14,6 +14,12 @@ import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/regit
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/verification_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/selector_fogottpassword.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/verification.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_details_screen.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/tracking/booking_tracking_screen.dart';
+import 'package:ezpc_tasks_app/features/chat/presentation/screens/SupportChatScreen.dart';
+import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_list_screen.dart';
+import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
@@ -71,6 +77,11 @@ class RouteNames {
   static const String seconServiceScreen = '/seconServiceScreen';
   static const String lastServiceScreen = '/lastServiceScreen';
 
+  //chats
+  static const String customerChatScreen = '/customerChat';
+  static const String supportChatScreen = '/supportChat';
+  static const String chatListScreen = '/chatListScreen';
+
   static const String changePasswordScreen = '/changePasswordScreen';
   static const String mainScreen = '/mainScreen';
   static const String ClientmainScreen = '/clientmainScreen';
@@ -83,6 +94,8 @@ class RouteNames {
   static const String serviceDetailsScreen = '/serviceDetailsScreen';
   static const String addNewServiceScreen = '/addNewServiceScreen';
   static const String bookingDetailsScreen = '/bookingDetailsScreen';
+
+  static const String bookingTrackingScreen = '/booking-tracking';
 
   static const String privacyPolicyScreen = '/privacyPolicyScreen';
   static const String termsConditionScreen = '/termsConditionScreen';
@@ -208,6 +221,47 @@ class RouteNames {
           ),
         );
 
+      case RouteNames.customerChatScreen:
+        // Recibe los argumentos como un Map<String, dynamic>
+        final Map<String, dynamic> arguments =
+            settings.arguments as Map<String, dynamic>;
+
+        // Asegúrate de que las claves coincidan con las que pasas en la navegación
+        final String chatRoomId = arguments['chatRoomId'] as String;
+        final String customerId = arguments['customerId'] as String;
+        final String providerId = arguments['providerId'] as String;
+        final bool isFakeData = arguments['isFakeData'] as bool;
+
+        // Pasa los datos recibidos a la pantalla de chat
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => CustomerChatScreen(
+            chatRoomId: chatRoomId,
+            customerId: customerId,
+            providerId: providerId,
+            isFakeData: isFakeData,
+          ),
+        );
+      case RouteNames.supportChatScreen:
+        final Map<String, dynamic> arguments =
+            settings.arguments as Map<String, dynamic>;
+
+        // Extrae los datos de los argumentos
+        final String chatRoomId = arguments['chatRoomId'] as String;
+        final String userId = arguments['userId'] as String;
+
+        // Pasa los datos a la pantalla de soporte técnico
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => SupportChatScreen(
+            chatRoomId: chatRoomId,
+            userId: userId,
+          ),
+        );
+
+      case RouteNames.chatListScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => ChatListScreen());
       case RouteNames.seconServiceScreen:
         // Extract the arguments passed from the previous screen
         final Map<String, dynamic> arguments =
@@ -245,6 +299,18 @@ class RouteNames {
           ),
         );
 
+      case RouteNames.bookingDetailsScreen:
+        final id = settings.arguments as String;
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => BookingDetailsScreen(id: id));
+      case RouteNames.bookingTrackingScreen:
+        final id = settings.arguments as String;
+        return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => BookingTrackingScreen(bookingId: id));
+      case RouteNames.bookingScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const BookingScreen());
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(
@@ -279,10 +345,7 @@ class RouteNames {
       //
   
 
-      case RouteNames.bookingDetailsScreen:
-        final id = settings.arguments as String;
-        return MaterialPageRoute(
-            settings: settings, builder: (_) => BookingDetailsScreen(id: id));
+      
 
       // case RouteNames.successPasswordScreen:
       //   return MaterialPageRoute(
@@ -344,9 +407,7 @@ class RouteNames {
 
       
       
-      case RouteNames.bookingScreen:
-        return MaterialPageRoute(
-            settings: settings, builder: (_) => const BookingScreen());
+     
       case RouteNames.serviceScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const ServiceScreen());

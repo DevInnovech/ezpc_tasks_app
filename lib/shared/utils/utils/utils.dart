@@ -202,7 +202,7 @@ class Utils {
 
   static String orderStatus(String orderStatus) {
     switch (orderStatus) {
-      case 'awaiting_for_provider_approval':
+      case 'awaiting':
         return 'Pending';
       case 'success':
         return 'Success';
@@ -212,11 +212,11 @@ class Utils {
         return 'Completed';
       case 'active':
         return 'Active';
-      case 'approved_by_provider':
+      case 'approved':
         return 'Active';
       case 'cancelled':
         return 'Cancelled';
-      case 'order_decliened_by_provider':
+      case 'decliened':
         return 'Cancelled';
       case '0':
         return 'In-active';
@@ -229,7 +229,7 @@ class Utils {
 
   static Color getBgColor(String status) {
     switch (status) {
-      case "awaiting_for_provider_approval":
+      case "awaiting":
         return const Color(0xffFEEEEE);
       case "pending":
         return const Color(0xffFEEEEE);
@@ -237,7 +237,7 @@ class Utils {
         return const Color(0xFFB3CAFF).withOpacity(1);
       case "active":
         return const Color(0xff00BF8C).withOpacity(0.2);
-      case "approved_by_provider":
+      case "approved":
         return const Color(0xff00BF8C).withOpacity(0.2);
       case "success":
         return const Color(0xff00BF8C).withOpacity(0.2);
@@ -256,13 +256,13 @@ class Utils {
 
   static Color textColor(String status) {
     switch (status) {
-      case "awaiting_for_provider_approval":
+      case "awaiting":
         return redColor;
       case "pending":
         return redColor;
       case "active":
         return greenColor;
-      case "approved_by_provider":
+      case "approved":
         return greenColor;
       case "success":
         return greenColor;
@@ -274,7 +274,7 @@ class Utils {
         return Colors.red;
       case "1":
         return greenColor;
-      case "order_decliened_by_provider":
+      case "decliened":
         return Colors.red;
       default:
         return primaryColor;

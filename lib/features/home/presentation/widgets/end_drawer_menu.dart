@@ -89,6 +89,15 @@ class EndDrawerMenu extends ConsumerWidget {
               },
             ),
             DrawerItem(
+              icon: KImages.di04,
+              title: 'Chats',
+              onTap: () {
+                Navigator.pushNamed(context, RouteNames.chatListScreen);
+
+                Scaffold.of(context).closeEndDrawer();
+              },
+            ),
+            DrawerItem(
               icon: KImages.di05,
               title: 'Change Password',
               onTap: () {
