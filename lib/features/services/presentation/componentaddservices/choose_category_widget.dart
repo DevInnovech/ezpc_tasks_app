@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CategorySelector extends ConsumerWidget {
-  final void Function(String category) onCategorySelected;
+  final void Function(String categoryName) onCategorySelected;
 
   const CategorySelector({super.key, required this.onCategorySelected});
 
@@ -30,36 +30,52 @@ class CategorySelector extends ConsumerWidget {
         ],
       ),
       child: categoryListAsyncValue.when(
-        data: (categories) => DropdownButtonFormField<Category>(
-          hint: const CustomText(text: "Category"),
-          isDense: true,
-          isExpanded: true,
-          value: selectedCategory,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          decoration: InputDecoration(
-            isDense: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.0),
-              borderSide: BorderSide.none, // Elimina el borde
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 14.0),
-          ),
-          onChanged: (value) {
-            if (value != null) {
-              ref.read(selectedCategoryProvider.state).state = value;
-              ref.read(selectedSubCategoryProvider.state).state = null;
-              onCategorySelected(value.id); // Acción al seleccionar categoría
+        data: (categories) {
+          // Si hay una categoría seleccionada, verificamos si sigue siendo válida
+          Category? validSelectedCategory;
+          if (selectedCategory != null) {
+            try {
+              validSelectedCategory = categories.firstWhere(
+                (category) => category.id == selectedCategory.id,
+              );
+            } catch (e) {
+              validSelectedCategory = null;
             }
-          },
-          items:
-              categories.map<DropdownMenuItem<Category>>((Category category) {
-            return DropdownMenuItem<Category>(
-              value: category,
-              child: Text(category.name),
-            );
-          }).toList(),
-        ),
+          }
+
+          return DropdownButtonFormField<Category>(
+            hint: const CustomText(text: "Category"),
+            isDense: true,
+            isExpanded: true,
+            value:
+                validSelectedCategory, // Si no hay categoría seleccionada, será null
+            icon: const Icon(Icons.keyboard_arrow_down),
+            decoration: InputDecoration(
+              isDense: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                borderSide: BorderSide.none, // Elimina el borde
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 14.0),
+            ),
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(selectedCategoryProvider.state).state = value;
+                ref.read(selectedSubCategoryProvider.state).state = null;
+                // Guardamos el nombre de la categoría en lugar del ID
+                onCategorySelected(value.name); // Guardar el nombre
+              }
+            },
+            items:
+                categories.map<DropdownMenuItem<Category>>((Category category) {
+              return DropdownMenuItem<Category>(
+                value: category,
+                child: Text(category.name),
+              );
+            }).toList(),
+          );
+        },
         loading: () => const CircularProgressIndicator(), // Indicador de carga
         error: (error, stack) => const Text('Error loading categories'),
       ),

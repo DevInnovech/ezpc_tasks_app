@@ -1,4 +1,4 @@
-import 'package:ezpc_tasks_app/features/services/data/add_repositoey.dart';
+import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';

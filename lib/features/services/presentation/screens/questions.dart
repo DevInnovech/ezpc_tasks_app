@@ -1,4 +1,4 @@
-import 'package:ezpc_tasks_app/features/services/data/add_repositoey.dart';
+import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
@@ -15,8 +15,23 @@ class QuestionsStep extends ConsumerWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
-      child: questions.isNotEmpty
-          ? Column(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Añadimos un título para las preguntas
+          const Text(
+            "Additional Information",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 16), // Espacio entre el título y las preguntas
+
+          // Mostramos las preguntas si hay alguna disponible
+          if (questions.isNotEmpty)
+            Column(
               children: questions.map((question) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -25,8 +40,7 @@ class QuestionsStep extends ConsumerWidget {
                     onChanged: (value) {
                       ref.read(taskProvider.notifier).updateTask((currentTask) {
                         // Nota: Como no hay un campo específico para preguntas en el modelo Task,
-                        // podríamos almacenar las respuestas en un mapa en el campo 'name' por ahora.
-                        // En una implementación real, deberías considerar añadir un campo adecuado al modelo Task.
+                        // podrías almacenar las respuestas en un campo dedicado en el futuro.
                         String updatedName = currentTask?.name ?? '';
                         updatedName += '$question: $value\n';
 
@@ -42,9 +56,14 @@ class QuestionsStep extends ConsumerWidget {
                           workingDays: currentTask?.workingDays ?? [],
                           workingHours: currentTask?.workingHours ?? {},
                           specialDays: currentTask?.specialDays ?? [],
-                          licenseType: '',
-                          licenseNumber: '',
-                          licenseExpirationDate: '',
+                          licenseType: currentTask?.licenseType ?? '',
+                          licenseNumber: currentTask?.licenseNumber ?? '',
+                          licenseExpirationDate:
+                              currentTask?.licenseExpirationDate ?? '',
+                          phone: currentTask?.phone ?? '',
+                          service: currentTask?.service ?? '',
+                          issueDate: currentTask?.issueDate ?? '',
+                          documentUrl: currentTask?.documentUrl ?? '',
                         );
                       });
                     },
@@ -54,7 +73,10 @@ class QuestionsStep extends ConsumerWidget {
                 );
               }).toList(),
             )
-          : const Center(child: Text('No additional questions.')),
+          else
+            const Center(child: Text('No additional questions.')),
+        ],
+      ),
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:ezpc_tasks_app/features/services/data/add_repositoey.dart';
+import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/schedule_selection_days_widget.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/schedule_selection_hours_widget.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -39,6 +39,10 @@ class ScheduleStep extends ConsumerWidget {
                   licenseType: '',
                   licenseNumber: '',
                   licenseExpirationDate: '',
+                  phone: '',
+                  service: '',
+                  issueDate: '',
+                  documentUrl: '',
                 );
               });
             },
@@ -62,6 +66,10 @@ class ScheduleStep extends ConsumerWidget {
                   licenseType: '',
                   licenseNumber: '',
                   licenseExpirationDate: '',
+                  phone: '',
+                  service: '',
+                  issueDate: '',
+                  documentUrl: '',
                 );
               });
             },

@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-// Modelo de subcategoría
+// subcategory_model.dart
 class SubCategory {
   final String id;
   final String name;
@@ -12,7 +10,7 @@ class SubCategory {
     this.additionalOptions,
   });
 
-  // Convertir la subcategoría a un mapa (para almacenar en Firebase)
+  // Convierte la subcategoría a un mapa
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -21,7 +19,7 @@ class SubCategory {
     };
   }
 
-  // Crear una subcategoría a partir de un mapa (al leer desde Firebase)
+  // Crea una subcategoría a partir de un mapa
   factory SubCategory.fromMap(Map<String, dynamic> map) {
     return SubCategory(
       id: map['id'] ?? '',
@@ -29,11 +27,4 @@ class SubCategory {
       additionalOptions: List<String>.from(map['additionalOptions'] ?? []),
     );
   }
-
-  // Convertir la subcategoría a JSON
-  String toJson() => json.encode(toMap());
-
-  // Crear una subcategoría a partir de JSON
-  factory SubCategory.fromJson(String source) =>
-      SubCategory.fromMap(json.decode(source));
 }

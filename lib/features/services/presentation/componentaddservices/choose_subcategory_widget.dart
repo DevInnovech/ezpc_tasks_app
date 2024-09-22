@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SubCategorySelector extends ConsumerWidget {
-  const SubCategorySelector({super.key});
+  final void Function(String subCategory) onSubCategorySelected; // Añadido
+
+  const SubCategorySelector(
+      {super.key, required this.onSubCategorySelected}); // Añadido el argumento
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,7 +32,7 @@ class SubCategorySelector extends ConsumerWidget {
         ],
       ),
       child: DropdownButtonFormField<SubCategory>(
-        hint: const CustomText(text: "SubCategory"),
+        hint: const CustomText(text: "Select Subcategory"),
         isDense: true,
         isExpanded: true,
         value: selectedSubCategory,
@@ -38,15 +41,15 @@ class SubCategorySelector extends ConsumerWidget {
           isDense: true,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10.0),
-            borderSide:
-                BorderSide.none, // Elimina el borde para dejar solo la sombra
+            borderSide: BorderSide.none,
           ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12.0, vertical: 14.0),
         ),
-        onChanged: (value) {
+        onChanged: (SubCategory? value) {
           if (value != null) {
             ref.read(selectedSubCategoryProvider.state).state = value;
+            onSubCategorySelected(value.name); // Aquí se selecciona el nombre
           }
         },
         items: selectedCategory.subCategories

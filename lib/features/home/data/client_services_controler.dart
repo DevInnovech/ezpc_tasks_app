@@ -7,9 +7,9 @@ import 'package:ezpc_tasks_app/features/home/models/service_item.dart';
 import 'package:ezpc_tasks_app/features/home/models/service_section.dart';
 import 'package:ezpc_tasks_app/features/home/models/slider_model.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
+import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 // Definimos los diferentes estados que puede tener el HomeController
 class HomeControllerState {
@@ -49,7 +49,26 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   }
 
   Future<HomeModel> fetchHomeData() async {
-    // Simulamos algunos datos para cada parte del HomeModel
+    // Simula una lista de categorías
+    final categories = [
+      Category(
+        id: '1',
+        name: 'Category 1',
+        subCategories: [
+          SubCategory(id: '1', name: 'SubCategory 1'),
+          SubCategory(id: '2', name: 'SubCategory 2'),
+        ],
+      ),
+      Category(
+        id: '2',
+        name: 'Category 2',
+        subCategories: [
+          SubCategory(id: '3', name: 'SubCategory 3'),
+          SubCategory(id: '4', name: 'SubCategory 4'),
+        ],
+      ),
+    ];
+
     final sliders = [
       const SliderModel(
           id: 1,
@@ -93,7 +112,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         totalReview: 10,
         totalOrder: 5,
         category: categories[0],
-        provider: const ProviderModel(
+        provider: ProviderModel(
             id: 1,
             name: "Provider 1",
             email: '',
@@ -120,7 +139,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         totalReview: 10,
         totalOrder: 5,
         category: categories[0],
-        provider: const ProviderModel(
+        provider: ProviderModel(
             id: 1,
             name: "Provider 2",
             email: '',
