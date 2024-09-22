@@ -43,5 +43,5 @@ class Category {
   factory Category.fromJson(String source) =>
       Category.fromMap(json.decode(source));
 
-  get pathimage => null;
+//  get pathimage => null;
 }

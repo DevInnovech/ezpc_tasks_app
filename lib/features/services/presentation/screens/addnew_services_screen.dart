@@ -23,7 +23,7 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   void initState() {
     super.initState();
     // Refrescamos el provider de categorías para cargar las categorías desde Firebase al iniciar la pantalla
-    ref.refresh(categoryListProvider);
+//    ref.refresh(categoryListProvider);
   }
 
   final List<Widget> _steps = [
@@ -125,8 +125,8 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
 
         // Restablecer el estado de la tarea y los proveedores de categorías/subcategorías
         ref.read(taskProvider.notifier).resetTask();
-        ref.read(selectedCategoryProvider.notifier).state = null;
-        ref.read(selectedSubCategoryProvider.notifier).state = null;
+        //     ref.read(selectedCategoryProvider.notifier).state = null;
+        //     ref.read(selectedSubCategoryProvider.notifier).state = null;
       } catch (e) {
         showDialog(
           // ignore: use_build_context_synchronously
