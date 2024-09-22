@@ -16,9 +16,7 @@ class TaskNotifier extends StateNotifier<Task?> {
 
   void updateTask(Task Function(Task?) updater) {
     final updatedTask = updater(state);
-    if (updatedTask != null) {
-      state = _ensureAllFieldsFilled(updatedTask);
-    }
+    state = _ensureAllFieldsFilled(updatedTask);
   }
 
   Task _ensureAllFieldsFilled(Task task) {

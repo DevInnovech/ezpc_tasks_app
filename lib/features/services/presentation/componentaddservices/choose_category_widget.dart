@@ -8,8 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class CategorySelector extends ConsumerWidget {
   final void Function(String category) onCategorySelected;
 
-  const CategorySelector({Key? key, required this.onCategorySelected})
-      : super(key: key);
+  const CategorySelector({super.key, required this.onCategorySelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

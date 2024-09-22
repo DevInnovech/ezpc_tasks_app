@@ -14,7 +14,7 @@ class CategoryRepository {
       print('Category saved successfully');
     } catch (e) {
       print('Error saving category to Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -22,12 +22,10 @@ class CategoryRepository {
   Future<List<Category>> getCategories() async {
     try {
       final snapshot = await _firestore.collection('categories').get();
-      return snapshot.docs
-          .map((doc) => Category.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
+      return snapshot.docs.map((doc) => Category.fromMap(doc.data())).toList();
     } catch (e) {
       print('Error fetching categories from Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -41,7 +39,7 @@ class CategoryRepository {
       print('Category updated successfully');
     } catch (e) {
       print('Error updating category in Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -52,7 +50,7 @@ class CategoryRepository {
       print('Category deleted successfully');
     } catch (e) {
       print('Error deleting category from Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 }

@@ -26,7 +26,7 @@ Future<UserDashBoardModel> fetchClientProfile() async {
   await Future.delayed(const Duration(seconds: 2));
 
   // Datos simulados para los distintos modelos que conforman UserDashBoardModel
-  final userProfile = UserProfileModel(
+  final userProfile = const UserProfileModel(
     id: 1,
     name: 'John Doe',
     image: 'https://example.com/profile-picture.jpg',
@@ -48,9 +48,9 @@ Future<UserDashBoardModel> fetchClientProfile() async {
   );
 
   final defaultAvatar =
-      DefaultAvatar(image: 'https://example.com/default-avatar.jpg');
+      const DefaultAvatar(image: 'https://example.com/default-avatar.jpg');
 
-  final orderData = OrderDataModel(
+  final orderData = const OrderDataModel(
     data: [
       OrderItems(
         id: 1,
@@ -63,9 +63,9 @@ Future<UserDashBoardModel> fetchClientProfile() async {
     ],
   );
 
-  final currencyIcon = CurrencyIconModel(icon: '\$');
+  final currencyIcon = const CurrencyIconModel(icon: '\$');
 
-  final reviews = ReviewDatModel(
+  final reviews = const ReviewDatModel(
     data: [
       ReviewItems(
         id: 1,
@@ -104,7 +104,7 @@ Future<UserDashBoardModel> fetchClientProfile() async {
     ],
   );
 
-  final tickets = TicketDataModel(
+  final tickets = const TicketDataModel(
     data: [
       TicketItems(
         id: 1,

@@ -5,7 +5,7 @@ import 'package:ezpc_tasks_app/features/services/presentation/screens/special_da
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart'; // Corrección del import
-import 'package:ezpc_tasks_app/features/services/data/services_repository.dart'; // Correcto import
+// Correcto import
 
 class AddNewTaskScreen extends ConsumerStatefulWidget {
   const AddNewTaskScreen({super.key});

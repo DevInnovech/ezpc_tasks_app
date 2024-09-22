@@ -32,6 +32,8 @@ class HomeControllerError extends HomeControllerState {
 class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   HomeControllerNotifier() : super(HomeControllerLoading());
 
+  get categories => null;
+
   Future<void> loadHomeData() async {
     try {
       // Simula la carga de datos con un retardo
@@ -49,7 +51,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   Future<HomeModel> fetchHomeData() async {
     // Simulamos algunos datos para cada parte del HomeModel
     final sliders = [
-      SliderModel(
+      const SliderModel(
           id: 1,
           title: "",
           image: KImages.offer,
@@ -57,7 +59,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
           serial: 12,
           createdAt: '',
           updatedAt: ''),
-      SliderModel(
+      const SliderModel(
           id: 2,
           title: "",
           image: KImages.offer,
@@ -68,8 +70,8 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
     ];
 
     final serviceAreas = [
-      ServiceArea(id: 1, name: "Service Area 1", slug: '1'),
-      ServiceArea(id: 2, name: "Service Area 2", slug: '2'),
+      const ServiceArea(id: 1, name: "Service Area 1", slug: '1'),
+      const ServiceArea(id: 2, name: "Service Area 2", slug: '2'),
     ];
 
     final featuredServices = [
@@ -91,7 +93,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         totalReview: 10,
         totalOrder: 5,
         category: categories[0],
-        provider: ProviderModel(
+        provider: const ProviderModel(
             id: 1,
             name: "Provider 1",
             email: '',
@@ -118,7 +120,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         totalReview: 10,
         totalOrder: 5,
         category: categories[0],
-        provider: ProviderModel(
+        provider: const ProviderModel(
             id: 1,
             name: "Provider 2",
             email: '',
@@ -130,13 +132,13 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
     ];
 
     final counters = [
-      CounterModel(
+      const CounterModel(
           id: 1,
           title: "Completed",
           number: "100",
           icon: "https://via.placeholder.com/50x50",
           status: 1),
-      CounterModel(
+      const CounterModel(
           id: 2,
           title: "In Progress",
           number: "50",
@@ -144,7 +146,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
           status: 2),
     ];
 
-    final adBanner = AddBannerModel(
+    const adBanner = AddBannerModel(
       banner: "1",
       link: 'https://via.placeholder.com/600x100',
     );
@@ -153,7 +155,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
       searchCategories: categories,
       sliders: sliders,
       serviceAreas: serviceAreas,
-      categorySection: ServiceSection(
+      categorySection: const ServiceSection(
           visibility: true, title: "Categories", description: "categories"),
       categories: categories,
       counterBgImage: "https://via.placeholder.com/600x200",
@@ -161,9 +163,9 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
       adBanner: adBanner,
       coundownVisibility: true,
       counters: counters,
-      popularServiceSection: ServiceSection(
+      popularServiceSection: const ServiceSection(
           visibility: true, title: "Popular Services", description: "popular"),
-      featureServiceSection: ServiceSection(
+      featureServiceSection: const ServiceSection(
           visibility: true, title: "Feature Services", description: "feature"),
       popularServices: featuredServices,
     );

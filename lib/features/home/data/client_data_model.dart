@@ -38,7 +38,7 @@ final serviceListProvider =
     FutureProvider<List<ServiceClientModel>>((ref) async {
   // Simulación de lista de servicios para el cliente
   return [
-    ServiceClientModel(
+    const ServiceClientModel(
       name: 'Home Cleaning',
       slug: 'home-cleaning',
       price: '100.00',
@@ -60,7 +60,7 @@ final serviceListProvider =
         {'date': '2024-12-25', 'from': '10:00 AM', 'to': '02:00 PM'},
       ],
     ),
-    ServiceClientModel(
+    const ServiceClientModel(
       name: 'Plumbing Services',
       slug: 'plumbing-services',
       price: '150.00',
@@ -79,7 +79,7 @@ final serviceListProvider =
       ],
       specialDays: [],
     ),
-    ServiceClientModel(
+    const ServiceClientModel(
       name: 'Electrical Repair',
       slug: 'electrical-repair',
       price: '200.00',
