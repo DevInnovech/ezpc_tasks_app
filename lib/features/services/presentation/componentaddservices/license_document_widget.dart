@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 
 class LicenseDocumentInput extends StatefulWidget {
   final void Function(String licenseType) onLicenseTypeChanged;
