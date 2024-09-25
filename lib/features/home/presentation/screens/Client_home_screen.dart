@@ -14,7 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ClientHomeScreen extends ConsumerWidget {
-  const ClientHomeScreen({Key? key}) : super(key: key);
+  const ClientHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,7 +100,7 @@ class HomeLoadedData extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 20),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: CustomImage(
+                child: const CustomImage(
                   //areglar baner osea que venga de donde debe venir
                   path: KImages.Referalflayer,
                   fit: BoxFit.contain,

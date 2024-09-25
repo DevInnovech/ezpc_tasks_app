@@ -152,7 +152,8 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                       } else {
                         // Manejo de error si el registro falla
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to create account')),
+                          const SnackBar(
+                              content: Text('Failed to create account')),
                         );
                       }
                     }

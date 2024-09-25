@@ -32,7 +32,7 @@ class ClientAppDrawer extends ConsumerWidget {
         children: [
           SafeArea(
             top: false,
-            child: Container(
+            child: SizedBox(
               height: 140.h,
               child: DrawerHeader(
                 margin: EdgeInsets.zero,
@@ -58,7 +58,7 @@ class ClientAppDrawer extends ConsumerWidget {
                             },
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: CustomImage(
+                              child: const CustomImage(
                                 path: KImages.appLayer,
                                 //    usar para firebase esa funcion
                                 /*  RemoteUrls.imageUrl(

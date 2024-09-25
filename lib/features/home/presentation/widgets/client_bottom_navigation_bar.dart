@@ -8,8 +8,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
 
 class ClientBottomNavigationBar extends StatelessWidget {
-  const ClientBottomNavigationBar({Key? key, required this.scaffoldKey})
-      : super(key: key);
+  const ClientBottomNavigationBar({super.key, required this.scaffoldKey});
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override

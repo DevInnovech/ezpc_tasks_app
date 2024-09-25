@@ -18,7 +18,7 @@ class TaskRepository {
       print('Task saved successfully');
     } catch (e) {
       print('Error saving task to Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -29,7 +29,7 @@ class TaskRepository {
       print('Task updated successfully');
     } catch (e) {
       print('Error updating task in Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -40,7 +40,7 @@ class TaskRepository {
       print('Task deleted successfully');
     } catch (e) {
       print('Error deleting task from Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -48,12 +48,10 @@ class TaskRepository {
   Future<List<Task>> getTasks() async {
     try {
       final snapshot = await _firestore.collection('tasks').get();
-      return snapshot.docs
-          .map((doc) => Task.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
+      return snapshot.docs.map((doc) => Task.fromMap(doc.data())).toList();
     } catch (e) {
       print('Error getting tasks from Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 }

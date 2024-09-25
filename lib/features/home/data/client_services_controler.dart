@@ -32,6 +32,8 @@ class HomeControllerError extends HomeControllerState {
 class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   HomeControllerNotifier() : super(HomeControllerLoading());
 
+  get categories => null;
+
   Future<void> loadHomeData() async {
     try {
       // Simula la carga de datos con un retardo
@@ -109,8 +111,8 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         averageRating: "5",
         totalReview: 10,
         totalOrder: 5,
-        category: categories[0], // Usamos la primera categoría de la lista
-        provider: const ProviderModel(
+        category: categories[0],
+        provider: ProviderModel(
             id: 1,
             name: "Provider 1",
             email: '',
@@ -136,8 +138,8 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         averageRating: "4.5",
         totalReview: 10,
         totalOrder: 5,
-        category: categories[1], // Usamos la segunda categoría de la lista
-        provider: const ProviderModel(
+        category: categories[0],
+        provider: ProviderModel(
             id: 1,
             name: "Provider 2",
             email: '',

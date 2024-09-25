@@ -101,9 +101,8 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                   onPressed: isLoading
                       ? null
                       : () async {
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, RouteNames.mainScreen, (route) => false);
-/*
+                          Navigator.pushNamedAndRemoveUntil(context,
+                              RouteNames.ClientmainScreen, (route) => false);
 
                           setState(() {
                             isLoading = true;
@@ -138,14 +137,25 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                               await _authService.savePreferences(
                                   email!, password!, isRemember);
 
-                              if (userType == AccountType.client) {
-                                Navigator.pushNamedAndRemoveUntil(
-                                    context,
-                                    RouteNames.ClientmainScreen,
-                                    (route) => false);
-                              } else {
+                              // Fetch the user role from Firestore
+                              final userRole = await _authService
+                                  .getUserRole(userCredential.user!);
+
+                              if (userRole == 'Client') {
                                 Navigator.pushNamedAndRemoveUntil(context,
                                     RouteNames.mainScreen, (route) => false);
+                              } else if (userRole == 'Independent Provider') {
+                                Navigator.pushNamedAndRemoveUntil(context,
+                                    RouteNames.mainScreen, (route) => false);
+                              } else {
+                                // Handle the case where the role is not recognized
+                                print('Unrecognized user role: $userRole');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'An error occurred during login. Unrecognized user role.'), // "Ocurrió un error durante el inicio de sesión. Rol de usuario no reconocido."
+                                  ),
+                                );
                               }
                             } else {
                               // Login failed, show an error message to the user
@@ -168,7 +178,6 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                               isLoading = false;
                             });
                           }
-                      */
                         },
                 ),
                 _buildRemember(),

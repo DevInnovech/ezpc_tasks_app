@@ -42,4 +42,6 @@ class Category {
   // Crear desde JSON
   factory Category.fromJson(String source) =>
       Category.fromMap(json.decode(source));
+
+//  get pathimage => null;
 }
