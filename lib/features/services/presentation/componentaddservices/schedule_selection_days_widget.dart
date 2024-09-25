@@ -1,14 +1,19 @@
 import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DaysSelector extends ConsumerWidget {
-  const DaysSelector(
-      {super.key,
-      required List<String> initialSelection,
-      required Null Function(List<String> selectedDays) onDaysSelected});
+  final List<String> initialSelection;
+  final void Function(List<String> selectedDays) onDaysSelected;
+
+  const DaysSelector({
+    super.key,
+    required this.initialSelection,
+    required this.onDaysSelected,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -126,20 +131,15 @@ class DaysSelector extends ConsumerWidget {
                       ),
                       CustomCheckboxListTile(
                         title: 'All days',
-                        value: selectedDays.contains('All days'),
+                        value: selectedDays.length ==
+                            7, // Si los 7 días están seleccionados, marcamos "All days"
                         onChanged: (bool? value) {
-                          _toggleDaySelection(ref, 'All days', value);
                           if (value == true) {
-                            ref.read(selectedDaysProvider.notifier).state = [
-                              'Monday',
-                              'Tuesday',
-                              'Wednesday',
-                              'Thursday',
-                              'Friday',
-                              'Saturday',
-                              'Sunday',
-                              'All days'
-                            ];
+                            // Si se selecciona "Todos los días", seleccionamos todos los días
+                            _toggleAllDaysSelection(ref, true);
+                          } else {
+                            // Si se desmarca "All days", deseleccionamos todos los días
+                            _toggleAllDaysSelection(ref, false);
                           }
                         },
                         activeColor: primaryColor,
@@ -159,11 +159,53 @@ class DaysSelector extends ConsumerWidget {
 
   void _toggleDaySelection(WidgetRef ref, String day, bool? isSelected) {
     final selectedDays = ref.read(selectedDaysProvider.notifier).state;
+
     if (isSelected == true) {
+      // Añadir el día a la lista si está seleccionado
       ref.read(selectedDaysProvider.notifier).state = [...selectedDays, day];
     } else {
+      // Eliminar el día de la lista si está deseleccionado
       ref.read(selectedDaysProvider.notifier).state =
           selectedDays.where((d) => d != day).toList();
     }
+
+    // Actualizamos los días seleccionados en el taskProvider
+    ref.read(taskProvider.notifier).updateTask((currentTask) {
+      return currentTask!.copyWith(
+        workingDays: ref.read(selectedDaysProvider.notifier).state,
+      );
+    });
+  }
+
+  void _toggleAllDaysSelection(WidgetRef ref, bool isSelected) {
+    // Lista de todos los días de la semana
+    const allDays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+
+    if (isSelected) {
+      // Seleccionamos todos los días
+      ref.read(selectedDaysProvider.notifier).state = allDays;
+    } else {
+      // Deseleccionamos todos los días
+      ref.read(selectedDaysProvider.notifier).state = [];
+    }
+
+    // Actualizamos los días seleccionados en el taskProvider
+    ref.read(taskProvider.notifier).updateTask((currentTask) {
+      return currentTask!.copyWith(
+        workingDays: ref.read(selectedDaysProvider.notifier).state,
+      );
+    });
+
+    // Imprimimos los días seleccionados para verificar
+    print(
+        'Días seleccionados: ${ref.read(selectedDaysProvider.notifier).state}');
   }
 }

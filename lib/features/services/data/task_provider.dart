@@ -43,18 +43,13 @@ class TaskNotifier extends StateNotifier<Task?> {
       licenseExpirationDate: task.licenseExpirationDate.isNotEmpty
           ? task.licenseExpirationDate
           : state?.licenseExpirationDate ?? '',
-      issueDate: task.issueDate.isNotEmpty
-          ? task.issueDate
-          : state?.issueDate ?? '', // Incluyendo el campo issueDate
-      phone: task.phone.isNotEmpty
-          ? task.phone
-          : state?.phone ?? '', // Incluyendo el campo phone
-      service: task.service.isNotEmpty
-          ? task.service
-          : state?.service ?? '', // Incluyendo el campo service
+      issueDate:
+          task.issueDate.isNotEmpty ? task.issueDate : state?.issueDate ?? '',
+      phone: task.phone.isNotEmpty ? task.phone : state?.phone ?? '',
+      service: task.service.isNotEmpty ? task.service : state?.service ?? '',
       documentUrl: task.documentUrl.isNotEmpty
           ? task.documentUrl
-          : state?.documentUrl ?? '', // Usando el valor correcto de documentUrl
+          : state?.documentUrl ?? '',
       workingDays: task.workingDays?.isNotEmpty == true
           ? task.workingDays
           : state?.workingDays ?? [],
@@ -70,6 +65,10 @@ class TaskNotifier extends StateNotifier<Task?> {
   Future<void> saveTask(Task task) async {
     try {
       final taskToSave = _ensureAllFieldsFilled(task);
+
+      // Añade esta línea para verificar los workingDays antes de guardar
+      print('Working days: ${taskToSave.workingDays}');
+
       await _repository.saveTask(taskToSave);
       state = taskToSave;
       if (kDebugMode) {

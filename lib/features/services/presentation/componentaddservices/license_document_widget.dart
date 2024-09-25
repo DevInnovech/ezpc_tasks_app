@@ -1,6 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 class LicenseDocumentInput extends StatefulWidget {
   final void Function(String licenseType) onLicenseTypeChanged;
@@ -27,22 +29,47 @@ class LicenseDocumentInput extends StatefulWidget {
 }
 
 class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
-  File? documentFile;
-  String? fileName;
+  File? selectedFile;
+  String fileName = "";
+  DateTime? issueDate;
+  DateTime? expirationDate;
 
   Future<void> _pickDocument() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf'], // Tipos permitidos
+      allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf'],
     );
 
     if (result != null && result.files.single.path != null) {
       setState(() {
-        documentFile = File(result.files.single.path!); // Guardamos el archivo
-        fileName = result.files.single.name; // Guardamos el nombre del archivo
+        selectedFile = File(result.files.single.path!);
+        fileName = result.files.single.name;
       });
-      widget
-          .onDocumentSelected(documentFile!); // Pasamos el archivo seleccionado
+
+      widget.onDocumentSelected(selectedFile!);
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isIssueDate) async {
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      setState(() {
+        if (isIssueDate) {
+          issueDate = selectedDate;
+          widget.onIssueDateChanged(
+              DateFormat('yyyy-MM-dd').format(selectedDate));
+        } else {
+          expirationDate = selectedDate;
+          widget.onLicenseExpirationDateChanged(
+              DateFormat('yyyy-MM-dd').format(selectedDate));
+        }
+      });
     }
   }
 
@@ -63,11 +90,17 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
             labelText: 'License Number',
           ),
         ),
-        TextField(
+        TextFormField(
           onChanged: widget.onPhoneChanged,
           decoration: const InputDecoration(
             labelText: 'Phone',
           ),
+          keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+            _PhoneNumberInputFormatter(), // Agregar el formateador personalizado
+          ],
         ),
         TextField(
           onChanged: widget.onServiceChanged,
@@ -75,36 +108,70 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
             labelText: 'Service',
           ),
         ),
-        TextField(
-          onChanged: widget.onIssueDateChanged,
-          decoration: const InputDecoration(
-            labelText: 'Issue Date',
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _selectDate(context, true),
+          child: AbsorbPointer(
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: issueDate == null
+                    ? 'Issue Date'
+                    : 'Issue Date: ${DateFormat('yyyy-MM-dd').format(issueDate!)}',
+              ),
+            ),
           ),
         ),
-        TextField(
-          onChanged: widget.onLicenseExpirationDateChanged,
-          decoration: const InputDecoration(
-            labelText: 'Expiration Date',
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _selectDate(context, false),
+          child: AbsorbPointer(
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: expirationDate == null
+                    ? 'Expiration Date'
+                    : 'Expiration Date: ${DateFormat('yyyy-MM-dd').format(expirationDate!)}',
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _pickDocument,
-          child: const Text('Upload License Document'),
+          child: Text(selectedFile == null
+              ? 'Upload License Document'
+              : 'Selected: $fileName'),
         ),
-        if (fileName !=
-            null) // Mostrar el nombre del archivo si se ha cargado uno
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Text(
-              'File: $fileName', // Mostrar el nombre del archivo
-              style: const TextStyle(
-                fontStyle: FontStyle.italic,
-                color: Colors.grey,
-              ),
-            ),
-          ),
       ],
+    );
+  }
+}
+
+// Formateador personalizado para el campo Phone
+class _PhoneNumberInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Elimina todos los caracteres no numéricos
+    String cleaned = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    // Formatear el número según el formato XXX-XXX-XXXX
+    if (cleaned.length >= 6) {
+      final part1 = cleaned.substring(0, 3);
+      final part2 = cleaned.substring(3, 6);
+      final part3 =
+          cleaned.substring(6, cleaned.length > 10 ? 10 : cleaned.length);
+      cleaned = '$part1-$part2-$part3';
+    } else if (cleaned.length >= 3) {
+      final part1 = cleaned.substring(0, 3);
+      final part2 = cleaned.substring(3, cleaned.length);
+      cleaned = '$part1-$part2';
+    }
+
+    return TextEditingValue(
+      text: cleaned,
+      selection: TextSelection.collapsed(offset: cleaned.length),
     );
   }
 }
