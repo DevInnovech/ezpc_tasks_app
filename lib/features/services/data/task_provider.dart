@@ -64,8 +64,9 @@ class TaskNotifier extends StateNotifier<Task?> {
     try {
       final taskToSave = _ensureAllFieldsFilled(task);
 
-      // Añade esta línea para verificar los workingDays antes de guardar
+      // Imprimir en consola para verificar los valores antes de guardar
       print('Working days: ${taskToSave.workingDays}');
+      print('Working hours: ${taskToSave.workingHours}');
 
       await _repository.saveTask(taskToSave);
       state = taskToSave;
@@ -80,5 +81,16 @@ class TaskNotifier extends StateNotifier<Task?> {
 
   void resetTask() {
     state = null;
+  }
+
+  // Método para actualizar las horas de trabajo
+  void updateWorkingHours(String day, Map<String, String> hours) {
+    if (state == null) return;
+
+    final updatedHours =
+        Map<String, Map<String, String>>.from(state!.workingHours ?? {});
+    updatedHours[day] = hours;
+
+    state = state!.copyWith(workingHours: updatedHours);
   }
 }

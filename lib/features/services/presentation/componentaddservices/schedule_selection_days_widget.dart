@@ -5,7 +5,7 @@ import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DaysSelector extends ConsumerWidget {
+class DaysSelector extends ConsumerStatefulWidget {
   final List<String> initialSelection;
   final void Function(List<String> selectedDays) onDaysSelected;
 
@@ -16,7 +16,22 @@ class DaysSelector extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _DaysSelectorState createState() => _DaysSelectorState();
+}
+
+class _DaysSelectorState extends ConsumerState<DaysSelector> {
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa el estado con una lista vacía al iniciar
+    Future.microtask(() {
+      ref.read(selectedDaysProvider.notifier).state = [];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Obtenemos la lista de días seleccionados del estado.
     final selectedDays = ref.watch(selectedDaysProvider);
 
     return Container(
@@ -134,13 +149,7 @@ class DaysSelector extends ConsumerWidget {
                         value: selectedDays.length ==
                             7, // Si los 7 días están seleccionados, marcamos "All days"
                         onChanged: (bool? value) {
-                          if (value == true) {
-                            // Si se selecciona "Todos los días", seleccionamos todos los días
-                            _toggleAllDaysSelection(ref, true);
-                          } else {
-                            // Si se desmarca "All days", deseleccionamos todos los días
-                            _toggleAllDaysSelection(ref, false);
-                          }
+                          _toggleDaySelection(ref, 'All days', value);
                         },
                         activeColor: primaryColor,
                         checkColor: Colors.white,
@@ -157,55 +166,42 @@ class DaysSelector extends ConsumerWidget {
     );
   }
 
+  // Método único para manejar la selección de días individuales y de todos los días
   void _toggleDaySelection(WidgetRef ref, String day, bool? isSelected) {
     final selectedDays = ref.read(selectedDaysProvider.notifier).state;
 
-    if (isSelected == true) {
-      // Añadir el día a la lista si está seleccionado
-      ref.read(selectedDaysProvider.notifier).state = [...selectedDays, day];
+    if (day == 'All days') {
+      // Si el día es "All days", seleccionamos o deseleccionamos todos los días
+      if (isSelected == true) {
+        ref.read(selectedDaysProvider.notifier).state = [
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+          'Sunday'
+        ];
+      } else {
+        ref.read(selectedDaysProvider.notifier).state = [];
+      }
     } else {
-      // Eliminar el día de la lista si está deseleccionado
-      ref.read(selectedDaysProvider.notifier).state =
-          selectedDays.where((d) => d != day).toList();
+      // Si no es "All days", actualizamos los días individuales
+      if (isSelected == true) {
+        ref.read(selectedDaysProvider.notifier).state = [...selectedDays, day];
+      } else {
+        ref.read(selectedDaysProvider.notifier).state =
+            selectedDays.where((d) => d != day).toList();
+      }
     }
 
-    // Actualizamos los días seleccionados en el taskProvider
-    ref.read(taskProvider.notifier).updateTask((currentTask) {
-      return currentTask!.copyWith(
-        workingDays: ref.read(selectedDaysProvider.notifier).state,
-      );
+    // Actualizamos el taskProvider para reflejar los cambios
+    Future.microtask(() {
+      ref.read(taskProvider.notifier).updateTask((currentTask) {
+        return currentTask!.copyWith(
+          workingDays: ref.read(selectedDaysProvider.notifier).state,
+        );
+      });
     });
-  }
-
-  void _toggleAllDaysSelection(WidgetRef ref, bool isSelected) {
-    // Lista de todos los días de la semana
-    const allDays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
-    ];
-
-    if (isSelected) {
-      // Seleccionamos todos los días
-      ref.read(selectedDaysProvider.notifier).state = allDays;
-    } else {
-      // Deseleccionamos todos los días
-      ref.read(selectedDaysProvider.notifier).state = [];
-    }
-
-    // Actualizamos los días seleccionados en el taskProvider
-    ref.read(taskProvider.notifier).updateTask((currentTask) {
-      return currentTask!.copyWith(
-        workingDays: ref.read(selectedDaysProvider.notifier).state,
-      );
-    });
-
-    // Imprimimos los días seleccionados para verificar
-    print(
-        'Días seleccionados: ${ref.read(selectedDaysProvider.notifier).state}');
   }
 }

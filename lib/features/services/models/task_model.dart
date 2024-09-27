@@ -12,10 +12,10 @@ class Task extends Equatable {
   final String licenseType;
   final String licenseNumber;
   final String licenseExpirationDate;
-  final String issueDate; // Nuevo campo
-  final String phone; // Nuevo campo
-  final String service; // Nuevo campo
-  final String documentUrl; // Campo añadido para evitar el error
+  final String issueDate;
+  final String phone;
+  final String service;
+  final String documentUrl;
   final List<String>? workingDays;
   final Map<String, Map<String, String>>? workingHours;
   final List<Map<String, String>>? specialDays;
@@ -34,7 +34,7 @@ class Task extends Equatable {
     required this.issueDate,
     required this.phone,
     required this.service,
-    required this.documentUrl, // Asegúrate de que el constructor incluya este campo
+    required this.documentUrl,
     this.workingDays,
     this.workingHours,
     this.specialDays,
@@ -54,7 +54,7 @@ class Task extends Equatable {
     String? issueDate,
     String? phone,
     String? service,
-    String? documentUrl, // Añadido en copyWith
+    String? documentUrl,
     List<String>? workingDays,
     Map<String, Map<String, String>>? workingHours,
     List<Map<String, String>>? specialDays,
@@ -74,15 +74,13 @@ class Task extends Equatable {
       issueDate: issueDate ?? this.issueDate,
       phone: phone ?? this.phone,
       service: service ?? this.service,
-      documentUrl: documentUrl ??
-          this.documentUrl, // Asegúrate de que se copie correctamente
+      documentUrl: documentUrl ?? this.documentUrl,
       workingDays: workingDays ?? this.workingDays,
       workingHours: workingHours ?? this.workingHours,
       specialDays: specialDays ?? this.specialDays,
     );
   }
 
-  // Convertir Task a Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -98,13 +96,10 @@ class Task extends Equatable {
       'issueDate': issueDate,
       'phone': phone,
       'service': service,
-      'documentUrl': documentUrl, // Asegúrate de incluirlo al convertir a mapa
+      'documentUrl': documentUrl,
       'workingDays': workingDays ?? [],
       'workingHours': workingHours != null
-          ? workingHours!.map((key, value) => MapEntry(
-                key,
-                value,
-              ))
+          ? workingHours!.map((key, value) => MapEntry(key, value))
           : {},
       'specialDays': specialDays != null
           ? specialDays!.map((day) => Map<String, String>.from(day)).toList()
@@ -112,7 +107,6 @@ class Task extends Equatable {
     };
   }
 
-  // Crear un Task desde un Map
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       id: map['id'] ?? '',
@@ -128,7 +122,7 @@ class Task extends Equatable {
       issueDate: map['issueDate'] ?? '',
       phone: map['phone'] ?? '',
       service: map['service'] ?? '',
-      documentUrl: map['documentUrl'] ?? '', // Añadirlo en el fromMap también
+      documentUrl: map['documentUrl'] ?? '',
       workingDays: List<String>.from(map['workingDays'] ?? []),
       workingHours: map['workingHours'] != null
           ? Map<String, Map<String, String>>.from(map['workingHours'])
@@ -139,10 +133,8 @@ class Task extends Equatable {
     );
   }
 
-  // Convertir Task a JSON
   String toJson() => json.encode(toMap());
 
-  // Crear un Task desde un JSON
   factory Task.fromJson(String source) =>
       Task.fromMap(json.decode(source) as Map<String, dynamic>);
 
@@ -161,7 +153,7 @@ class Task extends Equatable {
         issueDate,
         phone,
         service,
-        documentUrl, // Asegúrate de incluirlo en las props
+        documentUrl,
         workingDays,
         workingHours,
         specialDays,
