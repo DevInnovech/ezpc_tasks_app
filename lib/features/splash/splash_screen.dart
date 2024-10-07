@@ -92,6 +92,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               height: size.height,
               width: size.width,
               fit: BoxFit.cover,
+              url: null,
             ),
             Positioned(
               left: 0.0,
@@ -104,6 +105,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   angle: animation.value,
                   child: const CustomImage(
                     path: KImages.circlePattern,
+                    url: null,
                   ),
                 ),
               ),
@@ -117,6 +119,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 padding: Utils.all(value: 50.0),
                 child: const CustomImage(
                   path: KImages.appLogo,
+                  url: null,
                 ),
               ),
             ),

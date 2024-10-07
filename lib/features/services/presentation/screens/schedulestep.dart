@@ -7,77 +7,53 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import 'package:uuid/uuid.dart';
 
 class ScheduleStep extends ConsumerWidget {
   const ScheduleStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Acceder a la `currentTask` desde el estado
+    final taskState = ref.watch(taskProvider);
     final specialDaysEnabled = ref.watch(specialDaysEnabledProvider);
-    final task = ref.watch(taskProvider);
+    final Task? currentTask = taskState.currentTask; // Acceder a `currentTask`
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
+          // Selección de días de trabajo
           DaysSelector(
-            initialSelection: task?.workingDays ?? [],
+            initialSelection: currentTask?.workingDays ?? [],
             onDaysSelected: (List<String> selectedDays) {
-              ref.read(taskProvider.notifier).updateTask((currentTask) {
-                return Task(
-                  id: currentTask?.id ?? const Uuid().v4(),
-                  name: currentTask?.name ?? '',
-                  category: currentTask?.category ?? '',
-                  subCategory: currentTask?.subCategory ?? '',
-                  price: currentTask?.price ?? 0.0,
-                  imageUrl: currentTask?.imageUrl ?? '',
-                  requiresLicense: currentTask?.requiresLicense ?? false,
-                  workingDays: selectedDays,
-                  workingHours: currentTask?.workingHours ?? {},
-                  specialDays: currentTask?.specialDays ?? [],
-                  licenseType: '',
-                  licenseNumber: '',
-                  licenseExpirationDate: '',
-                  phone: '',
-                  service: '',
-                  issueDate: '',
-                  documentUrl: '',
-                );
-              });
+              // Actualizar `workingDays` en la `currentTask` sin usar `copyWith`
+              if (currentTask != null) {
+                ref.read(taskProvider.notifier).updateTask(
+                      workingDays: selectedDays,
+                    );
+              }
             },
           ),
           Utils.verticalSpace(10),
+          // Selección de horas de trabajo
           WorkingHoursSelector(
-            initialHours: task?.workingHours,
+            initialHours: currentTask?.workingHours,
             onHoursSelected: (Map<String, Map<String, String>> workingHours) {
-              ref.read(taskProvider.notifier).updateTask((currentTask) {
-                return Task(
-                  id: currentTask?.id ?? const Uuid().v4(),
-                  name: currentTask?.name ?? '',
-                  category: currentTask?.category ?? '',
-                  subCategory: currentTask?.subCategory ?? '',
-                  price: currentTask?.price ?? 0.0,
-                  imageUrl: currentTask?.imageUrl ?? '',
-                  requiresLicense: currentTask?.requiresLicense ?? false,
-                  workingDays: currentTask?.workingDays ?? [],
-                  workingHours: workingHours,
-                  specialDays: currentTask?.specialDays ?? [],
-                  licenseType: '',
-                  licenseNumber: '',
-                  licenseExpirationDate: '',
-                  phone: '',
-                  service: '',
-                  issueDate: '',
-                  documentUrl: '',
-                );
-              });
+              // Actualizar `workingHours` en la `currentTask`
+              if (currentTask != null) {
+                ref.read(taskProvider.notifier).updateTask(
+                      workingHours: workingHours,
+                    );
+              }
             },
           ),
+          Utils.verticalSpace(10),
+          // Selector de días especiales
           CustomCheckboxListTile(
             title: 'Special days',
             value: specialDaysEnabled,
             onChanged: (bool? value) {
+              // Actualizar el estado de días especiales en el TaskProvider
               ref.read(specialDaysEnabledProvider.notifier).state =
                   value ?? false;
             },

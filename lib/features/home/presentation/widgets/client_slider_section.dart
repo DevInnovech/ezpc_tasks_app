@@ -87,6 +87,7 @@ class _ClientSliderSectionState extends State<ClientSliderSection> {
                   CustomImage(
                     path: widget.sliders[index].image,
                     fit: BoxFit.cover,
+                    url: null,
                   ),
                   Column(
                     // mainAxisSize: MainAxisSize.min,

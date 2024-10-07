@@ -5,6 +5,7 @@ import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Definición del widget `DaysSelector`
 class DaysSelector extends ConsumerStatefulWidget {
   final List<String> initialSelection;
   final void Function(List<String> selectedDays) onDaysSelected;
@@ -23,15 +24,15 @@ class _DaysSelectorState extends ConsumerState<DaysSelector> {
   @override
   void initState() {
     super.initState();
-    // Inicializa el estado con una lista vacía al iniciar
+    // Inicializar el estado de los días seleccionados con `initialSelection`
     Future.microtask(() {
-      ref.read(selectedDaysProvider.notifier).state = [];
+      ref.read(selectedDaysProvider.notifier).state = widget.initialSelection;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Obtenemos la lista de días seleccionados del estado.
+    // Obtener la lista de días seleccionados del estado
     final selectedDays = ref.watch(selectedDaysProvider);
 
     return Container(
@@ -146,8 +147,7 @@ class _DaysSelectorState extends ConsumerState<DaysSelector> {
                       ),
                       CustomCheckboxListTile(
                         title: 'All days',
-                        value: selectedDays.length ==
-                            7, // Si los 7 días están seleccionados, marcamos "All days"
+                        value: selectedDays.length == 7,
                         onChanged: (bool? value) {
                           _toggleDaySelection(ref, 'All days', value);
                         },
@@ -166,12 +166,13 @@ class _DaysSelectorState extends ConsumerState<DaysSelector> {
     );
   }
 
-  // Método único para manejar la selección de días individuales y de todos los días
+  // Método para manejar la selección de días
   void _toggleDaySelection(WidgetRef ref, String day, bool? isSelected) {
+    // Obtener la lista actual de `selectedDays`
     final selectedDays = ref.read(selectedDaysProvider.notifier).state;
 
+    // Manejo de selección y deselección de días individuales o todos los días
     if (day == 'All days') {
-      // Si el día es "All days", seleccionamos o deseleccionamos todos los días
       if (isSelected == true) {
         ref.read(selectedDaysProvider.notifier).state = [
           'Monday',
@@ -186,7 +187,6 @@ class _DaysSelectorState extends ConsumerState<DaysSelector> {
         ref.read(selectedDaysProvider.notifier).state = [];
       }
     } else {
-      // Si no es "All days", actualizamos los días individuales
       if (isSelected == true) {
         ref.read(selectedDaysProvider.notifier).state = [...selectedDays, day];
       } else {
@@ -195,13 +195,10 @@ class _DaysSelectorState extends ConsumerState<DaysSelector> {
       }
     }
 
-    // Actualizamos el taskProvider para reflejar los cambios
-    Future.microtask(() {
-      ref.read(taskProvider.notifier).updateTask((currentTask) {
-        return currentTask!.copyWith(
-          workingDays: ref.read(selectedDaysProvider.notifier).state,
+    // Actualizar `workingDays` en `currentTask` usando `updateTask`
+    final updatedDays = ref.read(selectedDaysProvider.notifier).state;
+    ref.read(taskProvider.notifier).updateTask(
+          workingDays: updatedDays,
         );
-      });
-    });
   }
 }

@@ -73,7 +73,10 @@ class LoadedBalanceWidget extends StatelessWidget {
               context: context,
               builder: (context) => Container(), // Tu lógica para el dialog
             ),
-            icon: const CustomImage(path: KImages.withdrawIcon),
+            icon: const CustomImage(
+              path: KImages.withdrawIcon,
+              url: null,
+            ),
             label: const CustomText(
               text: 'Withdraw',
               color: whiteColor,

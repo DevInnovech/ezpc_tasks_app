@@ -89,7 +89,12 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             _currentPage = page;
           });
         },
-        children: data.map((e) => CustomImage(path: e.image)).toList(),
+        children: data
+            .map((e) => CustomImage(
+                  path: e.image,
+                  url: null,
+                ))
+            .toList(),
       ),
     );
   }

@@ -16,6 +16,9 @@ class KImages {
   static const String offer = 'assets/images/offer.png';
   static const String Referalflayer = 'assets/images/Referral.png';
 
+  static const String defaultImage =
+      'assets/images/default_image.png'; // Añade esta línea con la ruta a la imagen predeterminada
+
   static const String filterMenu = 'assets/icons/filter-menu.svg';
   static const String searchIcon = 'assets/icons/search.svg';
   static const String thumbsIcon = 'assets/icons/thumbs-up.svg';

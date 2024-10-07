@@ -163,6 +163,7 @@ class HomeScreen extends ConsumerWidget {
                             fit: BoxFit.cover,
                             height: 50,
                             width: 50,
+                            url: null,
                           ),
                         ),
                       ),
@@ -284,7 +285,10 @@ class HomeScreen extends ConsumerWidget {
               color: scaffoldBgColor,
               shape: BoxShape.circle,
             ),
-            child: CustomImage(path: icon),
+            child: CustomImage(
+              path: icon,
+              url: null,
+            ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

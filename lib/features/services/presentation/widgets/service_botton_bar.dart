@@ -68,7 +68,11 @@ class ServiceBottomNavBar extends ConsumerWidget {
             children: [
               const Align(
                 alignment: Alignment.center,
-                child: CustomImage(path: KImages.lineIcon, color: whiteColor),
+                child: CustomImage(
+                  path: KImages.lineIcon,
+                  color: whiteColor,
+                  url: null,
+                ),
               ),
               Utils.verticalSpace(20.0),
               Row(

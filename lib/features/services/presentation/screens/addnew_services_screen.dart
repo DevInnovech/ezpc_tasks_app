@@ -1,17 +1,18 @@
+import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/category_pricing.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/questions.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/schedulestep.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/special_days.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/features/services/data/task_provider.dart'; // Corrección del import
-import 'package:ezpc_tasks_app/features/services/data/services_repository.dart'; // Correcto import
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
+import 'package:flutter/scheduler.dart'; // Importar para usar SchedulerBinding
+import 'package:uuid/uuid.dart';
 
 class AddNewTaskScreen extends ConsumerStatefulWidget {
   const AddNewTaskScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _AddNewTaskScreenState createState() => _AddNewTaskScreenState();
 }
 
@@ -22,8 +23,12 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   @override
   void initState() {
     super.initState();
-    // Refrescamos el provider de categorías para cargar las categorías desde Firebase al iniciar la pantalla
-//    ref.refresh(categoryListProvider);
+
+    // Usar SchedulerBinding para diferir la ejecución de la inicialización de la tarea
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      // Aquí inicializamos la tarea fuera del ciclo de construcción
+      ref.read(taskProvider.notifier).initializeNewTask();
+    });
   }
 
   final List<Widget> _steps = [
@@ -84,7 +89,7 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
                       );
                     });
                   } else {
-                    _saveTask(context);
+                    _saveTask(context); // Guardar la nueva tarea
                   }
                 },
                 child:
@@ -97,14 +102,18 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
     );
   }
 
+  // Método para guardar la tarea en Firebase sin actualizar valores incorrectos
   void _saveTask(BuildContext context) async {
-    final task = ref.read(taskProvider);
-    if (task != null) {
-      try {
-        await ref.read(taskProvider.notifier).saveTask(task);
+    // Obtener la tarea actual del estado
+    final currentTask = ref.read(taskProvider).currentTask;
 
+    if (currentTask != null) {
+      try {
+        // Guardar la tarea usando el método saveTask del taskProvider
+        await ref.read(taskProvider.notifier).saveTask(currentTask);
+
+        // Mostrar un diálogo de éxito al guardar la tarea
         showDialog(
-          // ignore: use_build_context_synchronously
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -114,8 +123,8 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
                 TextButton(
                   child: const Text('OK'),
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Cerrar el diálogo
+                    Navigator.of(context).pop(); // Cerrar la pantalla actual
                   },
                 ),
               ],
@@ -123,13 +132,10 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
           },
         );
 
-        // Restablecer el estado de la tarea y los proveedores de categorías/subcategorías
-        ref.read(taskProvider.notifier).resetTask();
-        //     ref.read(selectedCategoryProvider.notifier).state = null;
-        //     ref.read(selectedSubCategoryProvider.notifier).state = null;
+        // Restablecer el estado de la tarea para que no afecte nuevas creaciones
+        ref.read(taskProvider.notifier).initializeNewTask();
       } catch (e) {
         showDialog(
-          // ignore: use_build_context_synchronously
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -147,6 +153,22 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
           },
         );
       }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            title: Text('Error'),
+            content: Text('No task available to save.'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: null,
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 }

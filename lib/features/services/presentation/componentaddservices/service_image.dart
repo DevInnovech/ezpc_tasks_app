@@ -98,7 +98,7 @@ class _ServiceImageState extends State<ServiceImage> {
                   child: CustomImage(
                     path: imageFile!.path, // Usamos la ruta del archivo
                     isFile: true,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.cover, url: null,
                   ),
                 ),
               ),

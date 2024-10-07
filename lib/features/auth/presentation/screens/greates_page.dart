@@ -23,7 +23,7 @@ class VerificationCompletedScreen extends ConsumerWidget {
             const CustomImage(
               path: KImages.verificationCompletedIcon, // Icono de verificación
               height: 100.0,
-              width: 100.0,
+              width: 100.0, url: null,
             ),
             const SizedBox(height: 20.0),
             const CustomText(

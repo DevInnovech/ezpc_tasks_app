@@ -109,10 +109,10 @@ class ClientCategoryItem extends StatelessWidget {
                 shape: OvalBorder(),
               ),
               child: CustomImage(
-                path: item.pathimage != null
-                    ? item.pathimage!
-                    : KImages
-                        .booking, // Usamos el operador ternario para manejar el caso en que `pathimage` sea null
+                path:
+                    item.pathimage != null ? item.pathimage! : KImages.booking,
+                url:
+                    null, // Usamos el operador ternario para manejar el caso en que `pathimage` sea null
               ),
             ),
             Utils.verticalSpace(8),

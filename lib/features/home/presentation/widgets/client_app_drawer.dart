@@ -64,7 +64,7 @@ class ClientAppDrawer extends ConsumerWidget {
                                 /*  RemoteUrls.imageUrl(
                                     userDashboardModel.user.image!),*/
 
-                                fit: BoxFit.cover,
+                                fit: BoxFit.cover, url: null,
                               ),
                             ),
                           ),

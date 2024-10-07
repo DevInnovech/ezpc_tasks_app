@@ -103,7 +103,7 @@ class HomeLoadedData extends StatelessWidget {
                 child: const CustomImage(
                   //areglar baner osea que venga de donde debe venir
                   path: KImages.Referalflayer,
-                  fit: BoxFit.contain,
+                  fit: BoxFit.contain, url: null,
                 ),
               ),
             ),

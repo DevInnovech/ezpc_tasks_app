@@ -44,6 +44,7 @@ class EndDrawerMenu extends ConsumerWidget {
                         fit: BoxFit.cover,
                         height: Utils.vSize(50.0),
                         width: Utils.vSize(50.0),
+                        url: null,
                       ),
                     ),
                   ),
@@ -134,7 +135,11 @@ class EndDrawerMenu extends ConsumerWidget {
           child: Column(
             children: [
               Utils.verticalSpace(5.0),
-              const CustomImage(path: KImages.lineIcon, color: whiteColor),
+              const CustomImage(
+                path: KImages.lineIcon,
+                color: whiteColor,
+                url: null,
+              ),
               Utils.verticalSpace(16.0),
               const CustomText(
                 text: 'LOGOUT',
@@ -309,7 +314,10 @@ class DrawerItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              CustomImage(path: icon),
+              CustomImage(
+                path: icon,
+                url: null,
+              ),
               Utils.horizontalSpace(12.0),
               CustomText(
                 text: title,

@@ -48,7 +48,7 @@ class ClientSingleCategoryView extends StatelessWidget {
                   /*  RemoteUrls.imageUrl(),*/
                   fit: BoxFit.cover,
                   // width: 170.0.w,
-                  height: 107.0.h,
+                  height: 107.0.h, url: null,
                 ),
               ),
             ),

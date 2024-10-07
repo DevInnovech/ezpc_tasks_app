@@ -81,6 +81,7 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                   height: size.height * .25,
                   width: size.width * .5,
                   fit: BoxFit.contain,
+                  url: null,
                 ),
                 Utils.verticalSpace(20.0),
                 const CustomText(

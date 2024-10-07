@@ -70,6 +70,7 @@ class _ProviderTypeSelectionScreenState
                 path: KImages.corporatesvg,
                 height: iconSize,
                 width: iconSize,
+                url: null,
               ),
               isSelected: selectedProviderType == 'Corporate',
               onTap: () {

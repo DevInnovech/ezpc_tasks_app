@@ -32,6 +32,7 @@ class EmptyWidget extends StatelessWidget {
           children: [
             CustomImage(
               path: image,
+              url: null,
             ),
             Utils.verticalSpace(space),
             CustomText(text: text, fontSize: 22.0, fontWeight: FontWeight.w700)

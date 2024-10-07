@@ -15,7 +15,7 @@ class SocialButton extends StatelessWidget {
     required this.color,
     this.borderColor,
     required this.onTap,
-  })  : assert(icon != null || imagePath != null,
+  }) : assert(icon != null || imagePath != null,
             'Either icon or imagePath must be provided.');
 
   @override
@@ -44,7 +44,10 @@ class SocialButton extends StatelessWidget {
         color: color, // Icon color
       );
     } else if (imagePath != null) {
-      return CustomImage(path: imagePath!);
+      return CustomImage(
+        path: imagePath!,
+        url: null,
+      );
     }
     return const SizedBox
         .shrink(); // In case both icon and imagePath are null, though it shouldn't happen due to assert.
