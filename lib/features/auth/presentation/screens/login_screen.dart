@@ -105,6 +105,7 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                           Navigator.pushNamedAndRemoveUntil(
                               context, RouteNames.mainScreen, (route) => false);
 
+
                           setState(() {
                             isLoading = true;
                           });

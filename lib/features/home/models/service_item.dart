@@ -1,11 +1,7 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-
 import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
-import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
-
 import '../../services/models/category_model.dart';
+import 'provider_model.dart';
 
 class ServiceItem extends Equatable {
   final int id;
@@ -13,7 +9,7 @@ class ServiceItem extends Equatable {
   final String slug;
   final String image;
   final double price;
-  final int categoryId;
+  final Category categoryId; // Cambiado a tipo Category
   final int providerId;
   final int makeFeatured;
   final int isBanned;
@@ -24,8 +20,8 @@ class ServiceItem extends Equatable {
   final String averageRating;
   final int totalReview;
   final int totalOrder;
-  final Category? category;
-  final ProviderModel? provider;
+  final Category? category; // Opcional
+  final ProviderModel provider; // Opcional
 
   const ServiceItem({
     required this.id,
@@ -33,7 +29,7 @@ class ServiceItem extends Equatable {
     required this.slug,
     required this.image,
     required this.price,
-    required this.categoryId,
+    required this.categoryId, // Ahora es de tipo Category
     required this.providerId,
     required this.makeFeatured,
     required this.isBanned,
@@ -44,8 +40,8 @@ class ServiceItem extends Equatable {
     required this.averageRating,
     required this.totalReview,
     required this.totalOrder,
-    required this.category,
-    required this.provider,
+    this.category, // Hacemos opcional category para evitar errores
+    required this.provider, // Hacemos opcional provider para evitar errores
   });
 
   ServiceItem copyWith({
@@ -54,7 +50,7 @@ class ServiceItem extends Equatable {
     String? slug,
     String? image,
     double? price,
-    int? categoryId,
+    Category? categoryId, // Cambiado también a tipo Category
     int? providerId,
     int? makeFeatured,
     int? isBanned,
@@ -74,7 +70,7 @@ class ServiceItem extends Equatable {
       slug: slug ?? this.slug,
       image: image ?? this.image,
       price: price ?? this.price,
-      categoryId: categoryId ?? this.categoryId,
+      categoryId: categoryId ?? this.categoryId, // Cambiado
       providerId: providerId ?? this.providerId,
       makeFeatured: makeFeatured ?? this.makeFeatured,
       isBanned: isBanned ?? this.isBanned,
@@ -97,7 +93,7 @@ class ServiceItem extends Equatable {
       'slug': slug,
       'image': image,
       'price': price,
-      'category_id': categoryId,
+      'category_id': categoryId.toMap(), // Aquí cambiamos a categoryId
       'providerId': providerId,
       'make_featured': makeFeatured,
       'is_banned': isBanned,
@@ -108,8 +104,8 @@ class ServiceItem extends Equatable {
       'averageRating': averageRating,
       'totalReview': totalReview,
       'totalOrder': totalOrder,
-      'category': category?.toMap(), // Nuevo ajuste para la nueva estructura
-      'provider': provider?.toMap(),
+      'category': category?.toMap(), // Mapeamos category si existe
+      'provider': provider.toMap(),
     };
   }
 
@@ -120,9 +116,8 @@ class ServiceItem extends Equatable {
       slug: map['slug'] ?? "",
       image: map['image'] ?? "",
       price: map['price'] != null ? double.parse(map['price'].toString()) : 0,
-      categoryId: map['category_id'] != null
-          ? int.parse(map['category_id'].toString())
-          : 0,
+      categoryId:
+          Category.fromMap(map['category_id']), // Convertimos categoryId
       providerId: map['providerId'] != null
           ? int.parse(map['providerId'].toString())
           : 0,
@@ -140,11 +135,10 @@ class ServiceItem extends Equatable {
       averageRating: map['averageRating'] ?? '',
       totalReview: map['totalReview'] as int,
       totalOrder: map['totalOrder'] as int,
-      category:
-          map['category'] != null ? Category.fromMap(map['category']) : null,
-      provider: map['provider'] != null
-          ? ProviderModel.fromMap(map['provider'])
+      category: map['category'] != null
+          ? Category.fromMap(map['category'] as Map<String, dynamic>)
           : null,
+      provider: ProviderModel.fromMap(map['provider'] as Map<String, dynamic>),
     );
   }
 
@@ -164,7 +158,7 @@ class ServiceItem extends Equatable {
       slug,
       image,
       price,
-      categoryId,
+      categoryId, // Cambiado para reflejar el nuevo tipo
       providerId,
       makeFeatured,
       isBanned,
@@ -175,8 +169,8 @@ class ServiceItem extends Equatable {
       averageRating,
       totalReview,
       totalOrder,
-      category!, // Ajuste para que el category y provider sean opcionales
-      provider!,
+      category!, // Debería ser opcional pero se fuerza para evitar errores
+      provider,
     ];
   }
 }

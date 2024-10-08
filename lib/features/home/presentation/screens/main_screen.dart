@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/shared/widgets/bottom_nav_bar.dart';
@@ -29,7 +30,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     super.initState();
     screenList = [
       const HomeScreen(),
-      const HomeScreen(),
+      const BookingScreen(),
       const ServiceScreen(),
       const HomeScreen(),
       const HomeScreen(),

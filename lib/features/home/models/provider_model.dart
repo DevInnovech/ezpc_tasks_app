@@ -1,6 +1,50 @@
 import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
+
+class TimeSlotModel extends Equatable {
+  final String time;
+  final bool isAvailable;
+
+  const TimeSlotModel({
+    required this.time,
+    required this.isAvailable,
+  });
+
+  TimeSlotModel copyWith({
+    String? time,
+    bool? isAvailable,
+  }) {
+    return TimeSlotModel(
+      time: time ?? this.time,
+      isAvailable: isAvailable ?? this.isAvailable,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'time': time,
+      'isAvailable': isAvailable,
+    };
+  }
+
+  factory TimeSlotModel.fromMap(Map<String, dynamic> map) {
+    return TimeSlotModel(
+      time: map['time'] ?? "",
+      isAvailable: map['isAvailable'] ?? false,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory TimeSlotModel.fromJson(String source) =>
+      TimeSlotModel.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  @override
+  bool get stringify => true;
+
+  @override
+  List<Object> get props => [time, isAvailable];
+}
 
 class ProviderModel extends Equatable {
   final int id;
@@ -10,6 +54,11 @@ class ProviderModel extends Equatable {
   final String image;
   final String createdAt;
   final String userName;
+  final double rating;
+  final int reviews;
+  final String profession;
+  final List<TimeSlotModel> timeSlots;
+
   const ProviderModel({
     required this.id,
     required this.name,
@@ -18,6 +67,10 @@ class ProviderModel extends Equatable {
     required this.image,
     required this.createdAt,
     required this.userName,
+    required this.rating,
+    required this.reviews,
+    required this.profession,
+    required this.timeSlots,
   });
 
   ProviderModel copyWith({
@@ -28,6 +81,10 @@ class ProviderModel extends Equatable {
     String? image,
     String? createdAt,
     String? userName,
+    double? rating,
+    int? reviews,
+    String? profession,
+    List<TimeSlotModel>? timeSlots,
   }) {
     return ProviderModel(
       id: id ?? this.id,
@@ -37,6 +94,10 @@ class ProviderModel extends Equatable {
       image: image ?? this.image,
       createdAt: createdAt ?? this.createdAt,
       userName: userName ?? this.userName,
+      rating: rating ?? this.rating,
+      reviews: reviews ?? this.reviews,
+      profession: profession ?? this.profession,
+      timeSlots: timeSlots ?? this.timeSlots,
     );
   }
 
@@ -49,6 +110,10 @@ class ProviderModel extends Equatable {
       'image': image,
       'createdAt': createdAt,
       'userName': userName,
+      'rating': rating,
+      'reviews': reviews,
+      'profession': profession,
+      'timeSlots': timeSlots.map((timeSlot) => timeSlot.toMap()).toList(),
     };
   }
 
@@ -61,6 +126,11 @@ class ProviderModel extends Equatable {
       image: map['image'] ?? "",
       createdAt: map['createdAt'] ?? "",
       userName: map['userName'] ?? "",
+      rating: map['rating']?.toDouble() ?? 0.0,
+      reviews: map['reviews'] ?? 0,
+      profession: map['profession'] ?? "",
+      timeSlots: List<TimeSlotModel>.from(
+          map['timeSlots']?.map((x) => TimeSlotModel.fromMap(x)) ?? []),
     );
   }
 
@@ -82,6 +152,10 @@ class ProviderModel extends Equatable {
       image,
       createdAt,
       userName,
+      rating,
+      reviews,
+      profession,
+      timeSlots,
     ];
   }
 }
