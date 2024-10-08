@@ -31,6 +31,7 @@ import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/detail_scren.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -112,6 +113,8 @@ class RouteNames {
   static const String supportTicketScreen = '/supportTicketScreen';
   static const String supportInbox = '/supportInbox';
   static const String successPasswordScreen = '/successPasswordScreen';
+
+  static const String senttingsScreen = '/senttingsScreen';
 
   static Route<dynamic> generateRoutes(RouteSettings settings) {
     switch (settings.name) {
@@ -311,6 +314,10 @@ class RouteNames {
       case RouteNames.bookingScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const BookingScreen());
+
+      case RouteNames.senttingsScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => SettingsScreen());
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

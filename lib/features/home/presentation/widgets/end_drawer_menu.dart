@@ -67,6 +67,14 @@ class EndDrawerMenu extends ConsumerWidget {
             ),
             DrawerItem(
               icon: KImages.di01,
+              title: 'Settings',
+              onTap: () {
+                Navigator.pushNamed(context, RouteNames.senttingsScreen);
+                Scaffold.of(context).closeEndDrawer();
+              },
+            ),
+            DrawerItem(
+              icon: KImages.di01,
               title: 'Appointment Schedule',
               onTap: () {
                 Navigator.pushNamed(context, RouteNames.scheduleScreen);
