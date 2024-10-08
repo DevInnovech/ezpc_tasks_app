@@ -57,6 +57,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
                     path: KImages.lockIcon,
                     height: Utils.vSize(280.0),
                     color: primaryColor,
+                    url: null,
                   ),
                   if (selectedOption == 'email') ...[
                     const CustomText(

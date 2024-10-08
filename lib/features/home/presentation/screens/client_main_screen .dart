@@ -87,11 +87,11 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
     return ElevatedButton(
       onPressed: onTap,
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(bgColor),
-        minimumSize: MaterialStateProperty.all(const Size(104, 40)),
-        padding: MaterialStateProperty.all(
+        backgroundColor: WidgetStateProperty.all(bgColor),
+        minimumSize: WidgetStateProperty.all(const Size(104, 40)),
+        padding: WidgetStateProperty.all(
             const EdgeInsets.symmetric(horizontal: 12.0).copyWith(bottom: 0.0)),
-        shape: MaterialStateProperty.all(
+        shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

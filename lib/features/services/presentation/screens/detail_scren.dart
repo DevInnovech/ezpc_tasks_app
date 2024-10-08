@@ -23,8 +23,8 @@ class ServiceDetailsScreen extends ConsumerWidget {
     final serviceState = ref.watch(serviceProvider);
 
     // Encontrar el servicio por id utilizando firstWhereOrNull
-    final ServiceProductStateModel? service = serviceState.services
-        .firstWhereOrNull((service) => service.id == id);
+    final ServiceProductStateModel? service =
+        serviceState.services.firstWhereOrNull((service) => service.id == id);
 
     return Scaffold(
       body: serviceState.isLoading
@@ -79,6 +79,7 @@ class LoadedServiceDetailWidget extends StatelessWidget {
               height: Utils.vSize(200.0),
               fit: BoxFit.cover,
               path: service.image,
+              url: null,
             ),
           ),
         ),
@@ -91,7 +92,8 @@ class LoadedServiceDetailWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPackageInfo(BuildContext context, ServiceProductStateModel service) {
+  Widget _buildPackageInfo(
+      BuildContext context, ServiceProductStateModel service) {
     return Container(
       padding: Utils.only(bottom: 20.0),
       margin: Utils.symmetric(h: 0.0, v: 20.0),

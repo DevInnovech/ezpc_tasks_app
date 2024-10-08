@@ -5,9 +5,9 @@ class GenericFilterWidget extends StatefulWidget {
   final Function(Map<String, dynamic>? selectedFilters) onFilterSelected;
 
   const GenericFilterWidget({
-    Key? key,
+    super.key,
     required this.onFilterSelected,
-  }) : super(key: key);
+  });
 
   @override
   _GenericFilterWidgetState createState() => _GenericFilterWidgetState();

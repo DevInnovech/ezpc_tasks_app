@@ -34,7 +34,11 @@ class ServiceComponent extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CustomImage(path: service.image, fit: BoxFit.cover),
+                  CustomImage(
+                    path: service.image,
+                    fit: BoxFit.cover,
+                    url: null,
+                  ),
                   Positioned.fill(
                     child: Padding(
                       padding: Utils.only(top: 10.0, right: 10.0),
@@ -130,7 +134,10 @@ class ServiceComponent extends StatelessWidget {
               ),
               Row(
                 children: [
-                  const CustomImage(path: KImages.tagIcon),
+                  const CustomImage(
+                    path: KImages.tagIcon,
+                    url: null,
+                  ),
                   Utils.horizontalSpace(4.0),
                   FittedBox(
                     child: CustomText(
@@ -167,7 +174,10 @@ class ServiceComponent extends StatelessWidget {
           color: bgColor,
           borderRadius: Utils.borderRadius(r: 5.0),
         ),
-        child: CustomImage(path: icon),
+        child: CustomImage(
+          path: icon,
+          url: null,
+        ),
       ),
     );
   }

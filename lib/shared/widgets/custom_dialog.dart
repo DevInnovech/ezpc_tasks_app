@@ -35,12 +35,16 @@ class CustomDialog extends StatelessWidget {
                   path: KImages.dialogIcon,
                   width: Utils.hSize(164.0),
                   height: Utils.vSize(164.0),
+                  url: null,
                 )),
             Positioned(
                 left: 0.0,
                 right: 0.0,
                 top: -30.0,
-                child: CustomImage(path: icon)),
+                child: CustomImage(
+                  path: icon,
+                  url: null,
+                )),
             Positioned.fill(
               top: Utils.vSize(100.0),
               child: child,

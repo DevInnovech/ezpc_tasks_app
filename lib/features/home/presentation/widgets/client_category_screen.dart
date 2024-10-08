@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ClientCategoryScreen extends ConsumerWidget {
-  const ClientCategoryScreen({Key? key}) : super(key: key);
+  const ClientCategoryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -110,8 +110,12 @@ class ClientCategoryItem extends StatelessWidget {
                 shape: OvalBorder(),
               ),
               child: CustomImage(
-                path: KImages.booking,
-                // item.Image ?? // Usa la imagen si está disponible o una por defecto
+
+                path:
+                    item.pathimage != null ? item.pathimage! : KImages.booking,
+                url:
+                    null, // Usamos el operador ternario para manejar el caso en que `pathimage` sea null
+
               ),
             ),
             Utils.verticalSpace(8),

@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:banner_carousel/banner_carousel.dart';
 import 'package:ezpc_tasks_app/features/home/models/slider_model.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/remote_image.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
@@ -89,6 +87,7 @@ class _ClientSliderSectionState extends State<ClientSliderSection> {
                   CustomImage(
                     path: widget.sliders[index].image,
                     fit: BoxFit.cover,
+                    url: null,
                   ),
                   Column(
                     // mainAxisSize: MainAxisSize.min,

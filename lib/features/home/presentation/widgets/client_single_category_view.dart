@@ -13,8 +13,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ClientSingleCategoryView extends StatelessWidget {
-  const ClientSingleCategoryView({Key? key, required this.item})
-      : super(key: key);
+  const ClientSingleCategoryView({super.key, required this.item});
   final ServiceItem item;
 
   @override
@@ -52,7 +51,7 @@ class ClientSingleCategoryView extends StatelessWidget {
                   /*  RemoteUrls.imageUrl(),*/
                   fit: BoxFit.cover,
                   // width: 170.0.w,
-                  height: 107.0.h,
+                  height: 107.0.h, url: null,
                 ),
               ),
             ),
@@ -125,7 +124,7 @@ class ClientSingleCategoryView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 12,
                       //  backgroundImage:,
                       /* NetworkImage(

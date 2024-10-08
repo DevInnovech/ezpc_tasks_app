@@ -59,7 +59,7 @@ class ClientHomeHeader extends ConsumerWidget {
                                     ? RemoteUrls.imageUrl(user.image!)
                                     : KImages
                                         .appLayer, */ // Imagen por defecto si es nulo
-                                fit: BoxFit.cover,
+                                fit: BoxFit.cover, url: null,
                               ),
                             ),
                           ),
@@ -89,11 +89,11 @@ class ClientHomeHeader extends ConsumerWidget {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Text(
+                              const Text(
                                 //aqui poner un if con los tipo de cuenta
 
                                 "Role: Cliente", // Asegurando que el nombre está disponible
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 14,
                                   fontFamily: 'Work Sans',
@@ -118,7 +118,7 @@ class ClientHomeHeader extends ConsumerWidget {
                                   borderRadius: Utils.borderRadius(r: 6.0),
                                   child: const CustomImage(
                                     path: KImages.supportIcon,
-                                    fit: BoxFit.contain,
+                                    fit: BoxFit.contain, url: null,
                                     //height: 50,
                                     // width: 50,
                                   ),

@@ -6,7 +6,6 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_form2.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateAccountPage1 extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();

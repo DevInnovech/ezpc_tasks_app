@@ -8,8 +8,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
 
 class ClientBottomNavigationBar extends StatelessWidget {
-  const ClientBottomNavigationBar({Key? key, required this.scaffoldKey})
-      : super(key: key);
+  const ClientBottomNavigationBar({super.key, required this.scaffoldKey});
   final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
@@ -84,7 +83,10 @@ class ClientBottomNavigationBar extends StatelessWidget {
       {required String icon, required String active, required String title}) {
     return BottomNavigationBarItem(
       // icon: _navIcon(icon),
-      icon: CustomImage(path: icon),
+      icon: CustomImage(
+        path: icon,
+        url: null,
+      ),
       activeIcon: AnimatedContainer(
         duration: kDuration,
         // height: Utils.vSize(60.0),
@@ -94,7 +96,10 @@ class ClientBottomNavigationBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomImage(path: active),
+            CustomImage(
+              path: active,
+              url: null,
+            ),
           ],
         ),
       ),

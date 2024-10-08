@@ -4,15 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import 'package:uuid/uuid.dart';
 
 class SpecialDaysStep extends ConsumerWidget {
   const SpecialDaysStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final task = ref.watch(taskProvider);
-    final specialDays = task?.specialDays ?? [];
+    // Acceder a `currentTask` desde el estado
+    final taskState = ref.watch(taskProvider);
+    final Task? currentTask = taskState.currentTask;
+    final specialDays = currentTask?.specialDays ?? [];
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -75,36 +76,25 @@ class SpecialDaysStep extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        ref
-                            .read(taskProvider.notifier)
-                            .updateTask((currentTask) {
-                          List<Map<String, String>> updatedSpecialDays =
-                              List.from(currentTask?.specialDays ?? []);
+                        if (currentTask != null) {
+                          // Crear una nueva lista de `specialDays` sin el día eliminado
+                          final updatedSpecialDays =
+                              List<Map<String, String>>.from(
+                                  currentTask.specialDays);
                           updatedSpecialDays.remove(day);
-                          return Task(
-                            id: currentTask?.id ?? const Uuid().v4(),
-                            name: currentTask?.name ?? '',
-                            category: currentTask?.category ?? '',
-                            subCategory: currentTask?.subCategory ?? '',
-                            price: currentTask?.price ?? 0.0,
-                            imageUrl: currentTask?.imageUrl ?? '',
-                            requiresLicense:
-                                currentTask?.requiresLicense ?? false,
-                            workingDays: currentTask?.workingDays ?? [],
-                            workingHours: currentTask?.workingHours ?? {},
-                            specialDays: updatedSpecialDays,
-                            licenseType: '',
-                            licenseNumber: '',
-                            licenseExpirationDate: '',
-                          );
-                        });
+
+                          // Usar `updateTask` para actualizar `specialDays`
+                          ref.read(taskProvider.notifier).updateTask(
+                                specialDays: updatedSpecialDays,
+                              );
+                        }
                       },
                     ),
                   ],
                 ),
               ),
             );
-          }),
+          }).toList(),
           ListTile(
             leading: const Icon(Icons.add, color: Colors.deepPurple),
             title: const Text(
@@ -155,26 +145,20 @@ class SpecialDaysStep extends ConsumerWidget {
                   'startTime': startTimeController.text,
                   'endTime': endTimeController.text,
                 };
-                ref.read(taskProvider.notifier).updateTask((currentTask) {
-                  List<Map<String, String>> updatedSpecialDays =
-                      List.from(currentTask?.specialDays ?? []);
+                final taskState = ref.read(taskProvider);
+                final Task? currentTask = taskState.currentTask;
+
+                if (currentTask != null) {
+                  // Crear una nueva lista de `specialDays` y agregar el nuevo día
+                  final updatedSpecialDays =
+                      List<Map<String, String>>.from(currentTask.specialDays);
                   updatedSpecialDays.add(newDay);
-                  return Task(
-                    id: currentTask?.id ?? const Uuid().v4(),
-                    name: currentTask?.name ?? '',
-                    category: currentTask?.category ?? '',
-                    subCategory: currentTask?.subCategory ?? '',
-                    price: currentTask?.price ?? 0.0,
-                    imageUrl: currentTask?.imageUrl ?? '',
-                    requiresLicense: currentTask?.requiresLicense ?? false,
-                    workingDays: currentTask?.workingDays ?? [],
-                    workingHours: currentTask?.workingHours ?? {},
-                    specialDays: updatedSpecialDays,
-                    licenseType: '',
-                    licenseNumber: '',
-                    licenseExpirationDate: '',
-                  );
-                });
+
+                  // Usar `updateTask` para actualizar `specialDays`
+                  ref.read(taskProvider.notifier).updateTask(
+                        specialDays: updatedSpecialDays,
+                      );
+                }
                 Navigator.of(context).pop();
               },
             ),

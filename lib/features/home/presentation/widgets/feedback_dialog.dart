@@ -7,12 +7,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 class FeedBackDialog extends StatelessWidget {
   const FeedBackDialog(
-      {Key? key,
+      {super.key,
       required this.image,
       required this.message,
       required this.child,
-      this.height = 240.0})
-      : super(key: key);
+      this.height = 240.0});
   final String image;
   final String message;
   final Widget child;

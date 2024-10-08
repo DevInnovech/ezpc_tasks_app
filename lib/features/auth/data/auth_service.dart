@@ -84,4 +84,27 @@ class AuthService {
     }
     return null;
   }
+
+  Future<String?> getUserRole(User user) async {
+    try {
+      // Get a reference to the user document in Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      // Check if the document exists and has a 'role' field
+      if (userDoc.exists && userDoc.data()!.containsKey('role')) {
+        return userDoc.get('role');
+      } else {
+        // Handle the case where the role is not found
+        print('User role not found in Firestore');
+        return null;
+      }
+    } catch (e) {
+      // Handle any errors that occur during the Firestore query
+      print('Error fetching user role: $e');
+      return null;
+    }
+  }
 }

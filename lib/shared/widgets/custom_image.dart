@@ -14,6 +14,7 @@ class CustomImage extends StatelessWidget {
     this.width,
     this.color,
     this.isFile = false,
+    required url,
   });
   final String? path;
   final BoxFit fit;

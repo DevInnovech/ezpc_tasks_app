@@ -30,9 +30,11 @@ class WithdrawComponent extends StatelessWidget {
               backgroundColor: scaffoldBgColor,
               maxRadius: Utils.radius(22.0),
               child: CustomImage(
-                  path: KImages.paymentIcon,
-                  height: Utils.vSize(32.0),
-                  width: Utils.vSize(32.0)),
+                path: KImages.paymentIcon,
+                height: Utils.vSize(32.0),
+                width: Utils.vSize(32.0),
+                url: null,
+              ),
             ),
           ),
           Expanded(

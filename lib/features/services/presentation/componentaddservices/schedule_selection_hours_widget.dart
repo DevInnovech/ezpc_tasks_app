@@ -1,18 +1,20 @@
-import 'package:ezpc_tasks_app/features/services/data/add_repositoey.dart';
+import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WorkingHoursSelector extends ConsumerWidget {
-  const WorkingHoursSelector(
-      {super.key,
-      Map<String, Map<String, String>>? initialHours,
-      required Null Function(Map<String, Map<String, String>> workingHours)
-          onHoursSelected});
+  const WorkingHoursSelector({
+    super.key,
+    Map<String, Map<String, String>>? initialHours,
+    required Null Function(Map<String, Map<String, String>> workingHours)
+        onHoursSelected,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Obtenemos el estado de las horas de trabajo y los días seleccionados
     final workingHours = ref.watch(workingHoursProvider);
     final selectedDays = ref.watch(selectedDaysProvider);
     final allDaysSelected = selectedDays.contains('All days');
@@ -50,30 +52,26 @@ class WorkingHoursSelector extends ConsumerWidget {
               value: allDaysSelected,
               onChanged: (bool? value) {
                 if (value == true) {
-                  // Seleccionar todos los días y aplicar el horario de "All days"
-                  ref.read(selectedDaysProvider.notifier).update((state) {
-                    return [
-                      'Monday',
-                      'Tuesday',
-                      'Wednesday',
-                      'Thursday',
-                      'Friday',
-                      'Saturday',
-                      'Sunday',
-                      'All days'
-                    ];
-                  });
+                  // Seleccionar "All Days" y actualizar los días seleccionados
+                  ref.read(selectedDaysProvider.notifier).state = [
+                    'Monday',
+                    'Tuesday',
+                    'Wednesday',
+                    'Thursday',
+                    'Friday',
+                    'Saturday',
+                    'Sunday',
+                    'All days'
+                  ];
                 } else {
-                  // Deseleccionar "All days"
-                  ref.read(selectedDaysProvider.notifier).update((state) {
-                    return state.where((d) => d != 'All days').toList();
-                  });
+                  // Deseleccionar "All days" sin modificar los días ya seleccionados
+                  ref.read(selectedDaysProvider.notifier).state =
+                      selectedDays.where((d) => d != 'All days').toList();
                 }
               },
             ),
-
             if (allDaysSelected)
-              // Mostrar solo el formulario para "All days"
+              // Si se selecciona "All Days", mostrar solo un formulario
               ListTile(
                 title: const Text(
                   "All days",
@@ -131,79 +129,69 @@ class WorkingHoursSelector extends ConsumerWidget {
                 ),
               )
             else
-              ...workingHours.entries.map((entry) {
-                final isEnabled = selectedDays.contains(entry.key);
-
-                return Opacity(
-                  opacity: isEnabled ? 1.0 : 0.5,
-                  child: ListTile(
-                    title: Text(
-                      entry.key,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    subtitle: Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            initialValue: entry.value['start'],
-                            decoration: const InputDecoration(
-                              labelText: "Start",
-                            ),
-                            enabled: isEnabled,
-                            onChanged: (value) {
-                              if (isEnabled) {
-                                ref
-                                    .read(workingHoursProvider.notifier)
-                                    .update((state) {
-                                  state[entry.key]?['start'] = value;
-                                  return state;
-                                });
-                              }
-                            },
-                          ),
+              // Si no se selecciona "All Days", mostrar solo los días seleccionados
+              ...selectedDays
+                  .where((day) => day != 'All days')
+                  .map((day) => ListTile(
+                        title: Text(
+                          day,
+                          style: const TextStyle(color: Colors.black),
                         ),
-                        const SizedBox(width: 10),
-                        const Text("To"),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextFormField(
-                            initialValue: entry.value['end'],
-                            decoration: const InputDecoration(
-                              labelText: "End",
+                        subtitle: Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: workingHours[day]?['start'],
+                                decoration: const InputDecoration(
+                                  labelText: "Start",
+                                ),
+                                onChanged: (value) {
+                                  ref
+                                      .read(workingHoursProvider.notifier)
+                                      .update((state) {
+                                    state[day]?['start'] = value;
+                                    return state;
+                                  });
+                                },
+                              ),
                             ),
-                            enabled: isEnabled,
-                            onChanged: (value) {
-                              if (isEnabled) {
-                                ref
-                                    .read(workingHoursProvider.notifier)
-                                    .update((state) {
-                                  state[entry.key]?['end'] = value;
-                                  return state;
-                                });
-                              }
-                            },
-                          ),
+                            const SizedBox(width: 10),
+                            const Text("To"),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: workingHours[day]?['end'],
+                                decoration: const InputDecoration(
+                                  labelText: "End",
+                                ),
+                                onChanged: (value) {
+                                  ref
+                                      .read(workingHoursProvider.notifier)
+                                      .update((state) {
+                                    state[day]?['end'] = value;
+                                    return state;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    trailing: isEnabled
-                        ? IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () {
-                              _editWorkingHours(
-                                  context, ref, entry.key, entry.value);
-                            },
-                          )
-                        : null,
-                  ),
-                );
-              }),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            _editWorkingHours(
+                                context, ref, day, workingHours[day] ?? {});
+                          },
+                        ),
+                      ))
+                  .toList(),
           ],
         ),
       ),
     );
   }
 
+  // Función para editar las horas de trabajo.
   void _editWorkingHours(BuildContext context, WidgetRef ref, String day,
       Map<String, String> times) {
     TextEditingController startController =
@@ -248,8 +236,8 @@ class WorkingHoursSelector extends ConsumerWidget {
                   state[day]?['start'] = startController.text;
                   state[day]?['end'] = endController.text;
 
+                  // Si se actualiza "All days", se reflejan los cambios en todos los días
                   if (day == 'All days') {
-                    // Actualiza todos los días con el mismo horario
                     for (var key in state.keys) {
                       state[key]?['start'] = startController.text;
                       state[key]?['end'] = endController.text;

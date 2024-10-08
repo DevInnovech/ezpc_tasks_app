@@ -53,6 +53,7 @@ class _IndependentProviderSelectionScreenState
                 path: KImages.corporatesvg,
                 height: iconSize,
                 width: iconSize,
+                url: null,
               ),
               isSelected: selectedIndependentType == 'Corporate',
               onTap: () {

@@ -1,4 +1,3 @@
-
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
@@ -54,6 +53,7 @@ class _AccountTypeSelectionScreenState
                 path: KImages.corporatesvg,
                 height: iconSize,
                 width: iconSize,
+                url: null,
               ),
               isSelected: selectedType == 'Corporate',
               onTap: () {
