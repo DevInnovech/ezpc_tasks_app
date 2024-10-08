@@ -111,6 +111,7 @@ class LoadedBookingDetailsWidget extends StatelessWidget {
                 Align(
                   alignment: Alignment.center,
                   child: CustomImage(
+                    url: null,
                     path: KImages.lineIcon,
                     color: blackColor.withOpacity(0.8),
                   ),

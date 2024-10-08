@@ -133,6 +133,7 @@ class _LoadedBookingWidgetState extends ConsumerState<LoadedBookingWidget> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CustomImage(
+                        url: null,
                         path: KImages.emptyBookingImage,
                       ),
                       CustomText(

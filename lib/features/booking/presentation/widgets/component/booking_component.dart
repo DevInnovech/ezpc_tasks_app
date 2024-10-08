@@ -35,6 +35,7 @@ class BookingComponent extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: Utils.borderRadius(r: 6.0),
                   child: CustomImage(
+                    url: null,
                     path: service!.image,
                     fit: BoxFit.cover,
                   ),

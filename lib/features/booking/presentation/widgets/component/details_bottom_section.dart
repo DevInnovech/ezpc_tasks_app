@@ -52,6 +52,7 @@ class DetailBottomSection extends ConsumerWidget {
                         : panelController.open();
                   },
                   child: CustomImage(
+                    url: null,
                     path: KImages.lineIcon,
                     color: blackColor.withOpacity(0.8),
                   ),

@@ -178,6 +178,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: CustomImage(
+                        url: null,
                         path: KImages.pp, // Reemplaza con la ruta de tu imagen
                         fit: BoxFit.cover,
                         //    width: 50,

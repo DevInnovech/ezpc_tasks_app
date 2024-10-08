@@ -278,6 +278,7 @@ class _ServiceState extends ConsumerState<Service> {
         ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           child: CustomImage(
+            url: null,
             path: provider.image,
             height: 60, // Ajusta la altura de la imagen según lo que necesites
             width: 60,
