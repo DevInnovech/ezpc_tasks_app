@@ -93,7 +93,7 @@ class EndDrawerMenu extends ConsumerWidget {
               icon: KImages.di04,
               title: 'Review',
               onTap: () {
-                Navigator.pushNamed(context, RouteNames.reviewScreen);
+                Navigator.pushNamed(context, RouteNames.performanceScreen);
                 Scaffold.of(context).closeEndDrawer();
               },
             ),
@@ -104,29 +104,6 @@ class EndDrawerMenu extends ConsumerWidget {
                 Navigator.pushNamed(context, RouteNames.chatListScreen);
 
                 Scaffold.of(context).closeEndDrawer();
-              },
-            ),
-            DrawerItem(
-              icon: KImages.di05,
-              title: 'Change Password',
-              onTap: () {
-                Navigator.pushNamed(context, RouteNames.changePasswordScreen);
-                Scaffold.of(context).closeEndDrawer();
-              },
-            ),
-            DrawerItem(
-              icon: KImages.deleteAccount,
-              title: 'Delete Account',
-              onTap: () {
-                deleteDialog(context, ref);
-              },
-            ),
-            DrawerItem(
-              icon: KImages.di10,
-              isBorder: false,
-              title: 'Logout',
-              onTap: () {
-                showLogoutBottomSheet(context);
               },
             ),
           ],

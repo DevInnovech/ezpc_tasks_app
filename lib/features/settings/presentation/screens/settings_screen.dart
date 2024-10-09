@@ -1,4 +1,5 @@
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,9 +85,26 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _buildSettingsOptions(BuildContext context, AccountType? accountType) {
     List<Widget> options = [
-      _buildOption(context, Icons.person, 'Edit Profile'),
-      _buildOption(context, Icons.lock, 'Change password'),
-      _buildOption(context, Icons.settings, 'Configuration'),
+      _buildOption(
+        context,
+        Icons.person,
+        'Edit Profile',
+        ontap: () => Navigator.pushNamed(context, RouteNames.editProfileScreen),
+      ),
+      _buildOption(
+        context,
+        Icons.lock,
+        'Change password',
+        ontap: () =>
+            Navigator.pushNamed(context, RouteNames.changePasswordScreen),
+      ),
+      _buildOption(
+        context,
+        Icons.settings,
+        'Configuration',
+        ontap: () =>
+            Navigator.pushNamed(context, RouteNames.configurationScreen),
+      ),
       _buildOption(context, Icons.payment, 'Payment Settings'),
       _buildOption(context, Icons.share, 'Referrals'),
       _buildOption(context, Icons.history, 'View transaction history'),
@@ -100,7 +118,12 @@ class SettingsScreen extends ConsumerWidget {
     }
 
     options.addAll([
-      _buildOption(context, Icons.logout, 'Logout'),
+      _buildOption(
+        context,
+        Icons.logout,
+        'Logout',
+        ontap: () => _showLogoutDialog(context),
+      ),
       if (accountType == AccountType.client ||
           accountType == AccountType.independentProvider)
         _buildCopyReferral(context, '4897165120185'),
@@ -113,11 +136,12 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildOption(BuildContext context, IconData icon, String text) {
+  Widget _buildOption(BuildContext context, IconData icon, String text,
+      {Function()? ontap}) {
     return ListTile(
       leading: Icon(icon, color: primaryColor),
       title: Text(text),
-      onTap: () {},
+      onTap: ontap,
     );
   }
 
@@ -146,6 +170,54 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text('Are you sure you want to log out?'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Add logout logic here
+              },
+              child: Text(
+                'No',
+                style: TextStyle(color: primaryColor),
+              ),
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(vertical: 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Add logout logic here
+              },
+              child: Text(
+                'Yes',
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                padding: EdgeInsets.symmetric(vertical: 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

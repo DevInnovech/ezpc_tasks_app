@@ -23,6 +23,8 @@ import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.da
 import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
+import 'package:ezpc_tasks_app/features/performance/screen/performance.dart';
+import 'package:ezpc_tasks_app/features/performance/screen/review.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/booking_step.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/request_services.dart';
@@ -31,6 +33,9 @@ import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/detail_scren.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/change_password.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/edit_profile.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_config.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
@@ -115,6 +120,11 @@ class RouteNames {
   static const String successPasswordScreen = '/successPasswordScreen';
 
   static const String senttingsScreen = '/senttingsScreen';
+  static const String editProfileScreen = '/editProfileScreen';
+  static const String changepasswordScreen = '/changePasswordScreen';
+  static const String configurationScreen = '/configurationScreen';
+  static const String performanceScreen = '/performanceScreen';
+  static const String reviewOnTasksScreen = '/reviewOnTasksScreen';
 
   static Route<dynamic> generateRoutes(RouteSettings settings) {
     switch (settings.name) {
@@ -318,6 +328,23 @@ class RouteNames {
       case RouteNames.senttingsScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => SettingsScreen());
+      case RouteNames.editProfileScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => EditProfileScreen());
+      case RouteNames.changePasswordScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => ChangePasswordScreen());
+      case RouteNames.configurationScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => ConfigurationScreen());
+
+      case RouteNames.performanceScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => PerformanceScreen());
+      case RouteNames.reviewOnTasksScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => ReviewOnTasksScreen());
+
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(
