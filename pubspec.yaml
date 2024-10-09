@@ -56,7 +56,11 @@ dependencies:
   file_picker: ^5.0.1
   uuid: ^4.5.0
   collection: ^1.18.0
-  banner_carousel: ^1.0.0
+  banner_carousel: ^1.2.1
+  table_calendar: ^3.1.2
+  sliding_up_panel: ^2.0.0+1
+  url_launcher: ^6.3.0
+  flutter_chat_ui: ^1.6.15
   firebase_storage: ^12.3.0
   path_provider: ^2.1.4
   
