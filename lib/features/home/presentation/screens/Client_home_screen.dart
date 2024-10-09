@@ -5,6 +5,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_he
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_single_category_view.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_slider_section.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_filter.dart';
@@ -71,7 +72,7 @@ class HomeLoadedData extends StatelessWidget {
             ClientTitleAndNavigator(
               title: data.categorySection.title,
               press: () {
-                /*Navigator.pushNamed(context, RouteNames.categoryScreen);*/
+                Navigator.pushNamed(context, RouteNames.clientCategoryScreen);
               },
             ),
             Utils.verticalSpace(16),

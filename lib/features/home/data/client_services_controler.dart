@@ -40,7 +40,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   Future<void> loadHomeData() async {
     try {
       // Simula la carga de datos con un retardo
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1));
 
       // Cargamos los datos del home usando los proveedores
       final homeModel = await fetchHomeData();

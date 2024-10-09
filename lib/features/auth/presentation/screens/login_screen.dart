@@ -105,7 +105,6 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                           Navigator.pushNamedAndRemoveUntil(
                               context, RouteNames.mainScreen, (route) => false);
 
-
                           setState(() {
                             isLoading = true;
                           });
@@ -144,8 +143,10 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                                   .getUserRole(userCredential.user!);
 
                               if (userRole == 'Client') {
-                                Navigator.pushNamedAndRemoveUntil(context,
-                                    RouteNames.mainScreen, (route) => false);
+                                Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    RouteNames.ClientmainScreen,
+                                    (route) => false);
                               } else if (userRole == 'Independent Provider') {
                                 Navigator.pushNamedAndRemoveUntil(context,
                                     RouteNames.mainScreen, (route) => false);

@@ -102,14 +102,14 @@ class ServiceScreen extends ConsumerWidget {
                   topRight: Radius.circular(12.0),
                 ),
                 child: CustomImage(
-                  url: task.imageUrl.isNotEmpty
-                      ? task.imageUrl
-                      : KImages.emptyBookingImage,
+                  url: null,
                   height: 150.0,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  path:
-                      '', // Aquí pasamos la URL de la imagen guardada correctamente
+                  path: task.imageUrl.isNotEmpty
+                      ? task.imageUrl
+                      : KImages
+                          .emptyBookingImage, // Aquí pasamos la URL de la imagen guardada correctamente
                 ),
               ),
               // Estado de la tarea (Activo/Eliminado)

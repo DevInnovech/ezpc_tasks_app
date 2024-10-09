@@ -23,6 +23,7 @@ import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.da
 import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/performance.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/review.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
@@ -125,6 +126,8 @@ class RouteNames {
   static const String configurationScreen = '/configurationScreen';
   static const String performanceScreen = '/performanceScreen';
   static const String reviewOnTasksScreen = '/reviewOnTasksScreen';
+
+  static const String clientCategoryScreen = '/clientCategoryScreen';
 
   static Route<dynamic> generateRoutes(RouteSettings settings) {
     switch (settings.name) {
@@ -344,6 +347,9 @@ class RouteNames {
       case RouteNames.reviewOnTasksScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => ReviewOnTasksScreen());
+      case RouteNames.clientCategoryScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => ClientCategoryScreen());
 
       /*  
       case RouteNames.registerProviderScreen:

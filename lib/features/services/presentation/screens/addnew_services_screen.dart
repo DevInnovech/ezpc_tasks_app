@@ -106,11 +106,14 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   void _saveTask(BuildContext context) async {
     // Obtener la tarea actual del estado
     final currentTask = ref.read(taskProvider).currentTask;
+    String image = currentTask!.imageUrl;
 
     if (currentTask != null) {
       try {
         // Guardar la tarea usando el método saveTask del taskProvider
-        await ref.read(taskProvider.notifier).saveTask(currentTask);
+        await ref
+            .read(taskProvider.notifier)
+            .uploadImageFromLocalUrl(image, currentTask);
 
         // Mostrar un diálogo de éxito al guardar la tarea
         showDialog(

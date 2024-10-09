@@ -123,11 +123,48 @@ class TaskNotifier extends StateNotifier<TaskState> {
     }
   }
 
+  Future<void> uploadImageFromLocalUrl(
+      String localUrl, TaskModel.Task task) async {
+    try {
+      // Verificar si la URL local no está vacía
+      if (localUrl.isEmpty) {
+        debugPrint('No se proporcionó una URL de imagen válida.');
+        return;
+      }
+
+      final File imageFile = File(localUrl);
+
+      // Verificar si el archivo existe
+      if (!imageFile.existsSync()) {
+        debugPrint('El archivo especificado no existe.');
+        return;
+      }
+
+      // Subir la imagen a Firebase Storage
+      String imageUrl = await _uploadImage(imageFile);
+
+      // Verificar que la URL de la imagen no esté vacía antes de actualizar el estado
+      if (imageUrl.isNotEmpty) {
+        final updatedTask = task.copyWith(imageUrl: imageUrl);
+        state = state.copyWith(currentTask: updatedTask);
+        await saveTask(updatedTask);
+        debugPrint('Imagen subida correctamente: $imageUrl');
+      } else {
+        debugPrint(
+            'Error: La URL de la imagen está vacía después de la subida.');
+      }
+    } catch (e) {
+      debugPrint('Error al subir la imagen desde la URL local: $e');
+    }
+  }
+
   Future<String> _uploadImage(File imageFile) async {
     try {
       final fileName = path.basename(imageFile.path);
       final ref = _storage.ref().child('tasks/$fileName');
+      debugPrint('Subiendo imagen a: tasks/$fileName');
       await ref.putFile(imageFile);
+      debugPrint('Archivo subido, obteniendo URL...');
       String downloadUrl = await ref.getDownloadURL();
       debugPrint('URL de la imagen subida: $downloadUrl');
       return downloadUrl;
