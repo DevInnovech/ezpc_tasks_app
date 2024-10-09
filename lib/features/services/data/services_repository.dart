@@ -31,7 +31,9 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   ServiceNotifier() : super(ServiceState.loading()) {
-    _loadServicesFromFirebase();
+    _loadServices();
+    //   firebase data
+    //  _loadServicesFromFirebase();
   }
 
   // Carga de datos desde Firebase

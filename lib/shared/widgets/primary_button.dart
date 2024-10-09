@@ -16,10 +16,12 @@ class PrimaryButton extends StatelessWidget {
     this.bgColor = primaryColor,
     this.minimumSize = const Size(double.infinity, 52),
     this.borderRadiusSize = 10.0,
+    this.enabled = true, // Añadido enabled
+    this.disabledColor =
+        Colors.grey, // Color opcional para el botón deshabilitado
   });
 
   final VoidCallback? onPressed;
-
   final String text;
   final Size maximumSize;
   final Size minimumSize;
@@ -27,20 +29,29 @@ class PrimaryButton extends StatelessWidget {
   final double borderRadiusSize;
   final Color textColor;
   final Color bgColor;
+  final bool enabled; // Añadido enabled
+  final Color disabledColor; // Añadido disabledColor
 
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(borderRadiusSize);
+
+    // El color del botón dependerá del estado (habilitado o deshabilitado)
+    final backgroundColor = enabled ? bgColor : disabledColor;
+
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: enabled
+          ? onPressed
+          : null, // Si no está habilitado, onPressed es null
       style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.all(bgColor),
+        backgroundColor: WidgetStateProperty.all(backgroundColor),
         splashFactory: NoSplash.splashFactory,
         shadowColor: WidgetStateProperty.all(transparent),
         overlayColor: WidgetStateProperty.all(transparent),
         elevation: WidgetStateProperty.all(0.0),
         shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: borderRadius)),
+          RoundedRectangleBorder(borderRadius: borderRadius),
+        ),
         minimumSize: WidgetStateProperty.all(minimumSize),
         maximumSize: WidgetStateProperty.all(maximumSize),
       ),
