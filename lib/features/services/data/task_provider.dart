@@ -1,18 +1,21 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:ezpc_tasks_app/features/services/data/task_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as path;
+import 'package:ezpc_tasks_app/features/services/models/task_model.dart'
+    as TaskModel;
+import 'package:ezpc_tasks_app/features/services/data/task_repository.dart';
 
-// Proveedor del TaskNotifier
 final taskProvider = StateNotifierProvider<TaskNotifier, TaskState>((ref) {
   return TaskNotifier(ref.read(taskRepositoryProvider));
 });
 
-// Definición de TaskState que agrupa la lista de tareas y el estado de carga
 class TaskState {
-  final List<Task> tasks;
-  final Task? currentTask;
+  final List<TaskModel.Task> tasks;
+  final TaskModel.Task? currentTask;
   final bool isLoading;
   final String? error;
 
@@ -23,15 +26,13 @@ class TaskState {
     this.error,
   });
 
-  // Estado inicial vacío
   factory TaskState.initial() {
     return TaskState(tasks: [], isLoading: false, error: null);
   }
 
-  // Copia del estado actual con nuevos valores
   TaskState copyWith({
-    List<Task>? tasks,
-    Task? currentTask,
+    List<TaskModel.Task>? tasks,
+    TaskModel.Task? currentTask,
     bool? isLoading,
     String? error,
   }) {
@@ -44,23 +45,22 @@ class TaskState {
   }
 }
 
-// Definición de TaskNotifier que maneja el estado de TaskState
 class TaskNotifier extends StateNotifier<TaskState> {
   final TaskRepository _repository;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   TaskNotifier(this._repository) : super(TaskState.initial()) {
     _loadTasks();
   }
 
-  // Método para inicializar una nueva tarea vacía con un ID único
   void initializeNewTask() {
-    final emptyTask = Task(
+    final emptyTask = TaskModel.Task(
       id: const Uuid().v4(),
       name: '',
       category: '',
       subCategory: '',
       price: 0.0,
-      imageUrl: '',
+      imageUrl: '', // Se inicializa en vacío
       requiresLicense: false,
       licenseType: '',
       licenseNumber: '',
@@ -74,31 +74,89 @@ class TaskNotifier extends StateNotifier<TaskState> {
       issueDate: DateTime.now().toIso8601String(),
     );
 
-    // Establecer `currentTask` como una nueva instancia vacía en el estado
     state = state.copyWith(currentTask: emptyTask);
   }
 
-  // Método para cargar las tareas desde la base de datos y actualizar el estado
   Future<void> _loadTasks() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      print("Cargando tareas desde la base de datos...");
-
-      List<Task> tasks = await _repository.getTasks();
-
+      List<TaskModel.Task> tasks = await _repository.getTasks();
       state = state.copyWith(tasks: tasks, isLoading: false);
     } catch (e) {
       state = state.copyWith(tasks: [], isLoading: false, error: e.toString());
     }
   }
 
-  // Método para guardar una nueva tarea en Firebase
-  Future<void> saveTask(Task task) async {
+  Future<void> selectAndUploadImage() async {
     try {
-      // Crear manualmente una nueva instancia de Task con valores específicos
-      final newTask = Task(
-        id: const Uuid()
-            .v4(), // Generar un nuevo id para asegurar que no se sobrescriba nada
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile =
+          await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile == null) {
+        debugPrint('No se seleccionó ninguna imagen.');
+        return;
+      }
+
+      String imageUrl;
+      if (kIsWeb) {
+        final Uint8List imageBytes = await pickedFile.readAsBytes();
+        imageUrl = await _uploadImageBytes(imageBytes, pickedFile.name);
+      } else {
+        final File imageFile = File(pickedFile.path);
+        imageUrl = await _uploadImage(imageFile);
+      }
+
+      // Verificar que la URL de la imagen no esté vacía antes de actualizar el estado
+      if (imageUrl.isNotEmpty) {
+        final updatedTask = state.currentTask?.copyWith(imageUrl: imageUrl);
+        if (updatedTask != null) {
+          state = state.copyWith(currentTask: updatedTask);
+        }
+        debugPrint('Imagen subida correctamente: $imageUrl');
+      } else {
+        debugPrint(
+            'Error: La URL de la imagen está vacía después de la subida.');
+      }
+    } catch (e) {
+      debugPrint('Error al seleccionar y subir la imagen: $e');
+    }
+  }
+
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      final fileName = path.basename(imageFile.path);
+      final ref = _storage.ref().child('tasks/$fileName');
+      await ref.putFile(imageFile);
+      String downloadUrl = await ref.getDownloadURL();
+      debugPrint('URL de la imagen subida: $downloadUrl');
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('Error al subir la imagen a Firebase Storage: $e');
+      return '';
+    }
+  }
+
+  Future<String> _uploadImageBytes(
+      Uint8List imageBytes, String fileName) async {
+    try {
+      final ref = _storage.ref().child('tasks/$fileName');
+      await ref.putData(imageBytes);
+      String downloadUrl = await ref.getDownloadURL();
+      debugPrint('URL de la imagen subida: $downloadUrl');
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('Error al subir la imagen a Firebase Storage: $e');
+      return '';
+    }
+  }
+
+  Future<void> saveTask(TaskModel.Task task) async {
+    try {
+      final newTask = TaskModel.Task(
+        id: task.id.isNotEmpty
+            ? task.id
+            : const Uuid().v4(), // Validación del ID
         name: task.name,
         category: task.category,
         subCategory: task.subCategory,
@@ -108,33 +166,26 @@ class TaskNotifier extends StateNotifier<TaskState> {
         licenseType: task.licenseType,
         licenseNumber: task.licenseNumber,
         licenseExpirationDate: task.licenseExpirationDate,
-        workingDays: List<String>.from(
-            task.workingDays), // Crear una nueva lista independiente
+        workingDays: List<String>.from(task.workingDays),
         workingHours: task.workingHours.map(
-          (key, value) => MapEntry(key, Map<String, String>.from(value)),
-        ), // Crear un nuevo mapa independiente
-        specialDays: List<Map<String, String>>.from(
-            task.specialDays), // Nueva lista independiente
+            (key, value) => MapEntry(key, Map<String, String>.from(value))),
+        specialDays: List<Map<String, String>>.from(task.specialDays),
         documentUrl: task.documentUrl,
         phone: task.phone,
         service: task.service,
         issueDate: task.issueDate,
       );
 
-      // Guardar la nueva tarea en Firebase
       await _repository.saveTask(newTask);
-
-      // Agregar la nueva tarea al estado, sin modificar otras tareas existentes
-      state = state.copyWith(
-        tasks: [...state.tasks, newTask],
-        currentTask: newTask,
-      );
+      state = state
+          .copyWith(tasks: [...state.tasks, newTask], currentTask: newTask);
+      debugPrint('Tarea guardada correctamente con la imagen.');
     } catch (e) {
       state = state.copyWith(error: e.toString());
+      debugPrint('Error al guardar la tarea: $e');
     }
   }
 
-  // Método para actualizar la `currentTask` en la pantalla de creación/edición
   void updateTask({
     String? name,
     String? category,
@@ -153,12 +204,10 @@ class TaskNotifier extends StateNotifier<TaskState> {
     String? service,
     String? issueDate,
   }) {
-    // Asegurarse de que `currentTask` existe antes de actualizar
     if (state.currentTask == null) return;
 
-    // Crear una nueva instancia de `Task` con los valores actualizados
-    final updatedTask = Task(
-      id: state.currentTask!.id, // Mantener el mismo `id` durante la edición
+    final updatedTask = TaskModel.Task(
+      id: state.currentTask!.id,
       name: name ?? state.currentTask!.name,
       category: category ?? state.currentTask!.category,
       subCategory: subCategory ?? state.currentTask!.subCategory,
@@ -173,8 +222,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
           workingDays ?? List<String>.from(state.currentTask!.workingDays),
       workingHours: workingHours ??
           state.currentTask!.workingHours.map(
-            (key, value) => MapEntry(key, Map<String, String>.from(value)),
-          ),
+              (key, value) => MapEntry(key, Map<String, String>.from(value))),
       specialDays: specialDays ??
           List<Map<String, String>>.from(state.currentTask!.specialDays),
       documentUrl: documentUrl ?? state.currentTask!.documentUrl,
@@ -183,12 +231,12 @@ class TaskNotifier extends StateNotifier<TaskState> {
       issueDate: issueDate ?? state.currentTask!.issueDate,
     );
 
-    // Actualizar la `currentTask` en el estado con los nuevos valores
     state = state.copyWith(currentTask: updatedTask);
   }
 
-  // Método para restablecer la tarea actual
-  void resetTask() {
-    state = TaskState.initial();
+  // Validación adicional para asegurar que `imageUrl` no sea nulo o vacío en el widget de la UI
+  bool isValidImageUrl() {
+    return state.currentTask?.imageUrl != null &&
+        state.currentTask!.imageUrl.isNotEmpty;
   }
 }

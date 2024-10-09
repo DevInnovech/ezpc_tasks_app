@@ -108,7 +108,8 @@ class ServiceScreen extends ConsumerWidget {
                   height: 150.0,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  path: '',
+                  path:
+                      '', // Aquí pasamos la URL de la imagen guardada correctamente
                 ),
               ),
               // Estado de la tarea (Activo/Eliminado)
@@ -157,9 +158,10 @@ class ServiceScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 8.0),
-                // Nombre de la tarea
+                // Nombre de la tarea (Sin preguntas)
                 CustomText(
-                  text: task.name,
+                  text: _cleanTaskName(task
+                      .name), // Limpieza de `task.name` para eliminar preguntas
                   fontSize: 18.0,
                   fontWeight: FontWeight.w700,
                 ),
@@ -203,6 +205,14 @@ class ServiceScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  // Método para limpiar el nombre de la tarea eliminando las preguntas
+  String _cleanTaskName(String name) {
+    // Suprimir preguntas y respuestas del campo `name`
+    final cleanedName =
+        name.split('\n').first; // Tomar solo la primera línea del nombre
+    return cleanedName.trim();
   }
 
   // Método para construir las etiquetas de categoría y subcategoría
