@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/booking/data/booking_provider.dart';
-import 'package:ezpc_tasks_app/features/booking/data/booking_reposity.dart';
 import 'package:ezpc_tasks_app/features/booking/models/booking_details_dto.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';

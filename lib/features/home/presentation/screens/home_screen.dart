@@ -239,7 +239,9 @@ class HomeScreen extends ConsumerWidget {
               ? SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      return WithdrawComponent(withdraw: withdraws[index]);
+                      return null;
+
+                      //                return WithdrawComponent(withdraw: withdraws[index], withdrawModel: null,);
                     },
                     childCount: withdraws.length,
                   ),

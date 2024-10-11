@@ -6,6 +6,8 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
 
 class ChatListScreen extends StatefulWidget {
+  const ChatListScreen({super.key});
+
   @override
   _ChatListScreenState createState() => _ChatListScreenState();
 }
@@ -137,19 +139,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
           child: Container(
             width: 30,
             height: 30,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
+            child:
+                const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
           ),
         ),
       ),
-      title: Text('Chats', style: TextStyle(fontSize: 24, color: Colors.white)),
+      title: const Text('Chats',
+          style: TextStyle(fontSize: 24, color: Colors.white)),
       centerTitle: true,
-      actions: [
+      actions: const [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(8.0),
           child: CircleAvatar(
             radius: 25,
             backgroundColor: Colors.transparent, // Fondo transparente
@@ -184,7 +188,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
         child: TextField(
           onChanged: _setSearchTerm,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'Search',
             hintStyle:
                 TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -202,7 +206,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
             contentPadding: EdgeInsets.symmetric(
                 vertical: 10, horizontal: 20), // Ajuste vertical del texto
           ),
-          style: TextStyle(color: Colors.black), // Color del texto ingresado
+          style:
+              const TextStyle(color: Colors.black), // Color del texto ingresado
         ),
       ),
     );
@@ -218,11 +223,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
           return GestureDetector(
             onTap: () => _setFilter(filter),
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
               decoration: BoxDecoration(
                 color: _filter == filter ? primaryColor : Colors.grey[200],
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: primaryColor!),
+                border: Border.all(color: primaryColor),
               ),
               child: Text(
                 filter,
@@ -253,8 +258,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
-        padding: EdgeInsets.only(right: 20),
-        child: Text('Delete', style: TextStyle(color: Colors.white)),
+        padding: const EdgeInsets.only(right: 20),
+        child: const Text('Delete', style: TextStyle(color: Colors.white)),
       ),
       child: ListTile(
         leading: CircleAvatar(
@@ -281,18 +286,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(chat['time'], style: TextStyle(fontSize: 12)),
+            Text(chat['time'], style: const TextStyle(fontSize: 12)),
             if (chat['unread'] > 0)
               Container(
-                margin: EdgeInsets.only(top: 5),
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
+                margin: const EdgeInsets.only(top: 5),
+                padding: const EdgeInsets.all(5),
+                decoration: const BoxDecoration(
                   color: primaryColor,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
                   chat['unread'].toString(),
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
           ],

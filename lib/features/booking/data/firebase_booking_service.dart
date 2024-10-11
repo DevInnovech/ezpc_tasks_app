@@ -120,7 +120,7 @@ class FirebaseBookingService {
         completeByAdmin: '',
         createdAt: '2024-09-01',
         updatedAt: '2024-09-05',
-        client: ClientInfoDto(
+        client: const ClientInfoDto(
           id: 101,
           name: 'John Doe',
           email: 'john.doe@example.com',
@@ -146,7 +146,7 @@ class FirebaseBookingService {
           totalReview: 10,
           totalOrder: 5,
           category: categories[0],
-          provider: ProviderModel(
+          provider: const ProviderModel(
             id: 1,
             name: "John Doe",
             email: "john.doe@example.com",
@@ -202,7 +202,7 @@ class FirebaseBookingService {
         completeByAdmin: '',
         createdAt: '2024-09-01',
         updatedAt: '2024-09-05',
-        client: ClientInfoDto(
+        client: const ClientInfoDto(
           id: 101,
           name: 'John Doe',
           email: 'john.doe@example.com',
@@ -228,7 +228,7 @@ class FirebaseBookingService {
           totalReview: 10,
           totalOrder: 5,
           category: categories[0],
-          provider: ProviderModel(
+          provider: const ProviderModel(
             id: 1,
             name: "John Doe",
             email: "john.doe@example.com",
@@ -262,7 +262,7 @@ class FirebaseBookingService {
     return ProviderBookingDto(
       title: 'Provider Bookings (Mock)',
       orders: bookings,
-      currencyIconModel: CurrencyIconModel(icon: 'default_icon'),
+      currencyIconModel: const CurrencyIconModel(icon: 'default_icon'),
       declienedBooking:
           bookings.where((b) => b.orderStatus == 'declined').length,
       totalAwaiting: bookings.where((b) => b.orderStatus == 'awaiting').length,
@@ -302,7 +302,7 @@ class FirebaseBookingService {
         completeByAdmin: '',
         createdAt: '2024-09-01',
         updatedAt: '2024-09-05',
-        client: ClientInfoDto(
+        client: const ClientInfoDto(
           id: 101,
           name: 'John Doe',
           email: 'john.doe@example.com',
@@ -328,7 +328,7 @@ class FirebaseBookingService {
           totalReview: 10,
           totalOrder: 5,
           category: categories[0],
-          provider: ProviderModel(
+          provider: const ProviderModel(
             id: 1,
             name: "John Doe",
             email: "john.doe@example.com",
@@ -357,7 +357,7 @@ class FirebaseBookingService {
           // John Doe
         ),
       ),
-      bookingAddress: BookingAddress(
+      bookingAddress: const BookingAddress(
         name: 'John Doe',
         email: 'john.doe@example.com',
         phone: '555-555-5555',
@@ -365,8 +365,8 @@ class FirebaseBookingService {
         postCode: '12345',
         orderNote: 'Please arrive on time',
       ),
-      packageFeatures: ['Standard Package', 'Window Cleaning'],
-      additionalServices: [
+      packageFeatures: const ['Standard Package', 'Window Cleaning'],
+      additionalServices: const [
         AdditionalServices(
           id: 1,
           serviceId: 301,

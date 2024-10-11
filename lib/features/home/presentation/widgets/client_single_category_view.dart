@@ -136,7 +136,7 @@ class ClientSingleCategoryView extends StatelessWidget {
                         builder: (context, snapshot) {
                           return Expanded(
                             child: Text(
-                              'by ${item.provider!.name}',
+                              'by ${item.provider.name}',
                               maxLines: 1,
                               style: KTextStyle.workSans(
                                   fs: 12.0, c: blackColor, fw: FontWeight.w400),

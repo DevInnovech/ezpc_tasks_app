@@ -7,11 +7,11 @@ import 'custom_text.dart';
 class ToggleButtonScrollComponent extends StatefulWidget
     implements PreferredSizeWidget {
   const ToggleButtonScrollComponent({
-    Key? key,
+    super.key,
     required this.onChange,
     required this.textList,
     this.initialLabelIndex = 0,
-  }) : super(key: key);
+  });
 
   final void Function(int index) onChange;
   final int initialLabelIndex;

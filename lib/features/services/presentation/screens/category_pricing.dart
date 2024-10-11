@@ -11,7 +11,6 @@ import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import 'package:uuid/uuid.dart';
 import '../../data/task_provider.dart';
 
 class CategoryPricingStep extends ConsumerWidget {

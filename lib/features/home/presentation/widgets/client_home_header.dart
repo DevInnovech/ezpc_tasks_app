@@ -8,8 +8,6 @@ import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/routes/routes.dart';
-import 'package:ezpc_tasks_app/features/home/data/client_data_model.dart';
 
 class ClientHomeHeader extends ConsumerWidget {
   const ClientHomeHeader({

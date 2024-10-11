@@ -14,7 +14,7 @@ class GenericFilterWidget extends StatefulWidget {
 }
 
 class _GenericFilterWidgetState extends State<GenericFilterWidget> {
-  Map<String, bool> _selectedOptions = {
+  final Map<String, bool> _selectedOptions = {
     'Same Day': false,
     'Price: Lowest': false,
     '+4.7': false,

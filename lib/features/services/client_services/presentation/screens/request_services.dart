@@ -15,10 +15,10 @@ class PremierServiceScreen extends ConsumerStatefulWidget {
   final List<Category> availableCategories; // Available categories
 
   const PremierServiceScreen({
-    Key? key,
+    super.key,
     required this.selectedService,
     required this.availableCategories,
-  }) : super(key: key);
+  });
 
   @override
   _PremierServiceScreenState createState() => _PremierServiceScreenState();
@@ -77,7 +77,7 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
               const SizedBox(height: 16),
               selectedSubCategories.isNotEmpty
                   ? _buildSubcategorySection()
-                  : SizedBox(), // Task section
+                  : const SizedBox(), // Task section
               const SizedBox(height: 16),
               _buildSizeSection(), // Size section
               const SizedBox(height: 16),
@@ -96,11 +96,11 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 6,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -140,11 +140,11 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 6,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -183,11 +183,11 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 6,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),

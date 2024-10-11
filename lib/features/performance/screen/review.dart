@@ -3,6 +3,8 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
 class ReviewOnTasksScreen extends StatelessWidget {
+  const ReviewOnTasksScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12,9 +14,9 @@ class ReviewOnTasksScreen extends StatelessWidget {
         elevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          child: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
         ),
-        title: Text(
+        title: const Text(
           'Review On Tasks',
           style: TextStyle(fontSize: 24, color: Colors.white),
         ),
@@ -26,14 +28,14 @@ class ReviewOnTasksScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'Customer Review By Tasks Name',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildReviewCard(
                 name: 'Donna Bins',
                 username: '@DONNABINS',
@@ -44,7 +46,7 @@ class ReviewOnTasksScreen extends StatelessWidget {
                     'Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet.',
                 avatar: KImages.pp,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildReviewCard(
                 name: 'Donna Bins',
                 username: '@DONNABINS',
@@ -55,7 +57,7 @@ class ReviewOnTasksScreen extends StatelessWidget {
                     'Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet.',
                 avatar: KImages.pp,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildReviewCard(
                 name: 'Donna Bins',
                 username: '@DONNABINS',
@@ -91,7 +93,7 @@ class ReviewOnTasksScreen extends StatelessWidget {
           BoxShadow(
             color: Colors.grey.withOpacity(0.3),
             blurRadius: 5.0,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -104,36 +106,36 @@ class ReviewOnTasksScreen extends StatelessWidget {
                 radius: 30,
                 backgroundImage: AssetImage(avatar),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     username,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
                   ),
                 ],
               ),
-              Spacer(),
+              const Spacer(),
               IconButton(
-                icon: Icon(Icons.delete, color: Colors.grey),
+                icon: const Icon(Icons.delete, color: Colors.grey),
                 onPressed: () {
                   // Handle delete action
                 },
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
@@ -145,13 +147,13 @@ class ReviewOnTasksScreen extends StatelessWidget {
               children: [
                 Text(
                   'Task Name : $taskName',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Divider(),
-                SizedBox(height: 5),
+                const Divider(),
+                const SizedBox(height: 5),
                 Row(
                   children: [
                     Row(
@@ -163,25 +165,25 @@ class ReviewOnTasksScreen extends StatelessWidget {
                         );
                       }),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       '$rating',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Text(
                       date,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   reviewText,
                   style: TextStyle(

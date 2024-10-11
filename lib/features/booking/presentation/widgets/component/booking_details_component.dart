@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/booking/models/booking_details_dto.dart';
-import 'package:ezpc_tasks_app/features/booking/presentation/screens/tracking/booking_tracking_screen.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/tracking/open_maps.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';

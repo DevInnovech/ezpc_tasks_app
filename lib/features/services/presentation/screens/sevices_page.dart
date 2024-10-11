@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/widgets/services_appbar.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,12 +65,12 @@ class ServiceScreen extends ConsumerWidget {
                 ? const LoadingWidget()
                 : taskState.error != null
                     ? FetchErrorText(text: taskState.error!)
-                    : (taskState.tasks?.isEmpty ?? true)
+                    : (taskState.tasks.isEmpty ?? true)
                         ? _buildEmptyState() // Estado vacío con imagen y mensaje
                         : ListView.builder(
-                            itemCount: taskState.tasks?.length ?? 0,
+                            itemCount: taskState.tasks.length ?? 0,
                             itemBuilder: (context, index) {
-                              final task = taskState.tasks?[index];
+                              final task = taskState.tasks[index];
                               return task != null
                                   ? _buildTaskCard(task)
                                   : const SizedBox.shrink();

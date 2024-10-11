@@ -10,6 +10,8 @@ import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 
 class SignUpWithBusinessCodeScreen extends StatelessWidget {
+  final _formKey = GlobalKey<FormState>();
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController businessCodeController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
@@ -128,13 +130,30 @@ class SignUpWithBusinessCodeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               PrimaryButton(
-                text: "Continue",
-                onPressed: () {
-                  // Acción al presionar continuar
-                  Navigator.pushNamed(
-                    context,
-                    RouteNames.passwordAccountpage,
-                  );
+                text: 'Continue',
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    // Llamar a la función de registro con los datos ingresados
+                    // Obtener los datos ingresados
+                    String email = emailController.text;
+                    String name = nameController.text;
+                    String lastName = lastNameController.text;
+                    //              DateTime dob = DateTime.parse(dobController.text); // Asegúrate de que este formato sea correcto
+                    String phoneNumber = phoneController.text;
+
+                    // Proceed to next page
+                    Navigator.pushNamed(
+                      context,
+                      RouteNames.passwordAccountpage,
+                      arguments: {
+                        'email': email,
+                        'name': name,
+                        'lastName': lastName,
+                        //     'dob': dob,
+                        'phoneNumber': phoneNumber,
+                      },
+                    );
+                  }
                 },
               ),
               Utils.verticalSpace(12.0),

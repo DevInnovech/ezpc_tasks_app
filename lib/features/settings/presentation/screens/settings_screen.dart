@@ -21,10 +21,10 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Settings'),
+        title: const Text('Settings'),
         centerTitle: true,
       ),
       body: Padding(
@@ -32,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
         child: Column(
           children: [
             _buildProfileHeader(context),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
             Expanded(
               child: SingleChildScrollView(
                 child: _buildSettingsOptions(context, accountType),
@@ -54,7 +54,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildProfileHeader(BuildContext context) {
-    return Row(
+    return const Row(
       children: [
         CircleAvatar(
           radius: 40,
@@ -157,11 +157,11 @@ class SettingsScreen extends ConsumerWidget {
               decoration: InputDecoration(
                 labelText: 'Referral Number',
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.copy),
+                  icon: const Icon(Icons.copy),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: referralCode));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Referral code copied')),
+                      const SnackBar(content: Text('Referral code copied')),
                     );
                   },
                 ),
@@ -178,24 +178,24 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: Text('Are you sure you want to log out?'),
+          content: const Text('Are you sure you want to log out?'),
           actions: [
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // Add logout logic here
               },
-              child: Text(
-                'No',
-                style: TextStyle(color: primaryColor),
-              ),
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: Colors.transparent,
-                padding: EdgeInsets.symmetric(vertical: 1),
+                padding: const EdgeInsets.symmetric(vertical: 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
+              ),
+              child: const Text(
+                'No',
+                style: TextStyle(color: primaryColor),
               ),
             ),
             ElevatedButton(
@@ -203,16 +203,16 @@ class SettingsScreen extends ConsumerWidget {
                 Navigator.of(context).pop();
                 // Add logout logic here
               },
-              child: Text(
-                'Yes',
-                style: TextStyle(color: Colors.white),
-              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
-                padding: EdgeInsets.symmetric(vertical: 1),
+                padding: const EdgeInsets.symmetric(vertical: 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
+              ),
+              child: const Text(
+                'Yes',
+                style: TextStyle(color: Colors.white),
               ),
             ),
           ],
@@ -226,17 +226,17 @@ class SettingsScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(5.0),
       child: ElevatedButton(
         onPressed: () {},
-        child: Text(
-          text,
-          style: TextStyle(color: Colors.white),
-        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
-          minimumSize: Size(double.infinity, 40),
+          minimumSize: const Size(double.infinity, 40),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white),
         ),
       ),
     );
@@ -247,7 +247,7 @@ class SettingsScreen extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
         onTap: () {},
-        child: Text(
+        child: const Text(
           'Delete Account',
           style: TextStyle(
             color: greyColor,

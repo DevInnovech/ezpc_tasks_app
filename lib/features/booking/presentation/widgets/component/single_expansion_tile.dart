@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 
 class SingleExpansionTile extends StatefulWidget {
   const SingleExpansionTile({
-    Key? key,
+    super.key,
     this.isExpand = false,
     this.heading = 'Include Service',
     required this.child,
-  }) : super(key: key);
+  });
   final bool isExpand;
   final String heading;
   final Widget child;

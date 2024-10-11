@@ -7,7 +7,10 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 class WithdrawComponent extends StatelessWidget {
-  const WithdrawComponent({super.key, required this.withdraw});
+  const WithdrawComponent(
+      {super.key,
+      required this.withdraw,
+      required WithdrawModel withdrawModel});
   final WithdrawModel withdraw;
 
   @override

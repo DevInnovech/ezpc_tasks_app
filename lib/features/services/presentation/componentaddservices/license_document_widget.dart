@@ -1,3 +1,4 @@
+import 'dart:io' show File;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -90,17 +91,11 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
             labelText: 'License Number',
           ),
         ),
-        TextFormField(
+        TextField(
           onChanged: widget.onPhoneChanged,
           decoration: const InputDecoration(
             labelText: 'Phone',
           ),
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-            _PhoneNumberInputFormatter(), // Agregar el formateador personalizado
-          ],
         ),
         TextField(
           onChanged: widget.onServiceChanged,
@@ -108,70 +103,35 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
             labelText: 'Service',
           ),
         ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () => _selectDate(context, true),
-          child: AbsorbPointer(
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: issueDate == null
-                    ? 'Issue Date'
-                    : 'Issue Date: ${DateFormat('yyyy-MM-dd').format(issueDate!)}',
-              ),
-            ),
+        TextField(
+          onChanged: widget.onIssueDateChanged,
+          decoration: const InputDecoration(
+            labelText: 'Issue Date',
           ),
         ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () => _selectDate(context, false),
-          child: AbsorbPointer(
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: expirationDate == null
-                    ? 'Expiration Date'
-                    : 'Expiration Date: ${DateFormat('yyyy-MM-dd').format(expirationDate!)}',
-              ),
-            ),
+        TextField(
+          onChanged: widget.onLicenseExpirationDateChanged,
+          decoration: const InputDecoration(
+            labelText: 'Expiration Date',
           ),
         ),
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _pickDocument,
-          child: Text(selectedFile == null
-              ? 'Upload License Document'
-              : 'Selected: $fileName'),
+          child: const Text('Upload License Document'),
+        ),
+        // Mostrar el nombre del archivo si se ha cargado uno
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text(
+            'File: $fileName', // Mostrar el nombre del archivo
+            style: const TextStyle(
+              fontStyle: FontStyle.italic,
+              color: Colors.grey,
+            ),
+          ),
         ),
       ],
-    );
-  }
-}
-
-// Formateador personalizado para el campo Phone
-class _PhoneNumberInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    // Elimina todos los caracteres no numéricos
-    String cleaned = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-
-    // Formatear el número según el formato XXX-XXX-XXXX
-    if (cleaned.length >= 6) {
-      final part1 = cleaned.substring(0, 3);
-      final part2 = cleaned.substring(3, 6);
-      final part3 =
-          cleaned.substring(6, cleaned.length > 10 ? 10 : cleaned.length);
-      cleaned = '$part1-$part2-$part3';
-    } else if (cleaned.length >= 3) {
-      final part1 = cleaned.substring(0, 3);
-      final part2 = cleaned.substring(3, cleaned.length);
-      cleaned = '$part1-$part2';
-    }
-
-    return TextEditingValue(
-      text: cleaned,
-      selection: TextSelection.collapsed(offset: cleaned.length),
     );
   }
 }

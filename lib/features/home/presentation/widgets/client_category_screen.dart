@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/remote_image.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -110,12 +109,10 @@ class ClientCategoryItem extends StatelessWidget {
                 shape: OvalBorder(),
               ),
               child: CustomImage(
-
                 path:
                     item.pathimage != null ? item.pathimage! : KImages.booking,
                 url:
                     null, // Usamos el operador ternario para manejar el caso en que `pathimage` sea null
-
               ),
             ),
             Utils.verticalSpace(8),

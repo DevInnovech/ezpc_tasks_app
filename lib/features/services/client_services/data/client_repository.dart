@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/client_model.dart';
-import 'package:ezpc_tasks_app/features/services/client_services/data/client_repository.dart';
 
 // Client provider to fetch the client data
 final clientProvider = Provider<ClientModel>((ref) {

@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class InformationStep extends ConsumerStatefulWidget {
   final VoidCallback onConfirm;
 
-  const InformationStep({Key? key, required this.onConfirm}) : super(key: key);
+  const InformationStep({super.key, required this.onConfirm});
 
   @override
   _InformationStepState createState() => _InformationStepState();
@@ -28,8 +28,7 @@ class _InformationStepState extends ConsumerState<InformationStep> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!applyForAnotherPerson)
-            _buildClientInfo(bookingClient as ClientModel),
+          if (!applyForAnotherPerson) _buildClientInfo(bookingClient),
           if (applyForAnotherPerson) _buildCustomForm(bookingNotifier),
           CustomCheckboxListTile(
             title: "Apply for another person",
@@ -67,7 +66,7 @@ class _InformationStepState extends ConsumerState<InformationStep> {
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 8.0,

@@ -15,10 +15,10 @@ class SupportChatScreen extends StatefulWidget {
   final String userId;
 
   const SupportChatScreen({
-    Key? key,
+    super.key,
     required this.chatRoomId,
     required this.userId,
-  }) : super(key: key);
+  });
 
   @override
   _SupportChatScreenState createState() => _SupportChatScreenState();
@@ -47,7 +47,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     }
     // Si no hay usuario autenticado, creamos un usuario ficticio
     else {
-      _user = types.User(
+      _user = const types.User(
         id: 'guest_user', // ID ficticio para el usuario de invitado
         firstName: 'Guest', // Nombre ficticio del usuario
       );
@@ -114,7 +114,8 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: PreferredSize(
-          preferredSize: Size.fromHeight(70.0), child: customAppBar(context)),
+          preferredSize: const Size.fromHeight(70.0),
+          child: customAppBar(context)),
       body: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -157,11 +158,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                     child: Container(
                       width: 35, // Tamaño más pequeño del botón
                       height: 35,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white, // Fondo blanco
                         shape: BoxShape.circle, // Botón circular
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Icon(
                           Icons.arrow_back_ios_rounded,
                           color: Colors.black,
@@ -171,7 +172,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                     ),
                   ),
                 ),
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 25,
                   backgroundColor: Colors.transparent, // Fondo transparente
                   child: ClipOval(
@@ -189,10 +190,10 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                 ),
 
                 const SizedBox(width: 10), // Espacio entre el avatar y el texto
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Text(
                       'Support Agent',
                       style: TextStyle(
@@ -219,11 +220,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               child: Container(
                 width: 35, // Tamaño más pequeño del botón
                 height: 35,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white, // Fondo blanco
                   shape: BoxShape.circle, // Botón circular
                 ),
-                child: Center(
+                child: const Center(
                   child: Icon(
                     Icons.more_vert,
                     color: Colors.black,
@@ -320,14 +321,16 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             ],
             color: isMe ? Colors.blue[100] : Colors.grey[200],
             borderRadius: BorderRadius.only(
-                bottomLeft: isMe ? Radius.circular(12) : Radius.circular(0),
-                bottomRight: isMe ? Radius.circular(0) : Radius.circular(12),
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12)),
+                bottomLeft:
+                    isMe ? const Radius.circular(12) : const Radius.circular(0),
+                bottomRight:
+                    isMe ? const Radius.circular(0) : const Radius.circular(12),
+                topLeft: const Radius.circular(12),
+                topRight: const Radius.circular(12)),
           ),
           child: Text(
             message.text,
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
         ),
         const SizedBox(height: 8),
@@ -335,9 +338,9 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             ? Text(
                 DateFormat('hh:mm a').format(
                     DateTime.fromMillisecondsSinceEpoch(message.createdAt!)),
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               )
-            : Text('Hora desconocida'),
+            : const Text('Hora desconocida'),
         const SizedBox(height: 10),
       ],
     );

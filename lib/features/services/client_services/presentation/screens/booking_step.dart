@@ -17,13 +17,13 @@ class BookingStepScreen extends ConsumerStatefulWidget {
   final String time;
 
   const BookingStepScreen({
-    Key? key,
+    super.key,
     required this.selectedService,
     required this.selectedSize,
     required this.hours,
     required this.quantity,
     required this.time,
-  }) : super(key: key);
+  });
 
   @override
   _BookingStepScreenState createState() => _BookingStepScreenState();
@@ -130,11 +130,11 @@ class _BookingStepScreenState extends ConsumerState<BookingStepScreen> {
     Navigator.pop(context);
 
     // Mostrar el diálogo de éxito de pago
-    Future.delayed(Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return PaymentSuccessDialog(
+          return const PaymentSuccessDialog(
             serviceName: 'Fixing', // Example
             hourlyRate: '\$25.00',
             serviceDuration: '4hrs',
@@ -159,10 +159,10 @@ class BookingStepper extends StatelessWidget {
   final ValueChanged<int> onStepTapped;
 
   const BookingStepper({
-    Key? key,
+    super.key,
     required this.pageIndex,
     required this.onStepTapped,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -202,12 +202,12 @@ class BookingStepButton extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   const BookingStepButton({
-    Key? key,
+    super.key,
     required this.stepIndex,
     required this.currentStep,
     required this.label,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

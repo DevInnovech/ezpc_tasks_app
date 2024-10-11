@@ -1,7 +1,5 @@
 import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
 import 'package:ezpc_tasks_app/features/lista_de_provedores.dart';
-import 'package:ezpc_tasks_app/features/services/client_services/model/schedulemodel.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Final Provider to fetch schedules from the existing provider list

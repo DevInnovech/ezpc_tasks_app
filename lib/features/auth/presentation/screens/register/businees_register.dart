@@ -132,11 +132,41 @@ class BusinessAccountScreen extends StatelessWidget {
               PrimaryButton(
                 text: "Continue",
                 onPressed: () {
-                  // Acción al presionar continuar
-                  Navigator.pushNamed(
-                    context,
-                    RouteNames.passwordAccountpage,
-                  );
+                  // Recopilar datos de los controladores
+                  final email = emailController.text;
+                  final fin = finController.text;
+                  final businessName = businessNameController.text;
+                  final description = descriptionController.text;
+                  final dob = dobController.text;
+                  final phoneNumber = phoneController.text;
+
+                  // Verifica que todos los campos requeridos no estén vacíos antes de navegar
+                  if (email.isNotEmpty &&
+                      fin.isNotEmpty &&
+                      businessName.isNotEmpty &&
+                      description.isNotEmpty &&
+                      dob.isNotEmpty &&
+                      phoneNumber.isNotEmpty) {
+                    // Navegar a la siguiente página con los argumentos
+                    Navigator.pushNamed(
+                      context,
+                      RouteNames.passwordAccountpage,
+                      arguments: {
+                        'email': email,
+                        'fin': fin,
+                        'businessName': businessName,
+                        'description': description,
+                        'dob': dob, // Nuevo argumento agregado
+                        'phoneNumber': phoneNumber,
+                      },
+                    );
+                  } else {
+                    // Mostrar un mensaje de error o advertencia si hay campos vacíos
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Please fill in all fields")),
+                    );
+                  }
                 },
               ),
             ],

@@ -31,7 +31,6 @@ import 'package:ezpc_tasks_app/features/services/client_services/presentation/sc
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/request_services.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/services.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
-import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/detail_scren.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/change_password.dart';
@@ -277,7 +276,7 @@ class RouteNames {
 
       case RouteNames.chatListScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => ChatListScreen());
+            settings: settings, builder: (_) => const ChatListScreen());
       case RouteNames.seconServiceScreen:
         // Extract the arguments passed from the previous screen
         final Map<String, dynamic> arguments =
@@ -330,26 +329,26 @@ class RouteNames {
 
       case RouteNames.senttingsScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => SettingsScreen());
+            settings: settings, builder: (_) => const SettingsScreen());
       case RouteNames.editProfileScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => EditProfileScreen());
+            settings: settings, builder: (_) => const EditProfileScreen());
       case RouteNames.changePasswordScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => ChangePasswordScreen());
+            settings: settings, builder: (_) => const ChangePasswordScreen());
       case RouteNames.configurationScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => ConfigurationScreen());
+            settings: settings, builder: (_) => const ConfigurationScreen());
 
       case RouteNames.performanceScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => PerformanceScreen());
+            settings: settings, builder: (_) => const PerformanceScreen());
       case RouteNames.reviewOnTasksScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => ReviewOnTasksScreen());
+            settings: settings, builder: (_) => const ReviewOnTasksScreen());
       case RouteNames.clientCategoryScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => ClientCategoryScreen());
+            settings: settings, builder: (_) => const ClientCategoryScreen());
 
       /*  
       case RouteNames.registerProviderScreen:

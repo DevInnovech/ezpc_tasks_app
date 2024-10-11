@@ -19,19 +19,19 @@ class Service extends ConsumerStatefulWidget {
   final int quantity;
 
   const Service({
-    Key? key,
+    super.key,
     required this.selectedService,
     required this.selectedSize,
     required this.hours,
     required this.quantity,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<Service> createState() => _ServiceState();
 }
 
 class _ServiceState extends ConsumerState<Service> {
-  CalendarFormat _calendarFormat = CalendarFormat.week;
+  final CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   String? selectedTimeSlot;
@@ -179,11 +179,11 @@ class _ServiceState extends ConsumerState<Service> {
             _focusedDay = focusedDay;
           },
           calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(
+            todayDecoration: const BoxDecoration(
               color: Colors.blue,
               shape: BoxShape.circle,
             ),
-            selectedDecoration: BoxDecoration(
+            selectedDecoration: const BoxDecoration(
               color: primaryColor,
               shape: BoxShape.circle,
             ),
@@ -191,11 +191,11 @@ class _ServiceState extends ConsumerState<Service> {
               color: primaryColor.withOpacity(0.6),
             ),
           ),
-          headerStyle: HeaderStyle(
+          headerStyle: const HeaderStyle(
             titleCentered: true,
             formatButtonVisible: false,
             titleTextStyle:
-                const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
             leftChevronIcon: Icon(
               Icons.chevron_left,
               color: Colors.black,
@@ -204,8 +204,8 @@ class _ServiceState extends ConsumerState<Service> {
               Icons.chevron_right,
               color: Colors.black,
             ),
-            leftChevronPadding: const EdgeInsets.all(12.0),
-            rightChevronPadding: const EdgeInsets.all(12.0),
+            leftChevronPadding: EdgeInsets.all(12.0),
+            rightChevronPadding: EdgeInsets.all(12.0),
           ),
         ),
       ],

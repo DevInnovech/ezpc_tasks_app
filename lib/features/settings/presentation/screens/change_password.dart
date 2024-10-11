@@ -4,6 +4,8 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_dialog.dart';
 import 'package:flutter/material.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
+
   @override
   _ChangePasswordScreenState createState() => _ChangePasswordScreenState();
 }
@@ -22,14 +24,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           child: Container(
             width: 30,
             height: 30,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
+            child:
+                const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
           ),
         ),
-        title: Text(
+        title: const Text(
           'Change Password',
           style: TextStyle(fontSize: 24, color: Colors.black),
         ),
@@ -42,13 +45,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 40),
-              Text(
+              const SizedBox(height: 40),
+              const Text(
                 textAlign: TextAlign.center,
                 'Enter your e-mail address',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -72,7 +75,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               Center(
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.5,
@@ -83,41 +86,41 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           context: context,
                           builder: (context) => CustomDialog(
                             icon: KImages.dialogIcon,
+                            height: 250.0,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
+                                const Text(
                                   'Email Sent',
                                   style: TextStyle(
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                SizedBox(height: 16),
-                                Text(
+                                const SizedBox(height: 16),
+                                const Text(
                                   'We have sent a password reset email to your address.',
                                   textAlign: TextAlign.center,
                                 ),
-                                SizedBox(height: 20),
+                                const SizedBox(height: 20),
                                 ElevatedButton(
                                   onPressed: () => Navigator.of(context).pop(),
-                                  child: Text('OK'),
+                                  child: const Text('OK'),
                                 ),
                               ],
                             ),
-                            height: 250.0,
                           ),
                         );
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Send',
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),

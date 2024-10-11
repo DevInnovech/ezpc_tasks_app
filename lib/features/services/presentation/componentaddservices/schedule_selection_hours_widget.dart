@@ -183,8 +183,7 @@ class WorkingHoursSelector extends ConsumerWidget {
                                 context, ref, day, workingHours[day] ?? {});
                           },
                         ),
-                      ))
-                  .toList(),
+                      )),
           ],
         ),
       ),

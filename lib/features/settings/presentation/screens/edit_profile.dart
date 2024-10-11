@@ -3,6 +3,8 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
 class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
+
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
@@ -39,14 +41,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Container(
             width: 30,
             height: 30,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
+            child:
+                const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
           ),
         ),
-        title: Text('Edit Profile',
+        title: const Text('Edit Profile',
             style: TextStyle(fontSize: 24, color: Colors.black)),
         centerTitle: true,
       ),
@@ -59,7 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Center(
                 child: Stack(
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 50,
                       backgroundImage: AssetImage(KImages.pp),
                     ),
@@ -69,11 +72,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: Container(
                         width: 30,
                         height: 30,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.blue,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.camera_alt,
                           color: Colors.white,
                           size: 20,
@@ -83,22 +86,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('Full Name*', _fullNameController,
                   isRequired: true),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('Designation', _designationController),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('Email Address', _emailController, isEmail: true),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('Phone', _phoneController, isPhone: true),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('Country', _countryController),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('State', _stateController),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTextField('Address', _addressController),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Center(
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.8,
@@ -108,12 +111,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: Text('Update Profile',
+                    child: const Text('Update Profile',
                         style: TextStyle(fontSize: 16, color: Colors.white)),
                   ),
                 ),
@@ -132,12 +135,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         TextField(
           controller: controller,
           keyboardType: isEmail

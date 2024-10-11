@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 class RateInputWidget extends StatelessWidget {
   final void Function(double) onRateChanged;
 
-  const RateInputWidget({Key? key, required this.onRateChanged})
-      : super(key: key);
+  const RateInputWidget({super.key, required this.onRateChanged});
 
   @override
   Widget build(BuildContext context) {

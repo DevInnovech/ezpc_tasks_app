@@ -1,4 +1,3 @@
-import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/category_pricing.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/questions.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/schedulestep.dart';
@@ -7,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:flutter/scheduler.dart'; // Importar para usar SchedulerBinding
-import 'package:uuid/uuid.dart';
 
 class AddNewTaskScreen extends ConsumerStatefulWidget {
   const AddNewTaskScreen({super.key});
@@ -108,65 +106,47 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
     final currentTask = ref.read(taskProvider).currentTask;
     String image = currentTask!.imageUrl;
 
-    if (currentTask != null) {
-      try {
-        // Guardar la tarea usando el método saveTask del taskProvider
-        await ref
-            .read(taskProvider.notifier)
-            .uploadImageFromLocalUrl(image, currentTask);
+    try {
+      // Guardar la tarea usando el método saveTask del taskProvider
+      await ref
+          .read(taskProvider.notifier)
+          .uploadImageFromLocalUrl(image, currentTask);
 
-        // Mostrar un diálogo de éxito al guardar la tarea
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Success'),
-              content: const Text('Task saved successfully!'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Cerrar el diálogo
-                    Navigator.of(context).pop(); // Cerrar la pantalla actual
-                  },
-                ),
-              ],
-            );
-          },
-        );
-
-        // Restablecer el estado de la tarea para que no afecte nuevas creaciones
-        ref.read(taskProvider.notifier).initializeNewTask();
-      } catch (e) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content: Text('Failed to save task: ${e.toString()}'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } else {
+      // Mostrar un diálogo de éxito al guardar la tarea
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return const AlertDialog(
-            title: Text('Error'),
-            content: Text('No task available to save.'),
+          return AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Task saved successfully!'),
             actions: <Widget>[
               TextButton(
-                child: Text('OK'),
-                onPressed: null,
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cerrar el diálogo
+                  Navigator.of(context).pop(); // Cerrar la pantalla actual
+                },
+              ),
+            ],
+          );
+        },
+      );
+
+      // Restablecer el estado de la tarea para que no afecte nuevas creaciones
+      ref.read(taskProvider.notifier).initializeNewTask();
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to save task: ${e.toString()}'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
               ),
             ],
           );

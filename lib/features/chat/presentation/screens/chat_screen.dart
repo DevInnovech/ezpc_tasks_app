@@ -17,12 +17,12 @@ class CustomerChatScreen extends StatefulWidget {
   final bool isFakeData;
 
   const CustomerChatScreen({
-    Key? key,
+    super.key,
     required this.chatRoomId,
     required this.customerId,
     required this.providerId,
     this.isFakeData = false,
-  }) : super(key: key);
+  });
 
   @override
   _CustomerChatScreenState createState() => _CustomerChatScreenState();
@@ -41,7 +41,8 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   void _initializeChat() {
     if (widget.isFakeData) {
-      _user = types.User(id: 'fake_provider_id', firstName: 'Fake Provider');
+      _user =
+          const types.User(id: 'fake_provider_id', firstName: 'Fake Provider');
       _loadFakeMessages();
     } else {
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -53,7 +54,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
         _loadMessages();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No user is signed in!')),
+          const SnackBar(content: Text('No user is signed in!')),
         );
       }
     }
@@ -89,7 +90,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
       types.TextMessage(
         author: types.User(id: widget.customerId, firstName: 'Fake Customer'),
         createdAt: DateTime.now()
-            .subtract(Duration(minutes: 5))
+            .subtract(const Duration(minutes: 5))
             .millisecondsSinceEpoch,
         id: const Uuid().v4(),
         text: 'Hola, ¿en qué puedo ayudarte?',
@@ -97,7 +98,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
       types.TextMessage(
         author: types.User(id: widget.providerId, firstName: 'Fake Provider'),
         createdAt: DateTime.now()
-            .subtract(Duration(minutes: 2))
+            .subtract(const Duration(minutes: 2))
             .millisecondsSinceEpoch,
         id: const Uuid().v4(),
         text: 'Necesito ayuda con mi reserva.',
@@ -145,7 +146,8 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: PreferredSize(
-          preferredSize: Size.fromHeight(70.0), child: customAppBar(context)),
+          preferredSize: const Size.fromHeight(70.0),
+          child: customAppBar(context)),
       body: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -191,11 +193,11 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                     child: Container(
                       width: 35, // Tamaño más pequeño del botón
                       height: 35,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white, // Fondo blanco
                         shape: BoxShape.circle, // Botón circular
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Icon(
                           Icons.arrow_back_ios_rounded,
                           color: Colors.black,
@@ -205,7 +207,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                     ),
                   ),
                 ),
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 25,
                   backgroundColor: Colors.transparent, // Fondo transparente
                   child: ClipOval(
@@ -224,10 +226,10 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                 ),
 
                 const SizedBox(width: 10), // Espacio entre el avatar y el texto
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Text(
                       'Cristal Pirstone',
                       style: TextStyle(
@@ -254,11 +256,11 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
               child: Container(
                 width: 35, // Tamaño más pequeño del botón
                 height: 35,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white, // Fondo blanco
                   shape: BoxShape.circle, // Botón circular
                 ),
-                child: Center(
+                child: const Center(
                   child: Icon(
                     Icons.more_vert,
                     color: Colors.black,
@@ -355,14 +357,16 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
             ],
             color: isMe ? Colors.blue[100] : Colors.grey[200],
             borderRadius: BorderRadius.only(
-                bottomLeft: isMe ? Radius.circular(12) : Radius.circular(0),
-                bottomRight: isMe ? Radius.circular(0) : Radius.circular(12),
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12)),
+                bottomLeft:
+                    isMe ? const Radius.circular(12) : const Radius.circular(0),
+                bottomRight:
+                    isMe ? const Radius.circular(0) : const Radius.circular(12),
+                topLeft: const Radius.circular(12),
+                topRight: const Radius.circular(12)),
           ),
           child: Text(
             message.text,
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
         ),
         const SizedBox(height: 8),
@@ -370,9 +374,9 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
             ? Text(
                 DateFormat('hh:mm a').format(
                     DateTime.fromMillisecondsSinceEpoch(message.createdAt!)),
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               )
-            : Text('Hora desconocida'),
+            : const Text('Hora desconocida'),
         const SizedBox(height: 10),
       ],
     );

@@ -94,7 +94,7 @@ class SpecialDaysStep extends ConsumerWidget {
                 ),
               ),
             );
-          }).toList(),
+          }),
           ListTile(
             leading: const Icon(Icons.add, color: Colors.deepPurple),
             title: const Text(

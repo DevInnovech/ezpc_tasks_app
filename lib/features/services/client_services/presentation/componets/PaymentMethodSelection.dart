@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PaymentMethodSelection extends ConsumerStatefulWidget {
-  const PaymentMethodSelection({Key? key}) : super(key: key);
+  const PaymentMethodSelection({super.key});
 
   @override
   _PaymentMethodSelectionState createState() => _PaymentMethodSelectionState();
@@ -60,9 +60,9 @@ class _PaymentMethodSelectionState
           onTap: () {
             // Handle the logic to change the payment method
           },
-          child: ListTile(
-            leading: const Icon(Icons.payment),
-            title: const Text("Change method of payment"),
+          child: const ListTile(
+            leading: Icon(Icons.payment),
+            title: Text("Change method of payment"),
           ),
         ),
       ],

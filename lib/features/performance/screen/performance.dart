@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 
 class PerformanceScreen extends StatefulWidget {
+  const PerformanceScreen({super.key});
+
   @override
   _PerformanceScreenState createState() => _PerformanceScreenState();
 }
@@ -19,9 +21,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         elevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          child: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
         ),
-        title: Text('Performance',
+        title: const Text('Performance',
             style: TextStyle(fontSize: 24, color: Colors.white)),
         centerTitle: true,
       ),
@@ -36,13 +38,13 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 onTap: () => Navigator.pushNamed(
                     context, RouteNames.reviewOnTasksScreen),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildPerformanceCard(
                   'Cancelations', 25, '9.23%', Colors.red, primaryColor),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildPerformanceCard(
                   'Jobs Completed', 50, '90%', Colors.green, Colors.green),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildPerformanceCard(
                   'Re-Schedules', 5, '50%', Colors.red, Colors.red),
             ],
@@ -64,7 +66,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Reviews',
+                const Text('Reviews',
                     style: TextStyle(
                         color: primaryColor,
                         fontSize: 30,
@@ -72,7 +74,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('4.5',
+                    const Text('4.5',
                         style: TextStyle(
                             fontSize: 36, fontWeight: FontWeight.bold)),
                     Container(
@@ -80,8 +82,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                         color: primaryColor,
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Text('322+ reviews',
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      child: const Text('322+ reviews',
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold)),
@@ -90,24 +93,26 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 24,
                   child: Text('M'),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Great service experience with provider',
+                      const Text('Great service experience with provider',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
                       Row(
-                        children: List.generate(5,
-                            (index) => Icon(Icons.star, color: Colors.orange)),
+                        children: List.generate(
+                            5,
+                            (index) =>
+                                const Icon(Icons.star, color: Colors.orange)),
                       ),
                     ],
                   ),
@@ -134,7 +139,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: primaryColor,
                         fontSize: 22,
                         fontWeight: FontWeight.bold)),
@@ -142,7 +147,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(value.toString(),
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: primaryColor,
                             fontSize: 36,
                             fontWeight: FontWeight.bold)),
@@ -160,7 +165,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             LinearProgressIndicator(
               minHeight: 18,
               value: value / 100,

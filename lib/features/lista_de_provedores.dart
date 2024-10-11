@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
-import 'package:ezpc_tasks_app/features/services/client_services/model/schedulemodel.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,7 +9,7 @@ final providerListProvider = FutureProvider<List<ProviderModel>>((ref) async {
 
   // List of providers with 12 time slots each
   return [
-    ProviderModel(
+    const ProviderModel(
       id: 1,
       name: "John Doe",
       email: "john.doe@example.com",
@@ -36,7 +35,7 @@ final providerListProvider = FutureProvider<List<ProviderModel>>((ref) async {
       ],
       profession: 'Cleaning',
     ),
-    ProviderModel(
+    const ProviderModel(
       profession: 'Cleaning',
       id: 2,
       name: "Jane Smith",
@@ -62,7 +61,7 @@ final providerListProvider = FutureProvider<List<ProviderModel>>((ref) async {
         TimeSlotModel(time: "01:30", isAvailable: true),
       ],
     ),
-    ProviderModel(
+    const ProviderModel(
       profession: 'Cleaning',
       id: 3,
       name: "Michael Johnson",
@@ -88,7 +87,7 @@ final providerListProvider = FutureProvider<List<ProviderModel>>((ref) async {
         TimeSlotModel(time: "01:30", isAvailable: true),
       ],
     ),
-    ProviderModel(
+    const ProviderModel(
       profession: 'Cleaning',
       id: 4,
       name: "Emily Clark",

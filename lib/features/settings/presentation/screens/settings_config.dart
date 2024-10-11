@@ -2,6 +2,8 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
 class ConfigurationScreen extends StatefulWidget {
+  const ConfigurationScreen({super.key});
+
   @override
   _ConfigurationScreenState createState() => _ConfigurationScreenState();
 }
@@ -23,14 +25,15 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
           child: Container(
             width: 30,
             height: 30,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
+            child:
+                const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
           ),
         ),
-        title: Text('Configuration',
+        title: const Text('Configuration',
             style: TextStyle(fontSize: 24, color: Colors.black)),
         centerTitle: true,
       ),
@@ -113,7 +116,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontSize: 16)),
+          Text(title, style: const TextStyle(fontSize: 16)),
           Switch(
             value: value,
             onChanged: onChanged,
@@ -136,7 +139,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
               )),
           Container(
@@ -147,7 +150,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
             ),
             child: DropdownButton<String>(
               value: value,
-              underline: SizedBox(),
+              underline: const SizedBox(),
               dropdownColor: primaryColor,
               borderRadius: BorderRadius.circular(30),
               items: items
@@ -155,7 +158,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
                         value: item,
                         child: Text(
                           item,
-                          style: TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ))
                   .toList(),
@@ -174,14 +177,14 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
         onTap: onTap,
         child: Text(
           title,
-          style: TextStyle(fontSize: 16, color: primaryColor),
+          style: const TextStyle(fontSize: 16, color: primaryColor),
         ),
       ),
     );
   }
 
   Widget _buildDivider() {
-    return Divider(
+    return const Divider(
       color: Colors.grey,
       thickness: 1,
       height: 12,
@@ -191,7 +194,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
   void _showBottomSheet(BuildContext context, String title, String content) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
@@ -203,17 +206,17 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
             children: [
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                   textAlign: TextAlign.justify,
                   content,
-                  style: TextStyle(fontSize: 16)),
-              SizedBox(height: 20),
+                  style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
@@ -223,7 +226,8 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  child: Text('Close', style: TextStyle(color: Colors.white)),
+                  child: const Text('Close',
+                      style: TextStyle(color: Colors.white)),
                 ),
               ),
             ],

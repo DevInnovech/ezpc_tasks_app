@@ -8,10 +8,10 @@ class PaymentBottomSheet extends StatefulWidget {
   final VoidCallback onSheetClosed;
 
   const PaymentBottomSheet({
-    Key? key,
+    super.key,
     required this.onPaymentConfirmed,
     required this.onSheetClosed,
-  }) : super(key: key);
+  });
 
   @override
   _PaymentBottomSheetState createState() => _PaymentBottomSheetState();

@@ -69,7 +69,7 @@ class DeclinedOrderDialog extends StatelessWidget {
                           minimumSize: Size(double.infinity, Utils.vSize(45.0)),
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       // Botón "Cancel"
                       Expanded(
                         child: PrimaryButton(

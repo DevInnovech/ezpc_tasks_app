@@ -12,12 +12,12 @@ class PaymentSuccessDialog extends StatelessWidget {
   final String totalAmount;
 
   const PaymentSuccessDialog({
-    Key? key,
+    super.key,
     required this.serviceName,
     required this.hourlyRate,
     required this.serviceDuration,
     required this.totalAmount,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class PaymentSuccessDialog extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 38,
                   backgroundColor: primaryColor.withOpacity(1),
-                  child: Icon(
+                  child: const Icon(
                     Icons.check,
                     size: 60.0,
                     color: Colors.white,
@@ -79,9 +79,9 @@ class PaymentSuccessDialog extends StatelessWidget {
                       color: primaryColor,
                     ),
                     const Divider(height: 24.0, color: Colors.grey),
-                    Row(
+                    const Row(
                       children: [
-                        const CustomText(
+                        CustomText(
                           text: 'Payment for',
                           fontSize: 14.0,
                           fontWeight: FontWeight.w600,

@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/booking/models/booking_data_dto.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/remote_image.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';

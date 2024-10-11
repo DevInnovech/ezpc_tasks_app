@@ -68,7 +68,7 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
     final bookingState = ref.watch(bookingDetailsProvider(widget.bookingId));
     final serviceState = ref.watch(serviceStateProvider);
 
-    Widget _buildTrackingActionButton(
+    Widget buildTrackingActionButton(
         BuildContext context, WidgetRef ref, ServiceState serviceState) {
       String buttonText = 'Start';
       bool isButtonEnabled = true;
@@ -148,7 +148,7 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: _buildTrackingActionButton(context, ref, serviceState),
+        child: buildTrackingActionButton(context, ref, serviceState),
       ),
     );
   }
@@ -168,9 +168,9 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
           onPressed: () => _showTechnicalSupportOptions(context),
           enabled: true, // El botón está habilitado
           isActive: false, // El botón no tiene estado visual activo
-          normalColor: Color.fromARGB(255, 18, 139, 237),
+          normalColor: const Color.fromARGB(255, 18, 139, 237),
           //  activeColor: Colors.green,
-          normalBorderColor: Color.fromARGB(255, 15, 121, 208),
+          normalBorderColor: const Color.fromARGB(255, 15, 121, 208),
           // activeBorderColor: Colors.greenAccent,
         ),
 

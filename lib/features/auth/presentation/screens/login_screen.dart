@@ -98,91 +98,71 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                 _buildPasswordForm(),
                 Utils.verticalSpace(20.0),
                 PrimaryButton(
-                  text: 'Login',
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, RouteNames.mainScreen, (route) => false);
+                    text: 'Login',
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            // Ocultar el teclado
+                            Utils.closeKeyBoard(context);
 
-                          setState(() {
-                            isLoading = true;
-                          });
+                            // Validar los campos
+                            if (email == null ||
+                                email!.isEmpty ||
+                                password == null ||
+                                password!.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Please fill in all fields')));
+                              return;
+                            }
+                            try {
+                              UserCredential? userCredential =
+                                  await _authService.signInWithEmailAndPassword(
+                                      email!, password!);
 
-                          Utils.closeKeyBoard(context);
+                              if (userCredential != null) {
+                                await _authService.savePreferences(
+                                    email!, password!, isRemember);
+                                final userRole = await _authService
+                                    .getUserRole(userCredential.user!);
 
-                          // Basic validation on the frontend
-                          if (email == null ||
-                              email!.isEmpty ||
-                              password == null ||
-                              password!.isEmpty) {
-                            // Show an error message to the user
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Please fill in all fields') // "Por favor, completa todos los campos"
-                                    ));
-                            setState(() {
-                              isLoading = false;
-                            });
-                            return;
-                          }
-
-                          // Attempt to log in using the AuthService
-                          try {
-                            UserCredential? userCredential = await _authService
-                                .signInWithEmailAndPassword(email!, password!);
-
-                            if (userCredential != null) {
-                              // Successful login
-                              await _authService.savePreferences(
-                                  email!, password!, isRemember);
-
-                              // Fetch the user role from Firestore
-                              final userRole = await _authService
-                                  .getUserRole(userCredential.user!);
-
-                              if (userRole == 'Client') {
-                                Navigator.pushNamedAndRemoveUntil(
-                                    context,
-                                    RouteNames.ClientmainScreen,
-                                    (route) => false);
-                              } else if (userRole == 'Independent Provider') {
-                                Navigator.pushNamedAndRemoveUntil(context,
-                                    RouteNames.mainScreen, (route) => false);
+                                // Redirección en función del rol
+                                if (userRole == 'Client') {
+                                  Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      RouteNames.ClientmainScreen,
+                                      (route) => false);
+                                } else if (userRole == 'Independent Provider') {
+                                  Navigator.pushNamedAndRemoveUntil(context,
+                                      RouteNames.mainScreen, (route) => false);
+                                } else {
+                                  print('Unrecognized user role: $userRole');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'An error occurred during login. Unrecognized user role.')),
+                                  );
+                                }
                               } else {
-                                // Handle the case where the role is not recognized
-                                print('Unrecognized user role: $userRole');
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text(
-                                        'An error occurred during login. Unrecognized user role.'), // "Ocurrió un error durante el inicio de sesión. Rol de usuario no reconocido."
-                                  ),
+                                      content:
+                                          Text('Incorrect email or password')),
                                 );
                               }
-                            } else {
-                              // Login failed, show an error message to the user
+                            } catch (e) {
+                              print('Error during login: $e');
                               ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content: Text(
-                                          'Incorrect email or password') // "Correo electrónico o contraseña incorrectos"
-                                      ));
+                                          'An error occurred during login')));
+                            } finally {
+                              setState(() {
+                                isLoading = false;
+                              });
                             }
-                          } catch (e) {
-                            // Handle other potential errors
-                            print('Error during login: $e');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'An error occurred during login') // "Ocurrió un error durante el inicio de sesión"
-                                    ));
-                          } finally {
-                            setState(() {
-                              isLoading = false;
-                            });
-                          }
-                        },
-                ),
+                          }),
                 _buildRemember(),
                 Utils.verticalSpace(12.0),
                 _createNewAccount(context),
