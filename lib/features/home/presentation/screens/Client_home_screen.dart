@@ -1,13 +1,11 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart';
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_single_category_view.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_slider_section.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -16,8 +14,6 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../services/presentation/screens/sevices_page.dart';
 
 class ClientHomeScreen extends ConsumerWidget {
   const ClientHomeScreen({super.key});
@@ -42,36 +38,7 @@ class ClientHomeScreen extends ConsumerWidget {
         ),
 
         // Banner Carousel
-        CarouselSlider(
-          items: [
-            // Reemplaza esto con la lógica para obtener las imágenes del banner
-            Container(
-              margin: const EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.0),
-                image: const DecorationImage(
-                  image: AssetImage(
-                      'assets/images/offer.png'), // Reemplaza con tu imagen por defecto
-                  fit: BoxFit.scaleDown,
-                ),
-              ),
-            ),
-            // Añade más contenedores con imágenes aquí si es necesario
-          ],
-          options: CarouselOptions(
-            height: 180.h,
-            viewportFraction: 0.8,
-            initialPage: 0,
-            enableInfiniteScroll: true,
-            reverse: false,
-            autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 3),
-            autoPlayAnimationDuration: const Duration(milliseconds: 800),
-            autoPlayCurve: Curves.fastOutSlowIn,
-            enlargeCenterPage: true,
-            scrollDirection: Axis.horizontal,
-          ),
-        ),
+
         Utils.verticalSpace(24),
 
         // Manejo adecuado del AsyncValue para homeControllerState
@@ -82,7 +49,9 @@ class ClientHomeScreen extends ConsumerWidget {
             if (state is HomeControllerLoaded) {
               return HomeLoadedData(data: state.homeModel);
             } else {
-              return const SizedBox(); // Maneja cualquier otro estado inesperado
+              return Container(
+                child: Text("No Enable"),
+              ); // Maneja cualquier otro estado inesperado
             }
           },
         ),
@@ -105,7 +74,39 @@ class HomeLoadedData extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            ClientSliderSection(sliders: data.sliders),
+            //  mira la data de los sliders
+            /*ClientSliderSection(sliders: data.sliders),*/
+            // cristians
+            CarouselSlider(
+              items: [
+                // Reemplaza esto con la lógica para obtener las imágenes del banner
+                Container(
+                  margin: const EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    image: const DecorationImage(
+                      image: AssetImage(
+                          'assets/images/offer.png'), // Reemplaza con tu imagen por defecto
+                      fit: BoxFit.scaleDown,
+                    ),
+                  ),
+                ),
+                // Añade más contenedores con imágenes aquí si es necesario
+              ],
+              options: CarouselOptions(
+                height: 180.h,
+                viewportFraction: 0.8,
+                initialPage: 0,
+                enableInfiniteScroll: true,
+                reverse: false,
+                autoPlay: true,
+                autoPlayInterval: const Duration(seconds: 3),
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayCurve: Curves.fastOutSlowIn,
+                enlargeCenterPage: true,
+                scrollDirection: Axis.horizontal,
+              ),
+            ),
             Utils.verticalSpace(24),
             ClientTitleAndNavigator(
               title: data.categorySection.title,
@@ -201,6 +202,29 @@ class HomeLoadedData extends StatelessWidget {
               ),
             ),
             Utils.verticalSpace(24),
+            ClientTitleAndNavigator(
+              title: data.popularServiceSection.title,
+              press: () {
+                /*Navigator.pushNamed(context, RouteNames.serviceListScreen,
+                    arguments: {
+                      'title': 'Popular Services',
+                      'slug': 'popular'
+                    });*/
+              },
+            ),
+            Utils.verticalSpace(16),
+
+            Wrap(
+              runSpacing: 24,
+              spacing: 16,
+              children: [
+                ...List.generate(data.popularServices.length, (index) {
+                  final service = data.popularServices[index];
+                  return ClientSingleCategoryView(item: service);
+                })
+              ],
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
 
             // ... (resto del código) ...
           ],

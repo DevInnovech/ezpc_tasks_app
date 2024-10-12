@@ -23,6 +23,8 @@ class CategoryRepository {
   Future<List<Category>> getCategories() async {
     try {
       final snapshot = await _firestore.collection('categories').get();
+      print(snapshot.docs.map((doc) => Category.fromMap(doc.data())).toList());
+
       return snapshot.docs.map((doc) => Category.fromMap(doc.data())).toList();
     } catch (e) {
       print('Error fetching categories from Firebase: $e');

@@ -1,6 +1,5 @@
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/task_details_screen.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/widgets/services_appbar.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
