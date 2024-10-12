@@ -14,7 +14,9 @@ import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import '../../data/task_provider.dart';
 
 class CategoryPricingStep extends ConsumerStatefulWidget {
-  const CategoryPricingStep({super.key});
+  final GlobalKey<FormState> formKey; // Añadimos el formKey para validar
+
+  const CategoryPricingStep({super.key, required this.formKey});
 
   @override
   _CategoryPricingStepState createState() => _CategoryPricingStepState();
@@ -33,60 +35,38 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
     final taskState = ref.watch(taskProvider);
     final Task? currentTask = taskState.currentTask;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ServiceImage(
-            onImageSelected: (String imageUrl) {
-              if (currentTask != null) {
-                ref.read(taskProvider.notifier).updateTask(
-                      imageUrl: imageUrl,
-                    );
-              }
-            },
-          ),
-          CategorySelector(
-            onCategorySelected: (String category) {
-              if (currentTask != null) {
-                ref.read(taskProvider.notifier).updateTask(
-                      category: category,
-                      subCategory: '',
-                    );
-              }
-            },
-          ),
-          if (selectedCategory != null) ...[
-            RateInputWidget(
-              onRateChanged: (double price) {
+    return Form(
+      key: widget.formKey, // Asignamos el formKey aquí
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ServiceImage(
+              onImageSelected: (String imageUrl) {
                 if (currentTask != null) {
                   ref.read(taskProvider.notifier).updateTask(
-                        price: price,
+                        imageUrl: imageUrl,
                       );
                 }
               },
             ),
-            CustomCheckboxListTile(
-              title: 'Apply to all sub-category',
-              value: isRateAppliedToSubcategories,
-              onChanged: (bool? value) {
-                ref.read(isRateAppliedToSubcategoriesProvider.notifier).state =
-                    value ?? false;
-              },
-              activeColor: primaryColor,
-              checkColor: Colors.white,
-            ),
-            SubCategorySelector(
-              onSubCategorySelected: (String subCategory) {
+            if (currentTask?.imageUrl.isEmpty ?? true)
+              const Text(
+                'Please select an image.',
+                style: TextStyle(color: Colors.red),
+              ),
+            CategorySelector(
+              onCategorySelected: (String category) {
                 if (currentTask != null) {
                   ref.read(taskProvider.notifier).updateTask(
-                        subCategory: subCategory,
+                        category: category,
+                        subCategory: '',
                       );
                 }
               },
             ),
-            if (selectedSubCategory != null && !isRateAppliedToSubcategories)
+            if (selectedCategory != null) ...[
               RateInputWidget(
                 onRateChanged: (double price) {
                   if (currentTask != null) {
@@ -96,121 +76,148 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                   }
                 },
               ),
-
-            // Dropdown para seleccionar "Additional Options"
-            if (selectedSubCategory != null &&
-                selectedSubCategory.additionalOptions != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Additional Options:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+              CustomCheckboxListTile(
+                title: 'Apply to all sub-category',
+                value: isRateAppliedToSubcategories,
+                onChanged: (bool? value) {
+                  ref
+                      .read(isRateAppliedToSubcategoriesProvider.notifier)
+                      .state = value ?? false;
+                },
+                activeColor: primaryColor,
+                checkColor: Colors.white,
+              ),
+              SubCategorySelector(
+                onSubCategorySelected: (String subCategory) {
+                  if (currentTask != null) {
+                    ref.read(taskProvider.notifier).updateTask(
+                          subCategory: subCategory,
+                        );
+                  }
+                },
+              ),
+              if (selectedSubCategory != null && !isRateAppliedToSubcategories)
+                RateInputWidget(
+                  onRateChanged: (double price) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            price: price,
+                          );
+                    }
+                  },
+                ),
+              if (selectedSubCategory != null &&
+                  selectedSubCategory.additionalOptions != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Additional Options:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    // Usar Dropdown con isExpanded para evitar overflow
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true, // Esto permite que el texto se ajuste
-                        value: _selectedAdditionalOption,
-                        hint: const Text('Select an additional option'),
-                        items: selectedSubCategory.additionalOptions!
-                            .map((option) => DropdownMenuItem(
-                                  value: option,
-                                  child: Text(option),
-                                ))
-                            .toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedAdditionalOption = newValue;
-                          });
+                      const SizedBox(height: 8.0),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          value: _selectedAdditionalOption,
+                          hint: const Text('Select an additional option'),
+                          items: selectedSubCategory.additionalOptions!
+                              .map((option) => DropdownMenuItem(
+                                    value: option,
+                                    child: Text(option),
+                                  ))
+                              .toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedAdditionalOption = newValue;
+                            });
 
-                          // Actualizar en la tarea actual la opción seleccionada
-                          if (currentTask != null) {
-                            ref.read(taskProvider.notifier).updateTask(
-                                  service: newValue!,
-                                );
-                          }
-                        },
+                            if (currentTask != null) {
+                              ref.read(taskProvider.notifier).updateTask(
+                                    service: newValue!,
+                                  );
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+            ],
+            CustomCheckboxListTile(
+              title: 'I hold a professional license',
+              value: isLicenseRequired,
+              onChanged: (bool? value) {
+                ref.read(isLicenseRequiredProvider.notifier).state =
+                    value ?? false;
+
+                if (currentTask != null) {
+                  ref.read(taskProvider.notifier).updateTask(
+                        requiresLicense: value ?? false,
+                      );
+                }
+              },
+              activeColor: primaryColor,
+              checkColor: Colors.white,
+            ),
+            AbsorbPointer(
+              absorbing: !isLicenseRequired,
+              child: Opacity(
+                opacity: isLicenseRequired ? 1.0 : 0.5,
+                child: LicenseDocumentInput(
+                  onLicenseTypeChanged: (String licenseType) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            licenseType: licenseType,
+                          );
+                    }
+                  },
+                  onLicenseNumberChanged: (String licenseNumber) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            licenseNumber: licenseNumber,
+                          );
+                    }
+                  },
+                  onPhoneChanged: (String phone) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            phone: phone,
+                          );
+                    }
+                  },
+                  onIssueDateChanged: (String issueDate) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            issueDate: issueDate,
+                          );
+                    }
+                  },
+                  onLicenseExpirationDateChanged: (String expirationDate) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            licenseExpirationDate: expirationDate,
+                          );
+                    }
+                  },
+                  onDocumentSelected: (File file) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            documentUrl: file.path,
+                          );
+                    }
+                  },
                 ),
               ),
-          ],
-          CustomCheckboxListTile(
-            title: 'I hold a professional license',
-            value: isLicenseRequired,
-            onChanged: (bool? value) {
-              ref.read(isLicenseRequiredProvider.notifier).state =
-                  value ?? false;
-
-              if (currentTask != null) {
-                ref.read(taskProvider.notifier).updateTask(
-                      requiresLicense: value ?? false,
-                    );
-              }
-            },
-            activeColor: primaryColor,
-            checkColor: Colors.white,
-          ),
-          AbsorbPointer(
-            absorbing: !isLicenseRequired,
-            child: Opacity(
-              opacity: isLicenseRequired ? 1.0 : 0.5,
-              child: LicenseDocumentInput(
-                onLicenseTypeChanged: (String licenseType) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          licenseType: licenseType,
-                        );
-                  }
-                },
-                onLicenseNumberChanged: (String licenseNumber) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          licenseNumber: licenseNumber,
-                        );
-                  }
-                },
-                onPhoneChanged: (String phone) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          phone: phone,
-                        );
-                  }
-                },
-                onIssueDateChanged: (String issueDate) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          issueDate: issueDate,
-                        );
-                  }
-                },
-                onLicenseExpirationDateChanged: (String expirationDate) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          licenseExpirationDate: expirationDate,
-                        );
-                  }
-                },
-                onDocumentSelected: (File file) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          documentUrl: file.path,
-                        );
-                  }
-                },
-              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
