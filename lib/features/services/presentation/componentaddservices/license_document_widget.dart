@@ -1,6 +1,7 @@
 import 'dart:io' show File;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 
@@ -8,7 +9,6 @@ class LicenseDocumentInput extends StatefulWidget {
   final void Function(String licenseType) onLicenseTypeChanged;
   final void Function(String licenseNumber) onLicenseNumberChanged;
   final void Function(String phone) onPhoneChanged;
-  final void Function(String service) onServiceChanged;
   final void Function(String issueDate) onIssueDateChanged;
   final void Function(String expirationDate) onLicenseExpirationDateChanged;
   final void Function(File file) onDocumentSelected;
@@ -18,7 +18,6 @@ class LicenseDocumentInput extends StatefulWidget {
     required this.onLicenseTypeChanged,
     required this.onLicenseNumberChanged,
     required this.onPhoneChanged,
-    required this.onServiceChanged,
     required this.onIssueDateChanged,
     required this.onLicenseExpirationDateChanged,
     required this.onDocumentSelected,
@@ -95,17 +94,24 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
           decoration: const InputDecoration(
             labelText: 'Phone',
           ),
+          keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+            //        _PhoneNumberInputFormatter(), // Formateador personalizado
+          ],
         ),
-        TextField(
-          onChanged: widget.onServiceChanged,
-          decoration: const InputDecoration(
-            labelText: 'Service',
-          ),
-        ),
-        TextField(
-          onChanged: widget.onIssueDateChanged,
-          decoration: const InputDecoration(
-            labelText: 'Issue Date',
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _selectDate(context, true),
+          child: AbsorbPointer(
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: issueDate == null
+                    ? 'Issue Date'
+                    : 'Issue Date: ${DateFormat('yyyy-MM-dd').format(issueDate!)}',
+              ),
+            ),
           ),
         ),
         TextField(

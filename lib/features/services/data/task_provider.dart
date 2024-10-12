@@ -60,7 +60,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
       category: '',
       subCategory: '',
       price: 0.0,
-      imageUrl: '', // Se inicializa en vacío
+      imageUrl: '',
       requiresLicense: false,
       licenseType: '',
       licenseNumber: '',
@@ -72,6 +72,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
       phone: '',
       service: '',
       issueDate: DateTime.now().toIso8601String(),
+      additionalOption: '', // Inicializamos el campo additionalOption vacío
     );
 
     state = state.copyWith(currentTask: emptyTask);
@@ -107,7 +108,6 @@ class TaskNotifier extends StateNotifier<TaskState> {
         imageUrl = await _uploadImage(imageFile);
       }
 
-      // Verificar que la URL de la imagen no esté vacía antes de actualizar el estado
       if (imageUrl.isNotEmpty) {
         final updatedTask = state.currentTask?.copyWith(imageUrl: imageUrl);
         if (updatedTask != null) {
@@ -126,7 +126,6 @@ class TaskNotifier extends StateNotifier<TaskState> {
   Future<void> uploadImageFromLocalUrl(
       String localUrl, TaskModel.Task task) async {
     try {
-      // Verificar si la URL local no está vacía
       if (localUrl.isEmpty) {
         debugPrint('No se proporcionó una URL de imagen válida.');
         return;
@@ -134,16 +133,13 @@ class TaskNotifier extends StateNotifier<TaskState> {
 
       final File imageFile = File(localUrl);
 
-      // Verificar si el archivo existe
       if (!imageFile.existsSync()) {
         debugPrint('El archivo especificado no existe.');
         return;
       }
 
-      // Subir la imagen a Firebase Storage
       String imageUrl = await _uploadImage(imageFile);
 
-      // Verificar que la URL de la imagen no esté vacía antes de actualizar el estado
       if (imageUrl.isNotEmpty) {
         final updatedTask = task.copyWith(imageUrl: imageUrl);
         state = state.copyWith(currentTask: updatedTask);
@@ -162,11 +158,8 @@ class TaskNotifier extends StateNotifier<TaskState> {
     try {
       final fileName = path.basename(imageFile.path);
       final ref = _storage.ref().child('tasks/$fileName');
-      debugPrint('Subiendo imagen a: tasks/$fileName');
       await ref.putFile(imageFile);
-      debugPrint('Archivo subido, obteniendo URL...');
       String downloadUrl = await ref.getDownloadURL();
-      debugPrint('URL de la imagen subida: $downloadUrl');
       return downloadUrl;
     } catch (e) {
       debugPrint('Error al subir la imagen a Firebase Storage: $e');
@@ -180,7 +173,6 @@ class TaskNotifier extends StateNotifier<TaskState> {
       final ref = _storage.ref().child('tasks/$fileName');
       await ref.putData(imageBytes);
       String downloadUrl = await ref.getDownloadURL();
-      debugPrint('URL de la imagen subida: $downloadUrl');
       return downloadUrl;
     } catch (e) {
       debugPrint('Error al subir la imagen a Firebase Storage: $e');
@@ -188,12 +180,19 @@ class TaskNotifier extends StateNotifier<TaskState> {
     }
   }
 
+  // Método para concatenar respuestas únicas sin duplicar
+  String _concatenateResponses(String currentName, String newResponse) {
+    final currentResponses = currentName.split(" ");
+    if (!currentResponses.contains(newResponse)) {
+      return currentName.isEmpty ? newResponse : '$currentName $newResponse';
+    }
+    return currentName;
+  }
+
   Future<void> saveTask(TaskModel.Task task) async {
     try {
       final newTask = TaskModel.Task(
-        id: task.id.isNotEmpty
-            ? task.id
-            : const Uuid().v4(), // Validación del ID
+        id: task.id.isNotEmpty ? task.id : const Uuid().v4(),
         name: task.name,
         category: task.category,
         subCategory: task.subCategory,
@@ -211,12 +210,21 @@ class TaskNotifier extends StateNotifier<TaskState> {
         phone: task.phone,
         service: task.service,
         issueDate: task.issueDate,
+        additionalOption: task.additionalOption,
+        questionResponses:
+            task.questionResponses, // Añadir questionResponses aquí
       );
 
+      // Guardar la tarea en el repositorio
       await _repository.saveTask(newTask);
-      state = state
-          .copyWith(tasks: [...state.tasks, newTask], currentTask: newTask);
-      debugPrint('Tarea guardada correctamente con la imagen.');
+
+      // Actualizar el estado de la tarea
+      state = state.copyWith(
+        tasks: [...state.tasks, newTask],
+        currentTask: newTask,
+      );
+
+      debugPrint('Tarea guardada correctamente.');
     } catch (e) {
       state = state.copyWith(error: e.toString());
       debugPrint('Error al guardar la tarea: $e');
@@ -240,6 +248,8 @@ class TaskNotifier extends StateNotifier<TaskState> {
     String? phone,
     String? service,
     String? issueDate,
+    String? additionalOption,
+    Map<String, String>? questionResponses, // Añadir campo aquí
   }) {
     if (state.currentTask == null) return;
 
@@ -259,21 +269,31 @@ class TaskNotifier extends StateNotifier<TaskState> {
           workingDays ?? List<String>.from(state.currentTask!.workingDays),
       workingHours: workingHours ??
           state.currentTask!.workingHours.map(
-              (key, value) => MapEntry(key, Map<String, String>.from(value))),
+            (key, value) => MapEntry(key, Map<String, String>.from(value)),
+          ),
       specialDays: specialDays ??
           List<Map<String, String>>.from(state.currentTask!.specialDays),
       documentUrl: documentUrl ?? state.currentTask!.documentUrl,
       phone: phone ?? state.currentTask!.phone,
       service: service ?? state.currentTask!.service,
       issueDate: issueDate ?? state.currentTask!.issueDate,
+      additionalOption: additionalOption ?? state.currentTask!.additionalOption,
+      questionResponses: questionResponses ??
+          state.currentTask!.questionResponses, // Actualizar aquí
     );
 
     state = state.copyWith(currentTask: updatedTask);
   }
 
-  // Validación adicional para asegurar que `imageUrl` no sea nulo o vacío en el widget de la UI
-  bool isValidImageUrl() {
-    return state.currentTask?.imageUrl != null &&
-        state.currentTask!.imageUrl.isNotEmpty;
+  Future<void> deleteTask(TaskModel.Task task) async {
+    try {
+      await _repository.deleteTask(task.id);
+      final updatedTasks = state.tasks.where((t) => t.id != task.id).toList();
+      state = state.copyWith(tasks: updatedTasks, currentTask: null);
+      debugPrint('Tarea eliminada correctamente: ${task.id}');
+    } catch (e) {
+      state = state.copyWith(error: 'Error al eliminar la tarea: $e');
+      debugPrint('Error al eliminar la tarea: $e');
+    }
   }
 }

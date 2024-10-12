@@ -49,60 +49,178 @@ class Category {
 // Ejemplo de lista de categorías:par aprobar
 final categories = [
   Category(
-    id: '1.1',
-    name: 'Cleaning Commercial / Residential Cleaning',
-    subCategories: [
-      SubCategory(id: '1.1.1', name: 'Deep cleaning'),
-      SubCategory(id: '1.1.2', name: 'Move-in/move-out cleaning'),
-      SubCategory(id: '1.1.3', name: 'Post-construction cleaning'),
-    ],
-    // pathimage: KImages.service01, // Este tiene imagen.
-  ),
-  Category(
-    id: '1.2',
-    name: 'Residential Cleaning',
-    subCategories: [
-      SubCategory(id: '1.2.1', name: 'Chimney cleaning'),
-    ],
-    // pathimage: null, // No tiene imagen.
-  ),
-  Category(
-    id: '1.3',
-    name: 'Commercial Cleaning',
-    subCategories: [
-      SubCategory(id: '1.3.1', name: 'Office cleaning'),
-      SubCategory(id: '1.3.2', name: 'Janitorial services'),
-      SubCategory(
-          id: '1.3.3',
-          name: 'Type of business (Ex. Restaurant, kitchen, night club, etc)'),
-    ],
-    //  pathimage: 'https://example.com/image2.jpg', // Este tiene imagen.
-  ),
-  Category(
-    id: '1.4',
-    name: 'Car Wash',
+    id: '1',
+    name: 'Cleaning',
     subCategories: [
       SubCategory(
-        id: '1.4.1',
-        name: 'Exterior cleaning',
+        id: '1.1',
+        name: 'Commercial / Residential Cleaning',
         additionalOptions: [
+          'Deep cleaning',
+          'Move-in/move-out cleaning',
+          'Post-construction cleaning',
+          'Carpet cleaning',
+          'Window cleaning',
+          'Floor cleaning and maintenance',
+          'Air duct cleaning',
+          'Pressure washing',
+          'Post-event cleaning',
+          'Laundry and ironing',
+          'Blind and curtain cleaning',
+          'Gutter cleaning',
+        ],
+      ),
+      SubCategory(
+        id: '1.2',
+        name: 'Residential Cleaning',
+        additionalOptions: [
+          'Chimney cleaning',
+        ],
+      ),
+      SubCategory(
+        id: '1.3',
+        name: 'Commercial Cleaning',
+        additionalOptions: [
+          'Office cleaning',
+          'Janitorial services',
+          'Type of business (e.g., Restaurant, kitchen, night club, etc.)',
+        ],
+      ),
+      SubCategory(
+        id: '1.4',
+        name: 'Car Wash',
+        additionalOptions: [
+          'Exterior Cleaning',
           'Hand Washing',
           'Pressure Washing',
-          'Pre-Wash Treatment',
-          'Wheel and Tire Cleaning',
-        ],
-      ),
-      SubCategory(
-        id: '1.4.2',
-        name: 'Interior cleaning',
-        additionalOptions: [
+          'Pre-Wash Treatment: Wheel and Tire Cleaning',
+          'Hand Drying',
+          'Paint Protection',
+          'Glass Cleaning',
+          'Underbody Wash',
+          'Waxing',
+          'Interior Cleaning',
           'Vacuuming',
           'Interior Wiping',
-          'Trunk cleaning',
+          'Trunk Cleaning',
           'Stain Removal',
+          'Window Cleaning',
+          'Leather Conditioning',
+          'Odor Elimination',
+          'Floor Mat Cleaning',
+          'Interior Protection',
         ],
       ),
     ],
-    //pathimage: 'https://example.com/image3.jpg', // Este tiene imagen.
+  ),
+  Category(
+    id: '2',
+    name: 'Yard Work / Landscaping',
+    subCategories: [
+      SubCategory(id: '2.1', name: 'Lawn Mowing'),
+      SubCategory(
+        id: '2.2',
+        name: 'Lawn Care',
+        additionalOptions: [
+          'Mowing',
+          'Fertilizing',
+          'Edging',
+          'Weed control',
+          'Weed removal',
+          'Hedge trimming',
+          'Tree pruning',
+          'Leaf raking and removal',
+          'Mulching',
+          'Planting and transplanting',
+          'Garden bed maintenance',
+          'Lawn aeration',
+          'Irrigation system installation and maintenance',
+          'Sod installation',
+          'Lawn dethatching',
+          'Pest control',
+          'Spring/fall cleanup',
+          'Garden design and landscaping',
+          'Edging and border installation',
+          'Fertilization',
+          'Lawn renovation',
+          'Outdoor lighting installation',
+        ],
+      ),
+    ],
+  ),
+  Category(
+    id: '3',
+    name: 'Help Moving / Assembly',
+    subCategories: [
+      SubCategory(id: '3.1', name: 'Furniture Assembly'),
+      SubCategory(id: '3.2', name: 'Appliance Installation'),
+      SubCategory(
+        id: '3.3',
+        name: 'Moving Assistance',
+        additionalOptions: [
+          'Address From / Address To',
+          'How many rooms?',
+          'How many floors?',
+          'Need a truck?',
+          'Need a car?',
+          'Loading',
+          'Unloading',
+          'Transporting belongings during a move',
+          'Residential / Commercial relocation',
+          'Packing',
+          'Unpacking',
+          'Heavy lifting',
+          'Disassembly',
+          'Reassembly',
+          'Specialty Item Handling (e.g., pianos, antiques, artwork)',
+          'Customized Services (e.g., packing fragile items, setting up home theater systems, arranging furniture)',
+        ],
+      ),
+    ],
+  ),
+  Category(
+    id: '4',
+    name: 'Handyman',
+    subCategories: [
+      SubCategory(
+        id: '4.1',
+        name: 'Plumbing Repairs',
+        additionalOptions: [
+          'Fixing leaky faucets',
+          'Unclogging drains',
+          'Repairing toilets',
+          'Installing fixtures',
+          'Other minor plumbing issues',
+        ],
+      ),
+      SubCategory(
+        id: '4.2',
+        name: 'Electrical Repairs',
+        additionalOptions: [
+          'Replacing light switches',
+          'Outlets',
+          'Light fixtures',
+          'Ceiling fans',
+          'Other electrical components',
+          'Troubleshooting electrical problems',
+        ],
+      ),
+      SubCategory(
+        id: '4.3',
+        name: 'Painting',
+        additionalOptions: ['Interior', 'Exterior', 'Wood', 'Drywall'],
+      ),
+      SubCategory(id: '4.4', name: 'Drywall Repair'),
+      SubCategory(id: '4.5', name: 'Minor Repairs'),
+      SubCategory(id: '4.6', name: 'Home Maintenance Tasks'),
+    ],
+  ),
+  Category(
+    id: '5',
+    name: 'Errands',
+    subCategories: [
+      SubCategory(id: '5.1', name: 'Need a Car?'),
+      SubCategory(id: '5.2', name: 'Need a Truck?'),
+    ],
   ),
 ];

@@ -1,4 +1,6 @@
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/screens/task_details_screen.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/widgets/services_appbar.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,7 @@ class ServiceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Obtenemos el estado de las tareas utilizando Riverpod
     final taskState = ref.watch(taskProvider);
+    final taskNotifier = ref.read(taskProvider.notifier); // Acceder al notifier
 
     return Scaffold(
       appBar: AppBar(
@@ -72,7 +75,7 @@ class ServiceScreen extends ConsumerWidget {
                             itemBuilder: (context, index) {
                               final task = taskState.tasks[index];
                               return task != null
-                                  ? _buildTaskCard(task)
+                                  ? _buildTaskCard(task, taskNotifier, context)
                                   : const SizedBox.shrink();
                             },
                           ),
@@ -83,7 +86,8 @@ class ServiceScreen extends ConsumerWidget {
   }
 
   // Widget para construir la tarjeta de cada tarea
-  Widget _buildTaskCard(Task task) {
+  Widget _buildTaskCard(
+      Task task, TaskNotifier taskNotifier, BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(
@@ -107,11 +111,10 @@ class ServiceScreen extends ConsumerWidget {
                   fit: BoxFit.cover,
                   path: task.imageUrl.isNotEmpty
                       ? task.imageUrl
-                      : KImages
-                          .emptyBookingImage, // Aquí pasamos la URL de la imagen guardada correctamente
+                      : KImages.emptyBookingImage, // URL de la imagen
                 ),
               ),
-              // Estado de la tarea (Activo/Eliminado)
+              // Estado de la tarea (Activo por defecto)
               Positioned(
                 top: 10.0,
                 left: 10.0,
@@ -119,12 +122,13 @@ class ServiceScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 6.0),
                   decoration: BoxDecoration(
-                    color: task.requiresLicense ? Colors.green : Colors.red,
+                    // Asignar todos los tasks como "Active" por defecto
+                    color: Colors.green,
                     borderRadius: BorderRadius.circular(20.0),
                   ),
-                  child: Text(
-                    task.requiresLicense ? 'Active' : 'Inactive',
-                    style: const TextStyle(
+                  child: const Text(
+                    'Active',
+                    style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -134,8 +138,13 @@ class ServiceScreen extends ConsumerWidget {
                 top: 10.0,
                 right: 10.0,
                 child: GestureDetector(
-                  onTap: () {
-                    // Lógica para eliminar la tarea
+                  onTap: () async {
+                    // Mostrar el cuadro de diálogo de confirmación de eliminación
+                    final shouldDelete =
+                        await _showDeleteConfirmationDialog(context);
+                    if (shouldDelete) {
+                      await taskNotifier.deleteTask(task); // Eliminar tarea
+                    }
                   },
                   child:
                       const Icon(Icons.delete, color: Colors.red, size: 28.0),
@@ -148,24 +157,17 @@ class ServiceScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Categoría y subcategoría
-                Row(
-                  children: [
-                    _buildCategoryTag(task.category),
-                    const SizedBox(width: 10.0),
-                    _buildCategoryTag(task.subCategory),
-                  ],
-                ),
+                // Mostrar categoría
+                _buildCategoryTag(task.category),
                 const SizedBox(height: 8.0),
-                // Nombre de la tarea (Sin preguntas)
+                // Mostrar subcategoría
                 CustomText(
-                  text: _cleanTaskName(task
-                      .name), // Limpieza de `task.name` para eliminar preguntas
+                  text: task.subCategory,
                   fontSize: 18.0,
                   fontWeight: FontWeight.w700,
                 ),
                 const SizedBox(height: 4.0),
-                // Fecha de creación
+                // Mostrar fecha de creación
                 CustomText(
                   text: DateFormat.yMMMMd()
                       .format(DateTime.parse(task.issueDate)),
@@ -173,7 +175,7 @@ class ServiceScreen extends ConsumerWidget {
                   color: Colors.grey,
                 ),
                 const SizedBox(height: 4.0),
-                // Precio de la tarea
+                // Mostrar precio
                 CustomText(
                   text: '\$${task.price}',
                   fontSize: 20.0,
@@ -181,21 +183,34 @@ class ServiceScreen extends ConsumerWidget {
                   color: primaryColor,
                 ),
                 const SizedBox(height: 10.0),
-                // Botón de detalles
+                // Botón "View Details" con ajuste de tamaño y estilo
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      // Lógica para ver detalles de la tarea
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskDetailsScreen(task: task),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
+                        borderRadius: BorderRadius.circular(30.0),
                       ),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 40.0, vertical: 12.0),
+                        vertical: 8.0,
+                        horizontal: 20.0,
+                      ),
                     ),
-                    child: const Text('View Details'),
+                    child: const Text(
+                      'View Details',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -206,12 +221,45 @@ class ServiceScreen extends ConsumerWidget {
     );
   }
 
-  // Método para limpiar el nombre de la tarea eliminando las preguntas
-  String _cleanTaskName(String name) {
-    // Suprimir preguntas y respuestas del campo `name`
-    final cleanedName =
-        name.split('\n').first; // Tomar solo la primera línea del nombre
-    return cleanedName.trim();
+  // Método para mostrar el diálogo de confirmación de eliminación
+  Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0)),
+            title: const Text(
+              'Confirm Delete',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: const Text(
+              'Are you sure you want to delete this task?',
+              style: TextStyle(fontSize: 16.0),
+            ),
+            actions: [
+              // Botón "Cancel" en azul
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.blue, fontSize: 16.0),
+                ),
+              ),
+              // Botón "Delete" en rojo
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red, fontSize: 16.0),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   // Método para construir las etiquetas de categoría y subcategoría
@@ -225,7 +273,10 @@ class ServiceScreen extends ConsumerWidget {
       child: Text(
         label,
         style: const TextStyle(
-            fontSize: 12.0, fontWeight: FontWeight.bold, color: primaryColor),
+          fontSize: 12.0,
+          fontWeight: FontWeight.bold,
+          color: primaryColor,
+        ),
       ),
     );
   }

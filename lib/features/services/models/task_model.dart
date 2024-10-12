@@ -16,6 +16,9 @@ class Task {
   final String phone;
   final String service;
   final String issueDate;
+  final String? additionalOption; // Campo adicional opcional
+  final Map<String, String>?
+      questionResponses; // Nuevo campo para almacenar respuestas
 
   Task({
     required this.id,
@@ -35,59 +38,11 @@ class Task {
     required this.phone,
     required this.service,
     required this.issueDate,
+    this.additionalOption, // Campo opcional
+    this.questionResponses, // Campo opcional para respuestas
   });
 
-  // Método para generar un Map de la tarea
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'category': category,
-      'subCategory': subCategory,
-      'price': price,
-      'imageUrl': imageUrl,
-      'requiresLicense': requiresLicense,
-      'licenseType': licenseType,
-      'licenseNumber': licenseNumber,
-      'licenseExpirationDate': licenseExpirationDate,
-      'workingDays': workingDays.isNotEmpty ? workingDays : [],
-      'workingHours': workingHours.isNotEmpty ? workingHours : {},
-      'specialDays': specialDays.isNotEmpty ? specialDays : [],
-      'documentUrl': documentUrl,
-      'phone': phone,
-      'service': service,
-      'issueDate': issueDate,
-    };
-  }
-
-  // Método para crear un Task a partir de un Map (desde Firebase)
-  factory Task.fromMap(Map<String, dynamic> map) {
-    return Task(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      category: map['category'] ?? '',
-      subCategory: map['subCategory'] ?? '',
-      price: map['price']?.toDouble() ?? 0.0,
-      imageUrl: map['imageUrl'] ?? '',
-      requiresLicense: map['requiresLicense'] ?? false,
-      licenseType: map['licenseType'] ?? '',
-      licenseNumber: map['licenseNumber'] ?? '',
-      licenseExpirationDate: map['licenseExpirationDate'] ?? '',
-      workingDays: List<String>.from(map['workingDays'] ?? []),
-      workingHours: (map['workingHours'] as Map<String, dynamic>?)?.map(
-            (key, value) =>
-                MapEntry(key, Map<String, String>.from(value as Map)),
-          ) ??
-          {},
-      specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
-      documentUrl: map['documentUrl'] ?? '',
-      phone: map['phone'] ?? '',
-      service: map['service'] ?? '',
-      issueDate: map['issueDate'] ?? '',
-    );
-  }
-
-  // Método para crear una copia de un Task con cambios específicos
+  // Método para copiar la tarea con modificaciones
   Task copyWith({
     String? id,
     String? name,
@@ -106,6 +61,8 @@ class Task {
     String? phone,
     String? service,
     String? issueDate,
+    String? additionalOption, // Añadimos additionalOption
+    Map<String, String>? questionResponses, // Añadimos questionResponses
   }) {
     return Task(
       id: id ?? this.id,
@@ -119,18 +76,70 @@ class Task {
       licenseNumber: licenseNumber ?? this.licenseNumber,
       licenseExpirationDate:
           licenseExpirationDate ?? this.licenseExpirationDate,
-      workingDays: workingDays ?? List<String>.from(this.workingDays),
-      workingHours: workingHours != null
-          ? workingHours.map(
-              (key, value) => MapEntry(key, Map<String, String>.from(value)))
-          : this.workingHours.map(
-              (key, value) => MapEntry(key, Map<String, String>.from(value))),
-      specialDays:
-          specialDays ?? List<Map<String, String>>.from(this.specialDays),
+      workingDays: workingDays ?? this.workingDays,
+      workingHours: workingHours ?? this.workingHours,
+      specialDays: specialDays ?? this.specialDays,
       documentUrl: documentUrl ?? this.documentUrl,
       phone: phone ?? this.phone,
       service: service ?? this.service,
       issueDate: issueDate ?? this.issueDate,
+      additionalOption: additionalOption ?? this.additionalOption,
+      questionResponses: questionResponses ??
+          this.questionResponses, // Asignamos las respuestas
+    );
+  }
+
+  // Método para convertir a Map
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'category': category,
+      'subCategory': subCategory,
+      'price': price,
+      'imageUrl': imageUrl,
+      'requiresLicense': requiresLicense,
+      'licenseType': licenseType,
+      'licenseNumber': licenseNumber,
+      'licenseExpirationDate': licenseExpirationDate,
+      'workingDays': workingDays,
+      'workingHours': workingHours,
+      'specialDays': specialDays,
+      'documentUrl': documentUrl,
+      'phone': phone,
+      'service': service,
+      'issueDate': issueDate,
+      'additionalOption': additionalOption,
+      'questionResponses':
+          questionResponses, // Guardar las respuestas en Firebase
+    };
+  }
+
+  // Método para crear una instancia de Task desde un Map
+  factory Task.fromMap(Map<String, dynamic> map) {
+    return Task(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      category: map['category'] ?? '',
+      subCategory: map['subCategory'] ?? '',
+      price: (map['price'] ?? 0.0).toDouble(),
+      imageUrl: map['imageUrl'] ?? '',
+      requiresLicense: map['requiresLicense'] ?? false,
+      licenseType: map['licenseType'] ?? '',
+      licenseNumber: map['licenseNumber'] ?? '',
+      licenseExpirationDate: map['licenseExpirationDate'] ?? '',
+      workingDays: List<String>.from(map['workingDays'] ?? []),
+      workingHours: (map['workingHours'] != null)
+          ? Map<String, Map<String, String>>.from(map['workingHours'])
+          : {},
+      specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
+      documentUrl: map['documentUrl'] ?? '',
+      phone: map['phone'] ?? '',
+      service: map['service'] ?? '',
+      issueDate: map['issueDate'] ?? '',
+      additionalOption: map['additionalOption'],
+      questionResponses: Map<String, String>.from(
+          map['questionResponses'] ?? {}), // Convertir de Map
     );
   }
 }
