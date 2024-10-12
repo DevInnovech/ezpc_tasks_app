@@ -1,4 +1,5 @@
 import 'package:ezpc_tasks_app/features/home/setting/providerset.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,6 +13,27 @@ class Utils {
   static final _selectedDate = DateTime.now();
 
   static final _initialTime = TimeOfDay.now();
+
+  static Future<void> logoutFunction(BuildContext context) async {
+    try {
+      // Cerrar sesión en Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navegar a la pantalla de AuthenticationScreen
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushNamedAndRemoveUntil(
+          '/authenticationScreen', (Route<dynamic> route) => false);
+
+      // Mostrar un SnackBar confirmando que el logout fue exitoso
+      // ignore: use_build_context_synchronously
+      Utils.showSnackBar(context, 'Logout successful');
+    } catch (e) {
+      // Manejar cualquier error durante el proceso de logout
+      print('Error logging out: $e');
+      // ignore: use_build_context_synchronously
+      Utils.errorSnackBar(context, 'Error logging out: $e');
+    }
+  }
 
   String formatPrice(BuildContext context, WidgetRef ref, var price) {
     final currency = ref.read(appSettingsProvider).currencyIcon;

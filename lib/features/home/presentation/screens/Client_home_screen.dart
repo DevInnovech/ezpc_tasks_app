@@ -1,13 +1,11 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart';
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_single_category_view.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_slider_section.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -16,8 +14,6 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../services/presentation/screens/sevices_page.dart';
 
 class ClientHomeScreen extends ConsumerWidget {
   const ClientHomeScreen({super.key});

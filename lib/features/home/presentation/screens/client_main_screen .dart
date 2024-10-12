@@ -6,7 +6,6 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_app_drawer.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_bottom_navigation_bar.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/feedback_dialog.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';

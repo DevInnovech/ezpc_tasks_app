@@ -168,12 +168,9 @@ class EndDrawerMenu extends ConsumerWidget {
                   PrimaryButton(
                     text: 'Logout',
                     onPressed: () {
-                      // Replace with Riverpod-based logout logic
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        RouteNames.authenticationScreen,
-                        (route) => false,
-                      );
+                      Utils.logoutFunction(context);
+                      // Cierra el cuadro de diálogo
+                      Navigator.of(context).pop();
                     },
                     bgColor: redColor,
                     textColor: whiteColor,

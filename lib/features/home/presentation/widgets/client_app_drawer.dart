@@ -66,7 +66,6 @@ class ClientAppDrawer extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        Utils.horizontalSpace(10),
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -104,9 +103,7 @@ class ClientAppDrawer extends ConsumerWidget {
               ),
             ),
           ),
-          Utils.verticalSpace(0),
           const Divider(color: whiteColor),
-          Utils.verticalSpace(8),
           Expanded(
               child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -152,7 +149,6 @@ class ClientAppDrawer extends ConsumerWidget {
                       height: Utils.vSize(232.0),
                       child: Column(
                         children: [
-                          Utils.verticalSpace(5.0),
                           const CustomText(
                             text: 'LOGOUT',
                             fontWeight: FontWeight.w700,
@@ -170,7 +166,6 @@ class ClientAppDrawer extends ConsumerWidget {
                             color: blackColor,
                             fontSize: 18.0,
                           ),
-                          Utils.verticalSpace(16.0),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
@@ -190,7 +185,34 @@ class ClientAppDrawer extends ConsumerWidget {
                               PrimaryButton(
                                 text: 'Logout',
                                 onPressed: () {
-                                  //   Utils.logoutFunction(context);
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Confirm Logout'),
+                                        content: const Text(
+                                            'Are you sure you want to log out?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              // Cierra el cuadro de diálogo sin hacer nada
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              // Llamada a la función de logout
+                                              Utils.logoutFunction(context);
+                                              // Cierra el cuadro de diálogo
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text('Logout'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
                                 },
                                 bgColor: redColor,
                                 textColor: whiteColor,
@@ -221,7 +243,6 @@ class ClientAppDrawer extends ConsumerWidget {
               ),
             ),
           ),
-          Utils.verticalSpace(50),
         ],
       ),
     );
