@@ -43,10 +43,15 @@ class Category {
   factory Category.fromJson(String source) =>
       Category.fromMap(json.decode(source));
 
-//  get pathimage => null;
+  // Método para actualizar localmente la lista de categorías
+  static void updateLocalCategories(List<Category> updatedCategories) {
+    categories.clear();
+    categories.addAll(updatedCategories);
+    print('Categories updated locally.');
+  }
 }
 
-// Ejemplo de lista de categorías:par aprobar
+// Ejemplo de lista de categorías:
 final categories = [
   Category(
     id: '1',

@@ -59,51 +59,48 @@ class CategoryRepository {
   Future<void> savePredefinedCategories() async {
     final categories = [
       Category(
-        id: '1.1',
-        name: 'Commercial / Residential Cleaning',
-        subCategories: [
-          SubCategory(id: '1.1.1', name: 'Deep cleaning'),
-          SubCategory(id: '1.1.2', name: 'Move-in/move-out cleaning'),
-          SubCategory(id: '1.1.3', name: 'Post-construction cleaning'),
-          SubCategory(id: '1.1.4', name: 'Carpet cleaning'),
-          SubCategory(id: '1.1.5', name: 'Window cleaning'),
-          SubCategory(id: '1.1.6', name: 'Floor cleaning and maintenance'),
-          SubCategory(id: '1.1.7', name: 'Air duct cleaning'),
-          SubCategory(id: '1.1.8', name: 'Pressure washing'),
-          SubCategory(id: '1.1.9', name: 'Post-event cleaning'),
-          SubCategory(id: '1.1.10', name: 'Laundry and ironing'),
-          SubCategory(id: '1.1.11', name: 'Blind and curtain cleaning'),
-          SubCategory(id: '1.1.12', name: 'Gutter cleaning'),
-        ],
-      ),
-      Category(
-        id: '1.2',
-        name: 'Residential Cleaning',
-        subCategories: [
-          SubCategory(id: '1.2.1', name: 'Chimney cleaning'),
-        ],
-        // pathimage: null, // No tiene imagen.
-      ),
-      Category(
-        id: '1.3',
-        name: 'Commercial Cleaning',
-        subCategories: [
-          SubCategory(id: '1.3.1', name: 'Office cleaning'),
-          SubCategory(id: '1.3.2', name: 'Janitorial services'),
-          SubCategory(
-              id: '1.3.3',
-              name:
-                  'Type of business (e.g., Restaurant, kitchen, night club, etc.)'),
-        ],
-      ),
-      Category(
-        id: '1.4',
-        name: 'Car Wash',
+        id: '1',
+        name: 'Cleaning',
         subCategories: [
           SubCategory(
-            id: '1.4.1',
-            name: 'Exterior Cleaning',
+            id: '1.1',
+            name: 'Commercial / Residential Cleaning',
             additionalOptions: [
+              'Deep cleaning',
+              'Move-in/move-out cleaning',
+              'Post-construction cleaning',
+              'Carpet cleaning',
+              'Window cleaning',
+              'Floor cleaning and maintenance',
+              'Air duct cleaning',
+              'Pressure washing',
+              'Post-event cleaning',
+              'Laundry and ironing',
+              'Blind and curtain cleaning',
+              'Gutter cleaning',
+            ],
+          ),
+          SubCategory(
+            id: '1.2',
+            name: 'Residential Cleaning',
+            additionalOptions: [
+              'Chimney cleaning',
+            ],
+          ),
+          SubCategory(
+            id: '1.3',
+            name: 'Commercial Cleaning',
+            additionalOptions: [
+              'Office cleaning',
+              'Janitorial services',
+              'Type of business (e.g., Restaurant, kitchen, night club, etc.)',
+            ],
+          ),
+          SubCategory(
+            id: '1.4',
+            name: 'Car Wash',
+            additionalOptions: [
+              'Exterior Cleaning',
               'Hand Washing',
               'Pressure Washing',
               'Pre-Wash Treatment: Wheel and Tire Cleaning',
@@ -112,12 +109,7 @@ class CategoryRepository {
               'Glass Cleaning',
               'Underbody Wash',
               'Waxing',
-            ],
-          ),
-          SubCategory(
-            id: '1.4.2',
-            name: 'Interior Cleaning',
-            additionalOptions: [
+              'Interior Cleaning',
               'Vacuuming',
               'Interior Wiping',
               'Trunk Cleaning',
@@ -127,8 +119,6 @@ class CategoryRepository {
               'Odor Elimination',
               'Floor Mat Cleaning',
               'Interior Protection',
-              'Make (e.g., Toyota, Chevrolet)',
-              'Model (e.g., Corolla, 4Runner)',
             ],
           ),
         ],
@@ -226,9 +216,10 @@ class CategoryRepository {
             ],
           ),
           SubCategory(
-              id: '4.3',
-              name: 'Painting',
-              additionalOptions: ['Interior', 'Exterior', 'Wood', 'Drywall']),
+            id: '4.3',
+            name: 'Painting',
+            additionalOptions: ['Interior', 'Exterior', 'Wood', 'Drywall'],
+          ),
           SubCategory(id: '4.4', name: 'Drywall Repair'),
           SubCategory(id: '4.5', name: 'Minor Repairs'),
           SubCategory(id: '4.6', name: 'Home Maintenance Tasks'),
@@ -244,9 +235,26 @@ class CategoryRepository {
       ),
     ];
 
-    // Guardar todas las categorías
-    for (var category in categories) {
-      await saveCategory(category);
+    try {
+      // Paso 1: Borrar todas las categorías existentes
+      final collectionRef = _firestore.collection('categories');
+      final snapshot = await collectionRef.get();
+
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      print('All categories deleted successfully.');
+
+      // Paso 2: Guardar las nuevas categorías predefinidas
+      for (var category in categories) {
+        await saveCategory(category);
+      }
+
+      print('All predefined categories saved successfully.');
+    } catch (e) {
+      print('Error deleting or saving categories: $e');
+      rethrow;
     }
   }
 }
