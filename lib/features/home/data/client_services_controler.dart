@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/models/add_model.dart';
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
 import 'package:ezpc_tasks_app/features/home/models/counters_model.dart';
@@ -32,6 +33,7 @@ class HomeControllerError extends HomeControllerState {
 // Creamos el HomeControllerNotifier para manejar los estados
 class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   final List<ProviderModel> providers;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   HomeControllerNotifier(this.providers) : super(HomeControllerLoading());
 
@@ -52,26 +54,33 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   }
 
   Future<HomeModel> fetchHomeData() async {
-    // Simula una lista de categorías
-    final categories = [
-      Category(
-        id: '1',
-        name: 'Category 1',
-        subCategories: [
-          SubCategory(id: '1', name: 'SubCategory 1'),
-          SubCategory(id: '2', name: 'SubCategory 2'),
-        ],
-      ),
-      Category(
-        id: '2',
-        name: 'Category 2',
-        subCategories: [
-          SubCategory(id: '3', name: 'SubCategory 3'),
-          SubCategory(id: '4', name: 'SubCategory 4'),
-        ],
-      ),
-    ];
+    // Consultamos las categorías desde Firebase
+    final categorySnapshots = await _firestore.collection('categories').get();
 
+    // Convertimos los documentos de Firestore en objetos de categoría
+    final categories = categorySnapshots.docs.map((doc) async {
+      final data = doc.data();
+      final subCategorySnapshots =
+          await doc.reference.collection('subCategories').get();
+
+      final subCategories = subCategorySnapshots.docs.map((subDoc) {
+        return SubCategory(
+          id: subDoc.id,
+          name: subDoc['name'] ?? 'Unnamed SubCategory',
+        );
+      }).toList();
+
+      return Category(
+        id: doc.id,
+        name: data['name'] ?? 'Unnamed Category',
+        subCategories: subCategories,
+      );
+    }).toList();
+
+    // Esperamos a que todas las subcategorías se carguen
+    final loadedCategories = await Future.wait(categories);
+
+    // Mantén el resto del código para sliders, serviceAreas, etc.
     final sliders = [
       const SliderModel(
           id: 1,
@@ -104,7 +113,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         slug: "featured-service-1",
         image: KImages.s01,
         price: 100.0,
-        categoryId: categories[0],
+        categoryId: loadedCategories[0],
         providerId: providers[0].id,
         makeFeatured: 1,
         isBanned: 0,
@@ -115,7 +124,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         averageRating: "5",
         totalReview: 10,
         totalOrder: 5,
-        category: categories[0],
+        category: loadedCategories[0],
         provider: providers[0], // John Doe
       ),
       ServiceItem(
@@ -124,7 +133,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         slug: "featured-service-2",
         image: KImages.s01,
         price: 120.0,
-        categoryId: categories[1],
+        categoryId: loadedCategories[1],
         providerId: providers[1].id,
         makeFeatured: 1,
         isBanned: 0,
@@ -135,7 +144,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         averageRating: "4.5",
         totalReview: 10,
         totalOrder: 5,
-        category: categories[1],
+        category: loadedCategories[1],
         provider: providers[1], // Jane Smith
       ),
     ];
@@ -161,12 +170,12 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
     );
 
     final homeModel = HomeModel(
-      searchCategories: categories,
+      searchCategories: loadedCategories,
       sliders: sliders,
       serviceAreas: serviceAreas,
       categorySection: const ServiceSection(
           visibility: true, title: "Categories", description: "categories"),
-      categories: categories,
+      categories: loadedCategories,
       counterBgImage: "https://via.placeholder.com/600x200",
       featuredServices: featuredServices,
       adBanner: adBanner,
