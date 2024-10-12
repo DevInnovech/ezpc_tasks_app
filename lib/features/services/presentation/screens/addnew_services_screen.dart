@@ -30,10 +30,16 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   void initState() {
     super.initState();
 
-    // Usar SchedulerBinding para diferir la ejecución de la inicialización de la tarea
+    // Reiniciar el estado del task cuando se abra la pantalla
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      // Aquí inicializamos la tarea fuera del ciclo de construcción
+      // Inicializamos la tarea fuera del ciclo de construcción
       ref.read(taskProvider.notifier).initializeNewTask();
+
+      // Forzamos la reconstrucción del estado al abrir la pantalla
+      setState(() {
+        _currentStep = 0; // Reiniciamos el paso actual
+        _pageController.jumpToPage(0); // Volvemos a la primera página
+      });
     });
   }
 
@@ -92,11 +98,8 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
                 onPressed: () {
                   // Validar el formulario actual antes de avanzar
                   if (_formKeys[_currentStep].currentState!.validate()) {
-                    // Si es el último paso, guardar la tarea
-                    if (_currentStep == _steps.length - 1) {
-                      _saveTask(context); // Guardar la nueva tarea
-                    } else {
-                      // Si no es el último, pasar al siguiente paso
+                    // Si no es el último paso, pasar al siguiente paso
+                    if (_currentStep < _steps.length - 1) {
                       setState(() {
                         _currentStep++;
                         _pageController.nextPage(
@@ -104,11 +107,13 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
                           curve: Curves.easeInOut,
                         );
                       });
+                    } else {
+                      // Si es el último paso, guardar la tarea
+                      _saveTask(context);
                     }
                   }
                 },
-                child:
-                    Text(_currentStep == _steps.length - 1 ? 'Submit' : 'Next'),
+                child: const Text('Next'),
               ),
             ),
           ],
@@ -151,6 +156,15 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
 
       // Restablecer el estado de la tarea para que no afecte nuevas creaciones
       ref.read(taskProvider.notifier).initializeNewTask();
+
+      // Reiniciar las páginas y el estado del formulario
+      setState(() {
+        _currentStep = 0; // Volver al primer paso
+        _pageController.jumpToPage(0); // Volver a la primera página
+        for (var key in _formKeys) {
+          key.currentState?.reset(); // Resetear todos los formularios
+        }
+      });
     } catch (e) {
       showDialog(
         context: context,

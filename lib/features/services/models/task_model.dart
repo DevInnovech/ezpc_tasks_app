@@ -115,7 +115,6 @@ class Task {
     };
   }
 
-  // Método para crear una instancia de Task desde un Map
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       id: map['id'] ?? '',
@@ -129,8 +128,11 @@ class Task {
       licenseNumber: map['licenseNumber'] ?? '',
       licenseExpirationDate: map['licenseExpirationDate'] ?? '',
       workingDays: List<String>.from(map['workingDays'] ?? []),
+      // Aquí aplicamos la conversión a Map<String, String>
       workingHours: (map['workingHours'] != null)
-          ? Map<String, Map<String, String>>.from(map['workingHours'])
+          ? (map['workingHours'] as Map<String, dynamic>).map((key, value) {
+              return MapEntry(key, Map<String, String>.from(value));
+            })
           : {},
       specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
       documentUrl: map['documentUrl'] ?? '',
@@ -138,8 +140,8 @@ class Task {
       service: map['service'] ?? '',
       issueDate: map['issueDate'] ?? '',
       additionalOption: map['additionalOption'],
-      questionResponses: Map<String, String>.from(
-          map['questionResponses'] ?? {}), // Convertir de Map
+      questionResponses:
+          Map<String, String>.from(map['questionResponses'] ?? {}),
     );
   }
 }

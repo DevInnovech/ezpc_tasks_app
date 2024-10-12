@@ -123,7 +123,7 @@ class TaskDetailsScreen extends ConsumerWidget {
                     ),
               const SizedBox(height: 16.0),
 
-              // Sección de Paquetes/Días de trabajo
+              // Sección de "Working Days & Hours" (Solo Working Hours)
               _buildSectionTitle('Working Days & Hours'),
               Container(
                 padding: const EdgeInsets.all(16.0),
@@ -135,21 +135,7 @@ class TaskDetailsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ...task.workingDays.map((day) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.calendar_today,
-                                  size: 16.0, color: Color(0xFF404C8C)),
-                              const SizedBox(width: 10.0),
-                              Text(
-                                day,
-                                style: const TextStyle(fontSize: 16.0),
-                              ),
-                            ],
-                          ),
-                        )),
-                    const Divider(thickness: 1.0, color: Colors.grey),
+                    // Solo mostramos las horas de trabajo, eliminamos los días
                     ...task.workingHours.entries.map((entry) => Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Row(
