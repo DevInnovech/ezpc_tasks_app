@@ -40,7 +40,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
   Future<void> loadHomeData() async {
     try {
       // Simula la carga de datos con un retardo
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 2));
 
       // Cargamos los datos del home usando los proveedores
       final homeModel = await fetchHomeData();
@@ -137,46 +137,6 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         totalOrder: 5,
         category: categories[1],
         provider: providers[1], // Jane Smith
-      ),
-      ServiceItem(
-        id: 3,
-        name: "Featured Service 3",
-        slug: "featured-service-3",
-        image: KImages.s01,
-        price: 150.0,
-        categoryId: categories[2],
-        providerId: providers[2].id,
-        makeFeatured: 1,
-        isBanned: 0,
-        details: "This is a featured service by Michael Johnson",
-        status: 1,
-        createdAt: "2024-01-01",
-        approveByAdmin: 1,
-        averageRating: "4.8",
-        totalReview: 12,
-        totalOrder: 8,
-        category: categories[2],
-        provider: providers[2], // Michael Johnson
-      ),
-      ServiceItem(
-        id: 4,
-        name: "Featured Service 4",
-        slug: "featured-service-4",
-        image: KImages.s01,
-        price: 130.0,
-        categoryId: categories[3],
-        providerId: providers[3].id,
-        makeFeatured: 1,
-        isBanned: 0,
-        details: "This is a featured service by Emily Clark",
-        status: 1,
-        createdAt: "2024-01-01",
-        approveByAdmin: 1,
-        averageRating: "4.7",
-        totalReview: 9,
-        totalOrder: 7,
-        category: categories[3],
-        provider: providers[3], // Emily Clark
       ),
     ];
 

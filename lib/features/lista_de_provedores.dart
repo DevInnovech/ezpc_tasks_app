@@ -8,6 +8,7 @@ final providerListProvider = FutureProvider<List<ProviderModel>>((ref) async {
   await Future.delayed(const Duration(seconds: 0));
 
   // List of providers with 12 time slots each
+  // taks desde firebase convertidas en provideModel
   return [
     const ProviderModel(
       id: 1,

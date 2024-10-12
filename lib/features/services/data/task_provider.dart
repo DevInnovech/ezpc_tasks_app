@@ -180,15 +180,6 @@ class TaskNotifier extends StateNotifier<TaskState> {
     }
   }
 
-  // Método para concatenar respuestas únicas sin duplicar
-  String _concatenateResponses(String currentName, String newResponse) {
-    final currentResponses = currentName.split(" ");
-    if (!currentResponses.contains(newResponse)) {
-      return currentName.isEmpty ? newResponse : '$currentName $newResponse';
-    }
-    return currentName;
-  }
-
   Future<void> saveTask(TaskModel.Task task) async {
     try {
       final newTask = TaskModel.Task(

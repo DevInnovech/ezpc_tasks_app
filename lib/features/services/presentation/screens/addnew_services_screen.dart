@@ -18,6 +18,14 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
+  // Añadimos un GlobalKey para manejar las validaciones en cada step.
+  final _formKeys = [
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -30,10 +38,11 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   }
 
   final List<Widget> _steps = [
-    const CategoryPricingStep(),
-    const QuestionsStep(),
-    const ScheduleStep(),
-    const SpecialDaysStep(),
+    CategoryPricingStep(
+        formKey: GlobalKey<FormState>()), // Añadir formKey en cada Step
+    QuestionsStep(formKey: GlobalKey<FormState>()),
+    ScheduleStep(formKey: GlobalKey<FormState>()),
+    SpecialDaysStep(formKey: GlobalKey<FormState>()),
   ];
 
   @override
@@ -48,7 +57,10 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
         itemCount: _steps.length,
         physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
-          return _steps[index];
+          return Form(
+            key: _formKeys[index],
+            child: _steps[index],
+          );
         },
       ),
       bottomNavigationBar: Padding(
@@ -78,16 +90,21 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  if (_currentStep < _steps.length - 1) {
-                    setState(() {
-                      _currentStep++;
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    });
-                  } else {
-                    _saveTask(context); // Guardar la nueva tarea
+                  // Validar el formulario actual antes de avanzar
+                  if (_formKeys[_currentStep].currentState!.validate()) {
+                    // Si es el último paso, guardar la tarea
+                    if (_currentStep == _steps.length - 1) {
+                      _saveTask(context); // Guardar la nueva tarea
+                    } else {
+                      // Si no es el último, pasar al siguiente paso
+                      setState(() {
+                        _currentStep++;
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      });
+                    }
                   }
                 },
                 child:
