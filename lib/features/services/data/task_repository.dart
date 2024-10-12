@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Proveedor del repositorio de tareas
@@ -48,5 +49,16 @@ class TaskRepository {
       print('Error getting tasks from Firebase: $e');
       rethrow;
     }
+  }
+}
+
+Future<void> deleteTask(String taskId) async {
+  try {
+    // Aquí va la lógica de eliminación. Si estás usando Firestore, sería algo como:
+    await FirebaseFirestore.instance.collection('tasks').doc(taskId).delete();
+    debugPrint('Tarea con ID: $taskId eliminada de la base de datos.');
+  } catch (e) {
+    debugPrint('Error al eliminar la tarea con ID: $taskId -> $e');
+    throw Exception('No se pudo eliminar la tarea.');
   }
 }

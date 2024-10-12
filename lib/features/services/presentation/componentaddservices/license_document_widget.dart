@@ -8,7 +8,6 @@ class LicenseDocumentInput extends StatefulWidget {
   final void Function(String licenseType) onLicenseTypeChanged;
   final void Function(String licenseNumber) onLicenseNumberChanged;
   final void Function(String phone) onPhoneChanged;
-  final void Function(String service) onServiceChanged;
   final void Function(String issueDate) onIssueDateChanged;
   final void Function(String expirationDate) onLicenseExpirationDateChanged;
   final void Function(File file) onDocumentSelected;
@@ -18,7 +17,6 @@ class LicenseDocumentInput extends StatefulWidget {
     required this.onLicenseTypeChanged,
     required this.onLicenseNumberChanged,
     required this.onPhoneChanged,
-    required this.onServiceChanged,
     required this.onIssueDateChanged,
     required this.onLicenseExpirationDateChanged,
     required this.onDocumentSelected,
@@ -99,14 +97,8 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(10),
-            _PhoneNumberInputFormatter(), // Agregar el formateador personalizado
+            _PhoneNumberInputFormatter(), // Formateador personalizado
           ],
-        ),
-        TextField(
-          onChanged: widget.onServiceChanged,
-          decoration: const InputDecoration(
-            labelText: 'Service',
-          ),
         ),
         const SizedBox(height: 16),
         GestureDetector(

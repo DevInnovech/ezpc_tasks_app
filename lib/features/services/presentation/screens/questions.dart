@@ -18,7 +18,6 @@ class QuestionsStep extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Añadimos un título para las preguntas
           const Text(
             "Additional Information",
             style: TextStyle(
@@ -27,9 +26,7 @@ class QuestionsStep extends ConsumerWidget {
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 16), // Espacio entre el título y las preguntas
-
-          // Mostramos las preguntas si hay alguna disponible
+          const SizedBox(height: 16),
           if (questions.isNotEmpty)
             Column(
               children: questions.map((question) {
@@ -40,20 +37,21 @@ class QuestionsStep extends ConsumerWidget {
                     onChanged: (value) {
                       // Validar que `currentTask` no sea null antes de actualizar
                       if (currentTask != null) {
-                        // Actualizar el campo `name` de la `currentTask`
-                        String updatedName = currentTask.name;
+                        // Obtener el mapa de respuestas actual
+                        Map<String, String> questionResponses =
+                            currentTask.questionResponses ?? {};
 
-                        // Añadir la pregunta y su respuesta al `name`
-                        updatedName += '$question: $value\n';
+                        // Actualizar la respuesta a la pregunta
+                        questionResponses[question] = value;
 
-                        // Usar `updateTask` para actualizar el campo `name`
+                        // Usar `updateTask` para actualizar el campo `questionResponses`
                         ref.read(taskProvider.notifier).updateTask(
-                              name: updatedName,
+                              questionResponses: questionResponses,
                             );
                       }
                     },
                     initialValue:
-                        '', // No podemos obtener valores iniciales ya que no hay un campo específico para preguntas
+                        currentTask?.questionResponses?[question] ?? '',
                   ),
                 );
               }).toList(),

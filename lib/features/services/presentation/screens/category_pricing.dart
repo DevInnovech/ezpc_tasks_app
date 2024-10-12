@@ -14,19 +14,25 @@ import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/task_provider.dart';
 
-class CategoryPricingStep extends ConsumerWidget {
+class CategoryPricingStep extends ConsumerStatefulWidget {
   const CategoryPricingStep({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _CategoryPricingStepState createState() => _CategoryPricingStepState();
+}
+
+class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
+  String? _selectedAdditionalOption;
+
+  @override
+  Widget build(BuildContext context) {
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final selectedSubCategory = ref.watch(selectedSubCategoryProvider);
     final isLicenseRequired = ref.watch(isLicenseRequiredProvider);
     final isRateAppliedToSubcategories =
         ref.watch(isRateAppliedToSubcategoriesProvider);
     final taskState = ref.watch(taskProvider);
-    final Task? currentTask =
-        taskState.currentTask; // Usar `currentTask` directamente
+    final Task? currentTask = taskState.currentTask;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -35,7 +41,6 @@ class CategoryPricingStep extends ConsumerWidget {
         children: [
           ServiceImage(
             onImageSelected: (String imageUrl) {
-              // Actualizar solo el campo `imageUrl` de `currentTask`
               if (currentTask != null) {
                 ref.read(taskProvider.notifier).updateTask(
                       imageUrl: imageUrl,
@@ -45,12 +50,10 @@ class CategoryPricingStep extends ConsumerWidget {
           ),
           CategorySelector(
             onCategorySelected: (String category) {
-              // Actualizar `category` y resetear `subCategory`
               if (currentTask != null) {
                 ref.read(taskProvider.notifier).updateTask(
                       category: category,
-                      subCategory:
-                          '', // Resetear subcategoría cuando cambia la categoría
+                      subCategory: '',
                     );
               }
             },
@@ -58,7 +61,6 @@ class CategoryPricingStep extends ConsumerWidget {
           if (selectedCategory != null) ...[
             RateInputWidget(
               onRateChanged: (double price) {
-                // Actualizar solo `price` en `currentTask`
                 if (currentTask != null) {
                   ref.read(taskProvider.notifier).updateTask(
                         price: price,
@@ -78,7 +80,6 @@ class CategoryPricingStep extends ConsumerWidget {
             ),
             SubCategorySelector(
               onSubCategorySelected: (String subCategory) {
-                // Actualizar solo `subCategory` en `currentTask`
                 if (currentTask != null) {
                   ref.read(taskProvider.notifier).updateTask(
                         subCategory: subCategory,
@@ -96,6 +97,53 @@ class CategoryPricingStep extends ConsumerWidget {
                   }
                 },
               ),
+
+            // Dropdown para seleccionar "Additional Options"
+            if (selectedSubCategory != null &&
+                selectedSubCategory.additionalOptions != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Additional Options:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    // Usar Dropdown con isExpanded para evitar overflow
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      child: DropdownButtonFormField<String>(
+                        isExpanded: true, // Esto permite que el texto se ajuste
+                        value: _selectedAdditionalOption,
+                        hint: const Text('Select an additional option'),
+                        items: selectedSubCategory.additionalOptions!
+                            .map((option) => DropdownMenuItem(
+                                  value: option,
+                                  child: Text(option),
+                                ))
+                            .toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedAdditionalOption = newValue;
+                          });
+
+                          // Actualizar en la tarea actual la opción seleccionada
+                          if (currentTask != null) {
+                            ref.read(taskProvider.notifier).updateTask(
+                                  service: newValue!,
+                                );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
           CustomCheckboxListTile(
             title: 'I hold a professional license',
@@ -104,7 +152,6 @@ class CategoryPricingStep extends ConsumerWidget {
               ref.read(isLicenseRequiredProvider.notifier).state =
                   value ?? false;
 
-              // Actualizar `requiresLicense` en `currentTask`
               if (currentTask != null) {
                 ref.read(taskProvider.notifier).updateTask(
                       requiresLicense: value ?? false,
@@ -120,7 +167,6 @@ class CategoryPricingStep extends ConsumerWidget {
               opacity: isLicenseRequired ? 1.0 : 0.5,
               child: LicenseDocumentInput(
                 onLicenseTypeChanged: (String licenseType) {
-                  // Actualizar `licenseType` en `currentTask`
                   if (currentTask != null) {
                     ref.read(taskProvider.notifier).updateTask(
                           licenseType: licenseType,
@@ -138,13 +184,6 @@ class CategoryPricingStep extends ConsumerWidget {
                   if (currentTask != null) {
                     ref.read(taskProvider.notifier).updateTask(
                           phone: phone,
-                        );
-                  }
-                },
-                onServiceChanged: (String service) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          service: service,
                         );
                   }
                 },
