@@ -31,7 +31,7 @@ final workingHoursProvider =
     "Friday": {"start": "8:00 AM", "end": "8:00 PM"},
     "Saturday": {"start": "8:00 AM", "end": "8:00 PM"},
     "Sunday": {"start": "8:00 AM", "end": "8:00 PM"},
-    "All days": {"start": "8:00 AM", "end": "8:00 PM"},
+    // "All days" no será parte del estado final.
   };
 });
 

@@ -56,8 +56,10 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
               ),
 
             // Selección de horas de trabajo
+            // Selección de horas de trabajo
             WorkingHoursSelector(
-              initialHours: currentTask?.workingHours,
+              selectedDays: ref
+                  .watch(selectedDaysProvider), // Pasar los días seleccionados
               onHoursSelected: (Map<String, Map<String, String>> workingHours) {
                 if (currentTask != null) {
                   ref.read(taskProvider.notifier).updateTask(
@@ -66,6 +68,7 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
                 }
               },
             ),
+
             Utils.verticalSpace(10),
 
             // Validar que se hayan seleccionado horas de trabajo
