@@ -1,6 +1,5 @@
 import 'package:ezpc_tasks_app/features/home/data/dashboardnotifi.dart';
 import 'package:ezpc_tasks_app/features/home/models/currency_icon_model.dart';
-import 'package:ezpc_tasks_app/features/withdraw/withdraw_component.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';

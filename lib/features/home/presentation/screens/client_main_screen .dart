@@ -1,10 +1,12 @@
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_data_model.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/Client_Services_View.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/Client_home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_app_drawer.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_bottom_navigation_bar.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/feedback_dialog.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
@@ -140,7 +142,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       case 1:
         return const ClientHomeScreen();
       case 2:
-        return const SizedBox();
+        return const ClientServiceView();
 
       default:
         return const SizedBox();

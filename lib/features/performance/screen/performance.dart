@@ -1,7 +1,6 @@
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 
 class PerformanceScreen extends StatefulWidget {
   const PerformanceScreen({super.key});

@@ -138,7 +138,7 @@ Future<UserDashBoardModel> fetchClientProfile() async {
   );
 
   // Devuelve una instancia de UserDashBoardModel con los datos simulados.
-  return UserDashBoardModel(
+  return const UserDashBoardModel(
     user: userProfile,
     defaultAvatar: defaultAvatar,
     completeOrder: 5,

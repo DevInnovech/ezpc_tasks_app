@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+
   flutter:
     sdk: flutter
 
@@ -63,7 +64,11 @@ dependencies:
   flutter_chat_ui: ^1.6.15
   firebase_storage: ^12.3.0
   path_provider: ^2.1.4
+  carousel_slider: 5.0.0
 
+
+  flutter_chat_types: any
+  path: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

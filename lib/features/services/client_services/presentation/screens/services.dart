@@ -3,7 +3,6 @@ import 'package:ezpc_tasks_app/features/services/client_services/data/booking_pr
 import 'package:ezpc_tasks_app/features/services/client_services/data/scheduleProvider.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_filter.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
@@ -103,7 +102,7 @@ class _ServiceState extends ConsumerState<Service> {
               text: "Next",
               onPressed: () {
                 if (selectedProvider != null && selectedTimeSlot != null) {
-                  print("vmaonos ");
+                  print("vamonos ");
                   setState(() {
                     ServiceModel updateservices = ServiceModel(
                         id: widget.selectedService.id,

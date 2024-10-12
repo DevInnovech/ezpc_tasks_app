@@ -56,7 +56,7 @@ class ClientBottomNavigationBar extends StatelessWidget {
                 _bottomNavItem(
                     icon: KImages.service,
                     active: KImages.serviceActive,
-                    title: "Services"),
+                    title: "Tasks"),
                 _bottomNavItem(
                     icon: KImages.more,
                     active: KImages.moreActive,

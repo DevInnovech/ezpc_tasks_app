@@ -2,7 +2,6 @@ import 'dart:io' show File;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class LicenseDocumentInput extends StatefulWidget {
