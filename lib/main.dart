@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/firebase_options.dart';
-import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_theme.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_string.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,11 +9,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
