@@ -1,6 +1,7 @@
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ezpc_tasks_app/shared/widgets/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,7 +34,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       const BookingScreen(),
       const ServiceScreen(),
       const HomeScreen(),
-      const HomeScreen(),
+      const SettingsScreen(),
 
       // Añadir más pantallas aquí si es necesario
       // const BookingScreen(),

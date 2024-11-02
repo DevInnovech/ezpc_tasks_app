@@ -1,5 +1,6 @@
 import 'package:ezpc_tasks_app/features/home/data/client_provider.dart';
 import 'package:ezpc_tasks_app/features/home/models/userdash_model.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -254,7 +255,7 @@ class ClientAppDrawer extends ConsumerWidget {
         // Navigator.popAndPushNamed(context, RouteNames.categoryScreen);
         break;
       case 1:
-        //   Navigator.popAndPushNamed(context, RouteNames.editProfile);
+        Navigator.popAndPushNamed(context, RouteNames.senttingsScreen);
         break;
       case 2:
         //  Navigator.popAndPushNamed(context, RouteNames.changePassword);
