@@ -24,6 +24,9 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_sc
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
+import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
+import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
+import 'package:ezpc_tasks_app/features/order%20clientes/provider_tracking.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/performance.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/review.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
@@ -77,6 +80,9 @@ class RouteNames {
       '/verificationSelectionScreen';
   static const String verificationCompletedScreen =
       '/verificationCompletedScreen';
+
+  static const String providerTracking = '/providerTracking';
+  static const String orderDetails = '/orderDetails';
 // services
 
   static const String primierServiceScreen = '/primierServiceScreen';
@@ -350,6 +356,19 @@ class RouteNames {
         return MaterialPageRoute(
             settings: settings, builder: (_) => const ClientCategoryScreen());
 
+      case RouteNames.orderDetails:
+        final orderDetailsDto = settings.arguments as OrderDetailsDto;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => OrderDetails(order: orderDetailsDto),
+        );
+
+      case RouteNames.providerTracking:
+        final orderId = settings.arguments as String;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => ProviderTrackingScreen(orderId: orderId),
+        );
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

@@ -6,6 +6,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_app_drawer.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_bottom_navigation_bar.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/feedback_dialog.dart';
+import 'package:ezpc_tasks_app/features/order%20clientes/order_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,9 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
     super.initState();
     screenList = [
       const ClientHomeScreen(),
+      const OrderScreen(
+        message: "",
+      ),
       const BookingScreen(),
       const ClientHomeScreen(),
     ];
@@ -139,7 +143,9 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       case 0:
         return const ClientHomeScreen();
       case 1:
-        return const ClientHomeScreen();
+        return const OrderScreen(
+          message: '',
+        );
       case 2:
         return const ClientServiceView();
 

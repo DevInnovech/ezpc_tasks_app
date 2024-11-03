@@ -12,9 +12,10 @@ class KImages {
   static const String googleIcon = 'assets/icons/google.svg';
   static const String priceTag = 'assets/icons/tag.svg';
   static const String starSolid = 'assets/icons/star-solid.svg';
-
+  static const String login = 'assets/images/login.svg';
   static const String offer = 'assets/images/offer.png';
   static const String Referalflayer = 'assets/images/Referral.png';
+  static const String call = 'assets/icons/call.svg';
 
   static const String defaultImage =
       'assets/images/default_image.png'; // Añade esta línea con la ruta a la imagen predeterminada

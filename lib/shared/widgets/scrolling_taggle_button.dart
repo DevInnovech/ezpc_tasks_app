@@ -56,14 +56,15 @@ class _ToggleButtonScrollComponentState
       }),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 600),
-        padding: Utils.symmetric(v: 10.0, h: 16.0),
+        padding: Utils.symmetric(v: 10.0, h: 18.0),
         margin: Utils.only(
-            right: key == textList.length - 1 ? 20.0 : 12.0,
-            left: key == 0 ? 20.0 : 0.0),
+            right: key == textList.length - 1 ? 20.0 : 10.0,
+            left: key == 0 ? 5.0 : 0.0),
         decoration: BoxDecoration(
             color: initialLabelIndex == key ? primaryColor : transparent,
             borderRadius: Utils.borderRadius(r: 8.0),
-            border: Border.all(color: primaryColor)),
+            border: Border.all(
+                color: initialLabelIndex == key ? primaryColor : transparent)),
         child: CustomText(
           text: value,
           color: initialLabelIndex == key ? whiteColor : primaryColor,
@@ -84,7 +85,7 @@ class _ToggleButtonScrollComponentState
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Row(
           children: getButtons(),
         ),

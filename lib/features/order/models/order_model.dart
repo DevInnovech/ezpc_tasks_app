@@ -53,6 +53,7 @@ class OrderItems extends Equatable {
   final double totalAmount;
   final String bookingDate;
   final String orderStatus;
+  final String serviceName; // Nuevo campo para el nombre del servicio
 
   const OrderItems({
     required this.id,
@@ -61,6 +62,7 @@ class OrderItems extends Equatable {
     required this.totalAmount,
     required this.bookingDate,
     required this.orderStatus,
+    required this.serviceName,
   });
 
   OrderItems copyWith({
@@ -70,6 +72,7 @@ class OrderItems extends Equatable {
     double? totalAmount,
     String? bookingDate,
     String? orderStatus,
+    String? serviceName,
   }) {
     return OrderItems(
       id: id ?? this.id,
@@ -78,6 +81,7 @@ class OrderItems extends Equatable {
       totalAmount: totalAmount ?? this.totalAmount,
       bookingDate: bookingDate ?? this.bookingDate,
       orderStatus: orderStatus ?? this.orderStatus,
+      serviceName: serviceName ?? this.serviceName,
     );
   }
 
@@ -89,6 +93,7 @@ class OrderItems extends Equatable {
       'total_amount': totalAmount,
       'booking_date': bookingDate,
       'order_status': orderStatus,
+      'service_name': serviceName, // Agregar servicio al mapa
     };
   }
 
@@ -103,6 +108,7 @@ class OrderItems extends Equatable {
           : 0,
       bookingDate: map['booking_date'] ?? "",
       orderStatus: map['order_status'] ?? "",
+      serviceName: map['service_name'] ?? "", // Agregar servicio al constructor
     );
   }
 
@@ -123,6 +129,7 @@ class OrderItems extends Equatable {
       totalAmount,
       bookingDate,
       orderStatus,
+      serviceName,
     ];
   }
 }

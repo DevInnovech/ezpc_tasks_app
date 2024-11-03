@@ -59,6 +59,7 @@ Future<UserDashBoardModel> fetchClientProfile() async {
         totalAmount: 100.0,
         bookingDate: '2023-09-01',
         orderStatus: 'completed',
+        serviceName: '',
       ),
     ],
   );
@@ -132,6 +133,7 @@ Future<UserDashBoardModel> fetchClientProfile() async {
           totalAmount: 100.0,
           bookingDate: '2023-09-01',
           orderStatus: 'completed',
+          serviceName: '',
         ),
       ),
     ],
