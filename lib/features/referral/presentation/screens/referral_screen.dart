@@ -22,7 +22,7 @@ class ReferralScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Widget de AppBar personalizado
-              _buildCustomAppBar(context),
+              buildCustomAppBar(context, "Referrals"),
               Expanded(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -55,34 +55,35 @@ class ReferralScreen extends StatelessWidget {
   }
 
   // Widget del AppBar personalizado
+}
+
 // Widget del AppBar personalizado
-  Widget _buildCustomAppBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(
-          top: 30.0, left: 16.0, right: 16.0, bottom: 10.0),
-      color: Colors.transparent,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Botón de retroceso alineado a la izquierda
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+Widget buildCustomAppBar(BuildContext context, String title) {
+  return Container(
+    padding:
+        const EdgeInsets.only(top: 30.0, left: 16.0, right: 16.0, bottom: 10.0),
+    color: Colors.transparent,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        // Botón de retroceso alineado a la izquierda
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          // Título centrado en la pantalla
-          const Text(
-            "Referrals",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22.0,
-              fontWeight: FontWeight.bold,
-            ),
+        ),
+        // Título centrado en la pantalla
+        Text(
+          title,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22.0,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }

@@ -24,6 +24,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_sc
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
+import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employee_screen.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/provider_tracking.dart';
@@ -37,6 +38,8 @@ import 'package:ezpc_tasks_app/features/services/client_services/presentation/sc
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/detail_scren.dart';
+import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/CompanyProfileScreen.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/change_password.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/edit_profile.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_config.dart';
@@ -87,6 +90,9 @@ class RouteNames {
 
   // referidos
   static const String referralScreen = '/referralScreen';
+  static const String employeeScreen = '/employeeScreen';
+  static const String companyProfileScreen = '/companyProfileScreen';
+
 // services
 
   static const String primierServiceScreen = '/primierServiceScreen';
@@ -378,6 +384,19 @@ class RouteNames {
           settings: settings,
           builder: (_) => ReferralScreen(),
         );
+      case RouteNames.employeeScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const EmployeeScreen(),
+        );
+      case RouteNames.companyProfileScreen:
+        final company =
+            settings.arguments as Company; // Recibe el modelo de la compañía
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => CompanyProfileScreen(company: company),
+        );
+
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

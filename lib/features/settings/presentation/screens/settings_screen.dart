@@ -1,4 +1,5 @@
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
+import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
@@ -116,10 +117,39 @@ class SettingsScreen extends ConsumerWidget {
       _buildOption(context, Icons.language, 'Language')
     ];
 
-    if (accountType == AccountType.corporateProvider) {
-      options.insert(4, _buildOption(context, Icons.group, 'Employees'));
-    } else if (accountType == AccountType.employeeProvider) {
-      options.insert(4, _buildOption(context, Icons.apartment, 'My Company'));
+    if (accountType != AccountType.corporateProvider) {
+      options.insert(
+        4,
+        _buildOption(
+          context,
+          Icons.group,
+          'Employees',
+          ontap: () => Navigator.pushNamed(context, RouteNames.employeeScreen),
+        ),
+      );
+    } else if (accountType != AccountType.employeeProvider) {
+      options.insert(
+        4,
+        _buildOption(
+          context,
+          Icons.apartment,
+          'My Company',
+          ontap: () => Navigator.pushNamed(
+            context,
+            RouteNames.companyProfileScreen,
+            arguments: Company(
+              image: KImages.d01,
+              name: "Tech Solutions",
+              fin: "12-3456789",
+              email: "info@techsolutions.com",
+              phone: "+1 123 456 7890",
+              address: "Dominican Republic",
+              description:
+                  "We provide cutting-edge software development and IT consultancy services to businesses worldwide.",
+            ),
+          ),
+        ),
+      );
     }
 
     options.addAll([
