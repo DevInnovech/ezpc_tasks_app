@@ -29,6 +29,7 @@ import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/provider_tracking.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/performance.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/review.dart';
+import 'package:ezpc_tasks_app/features/referral/presentation/screens/referral_screen.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/booking_step.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/request_services.dart';
@@ -83,6 +84,9 @@ class RouteNames {
 
   static const String providerTracking = '/providerTracking';
   static const String orderDetails = '/orderDetails';
+
+  // referidos
+  static const String referralScreen = '/referralScreen';
 // services
 
   static const String primierServiceScreen = '/primierServiceScreen';
@@ -368,6 +372,11 @@ class RouteNames {
         return MaterialPageRoute(
           settings: settings,
           builder: (_) => ProviderTrackingScreen(orderId: orderId),
+        );
+      case RouteNames.referralScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => ReferralScreen(),
         );
       /*  
       case RouteNames.registerProviderScreen:

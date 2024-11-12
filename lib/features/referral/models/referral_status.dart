@@ -1,0 +1,1 @@
+enum ReferralStatus { active, inactive }

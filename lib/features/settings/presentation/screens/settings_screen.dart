@@ -106,7 +106,12 @@ class SettingsScreen extends ConsumerWidget {
             Navigator.pushNamed(context, RouteNames.configurationScreen),
       ),
       _buildOption(context, Icons.payment, 'Payment Settings'),
-      _buildOption(context, Icons.share, 'Referrals'),
+      _buildOption(
+        context,
+        Icons.share,
+        'Referrals',
+        ontap: () => Navigator.pushNamed(context, RouteNames.referralScreen),
+      ),
       _buildOption(context, Icons.history, 'View transaction history'),
       _buildOption(context, Icons.language, 'Language')
     ];
