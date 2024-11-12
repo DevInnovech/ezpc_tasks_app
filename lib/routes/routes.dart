@@ -46,6 +46,8 @@ import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_c
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
+import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/two_factor_setup_screen.dart';
+import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/verification_screen.dart';
 import 'package:flutter/material.dart';
 
 class RouteNames {
@@ -88,10 +90,12 @@ class RouteNames {
   static const String providerTracking = '/providerTracking';
   static const String orderDetails = '/orderDetails';
 
-  // referidos
+  // referidos y employess ,settings
   static const String referralScreen = '/referralScreen';
   static const String employeeScreen = '/employeeScreen';
   static const String companyProfileScreen = '/companyProfileScreen';
+  static const String twoFactorSetupScreen = '/twoFactorSetupScreen';
+  static const String verificationScreen = '/verificationScreen';
 
 // services
 
@@ -396,7 +400,20 @@ class RouteNames {
           settings: settings,
           builder: (_) => CompanyProfileScreen(company: company),
         );
+      case RouteNames.twoFactorSetupScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => TwoFactorSetupScreen(),
+        );
 
+      case RouteNames.verificationScreen:
+        final metho = settings.arguments as String;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => VerificationScreen(
+            authMethod: metho,
+          ),
+        );
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

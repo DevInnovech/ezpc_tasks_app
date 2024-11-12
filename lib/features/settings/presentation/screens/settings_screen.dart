@@ -116,7 +116,18 @@ class SettingsScreen extends ConsumerWidget {
       _buildOption(context, Icons.history, 'View transaction history'),
       _buildOption(context, Icons.language, 'Language')
     ];
-
+    if (accountType != AccountType.client ||
+        accountType != AccountType.employeeProvider) {
+      options.insert(
+        1,
+        _buildOption(
+          context,
+          Icons.group,
+          'About me',
+          ontap: () => Navigator.pushNamed(context, RouteNames.employeeScreen),
+        ),
+      );
+    }
     if (accountType != AccountType.corporateProvider) {
       options.insert(
         4,
