@@ -31,6 +31,13 @@ import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employe
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/provider_tracking.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/models/bank_account_model.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/models/card_model.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/add_bank_account_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/add_card_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/edit_bank_account_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/edit_card_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/payment_settings_screen.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/performance.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/review.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/screens/referral_screen.dart';
@@ -80,11 +87,15 @@ class RouteNames {
   static const String signUpWithBusinessCodeScreen =
       '/signUpWithBusinessCodeScreen';
   static const String passwordAccountpage = '/passwordAccountpage';
+
   static const String addCardPaymentMethodScreen =
       '/addCardPaymentMethodScreen';
-  static const String backgroundCheckScreen = '/backgroundCheckScreen';
+
   static const String addBankAccountInformationScreen =
       '/addBankAccountInformationScreen';
+
+  static const String backgroundCheckScreen = '/backgroundCheckScreen';
+
   static const String verificationSelectionScreen =
       '/verificationSelectionScreen';
   static const String verificationCompletedScreen =
@@ -109,7 +120,12 @@ class RouteNames {
   static const String primierServiceScreen = '/primierServiceScreen';
   static const String seconServiceScreen = '/seconServiceScreen';
   static const String lastServiceScreen = '/lastServiceScreen';
-
+// PAYMENT SETTING
+  static const String paymentssettings = '/paymentssettings';
+  static const String paymentssettingsadd_car = '/paymentssettingsadd_car';
+  static const String paymentssettingsadd_bank = '/paymentssettingsadd_bank';
+  static const String paymentssettingsedit_car = '/paymentssettingsedit_car';
+  static const String paymentssettingsedit_bank = '/paymentssettingsedit_bank';
   //chats
   static const String customerChatScreen = '/customerChat';
   static const String supportChatScreen = '/supportChat';
@@ -427,6 +443,26 @@ class RouteNames {
         return MaterialPageRoute(builder: (_) => EditAboutMeScreen());
       case RouteNames.previewScreen:
         return MaterialPageRoute(builder: (_) => PreviewAboutMeScreen());
+
+      case RouteNames.paymentssettings:
+        return MaterialPageRoute(builder: (_) => PaymentSettingsScreen());
+      case RouteNames.paymentssettingsadd_car:
+        return MaterialPageRoute(builder: (_) => AddCardScreen());
+      case RouteNames.paymentssettingsadd_bank:
+        return MaterialPageRoute(builder: (_) => AddBankAccountScreen());
+      case RouteNames.paymentssettingsedit_car:
+        final card = settings.arguments as CardModel;
+        return MaterialPageRoute(
+            builder: (_) => EditCardScreen(
+                  card: card,
+                ));
+      case RouteNames.paymentssettingsedit_bank:
+        final bank = settings.arguments as BankAccountModel;
+        return MaterialPageRoute(
+            builder: (_) => EditBankAccountScreen(
+                  account: bank,
+                ));
+
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

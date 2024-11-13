@@ -129,11 +129,21 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
 
                                 // Redirección en función del rol
                                 if (userRole == 'Client') {
+                                  // Después de autenticar al usuario y determinar su tipo de cuenta
+                                  ref
+                                      .read(accountTypeProvider.notifier)
+                                      .selectAccountType(AccountType.client);
+
                                   Navigator.pushNamedAndRemoveUntil(
                                       context,
                                       RouteNames.ClientmainScreen,
                                       (route) => false);
                                 } else if (userRole == 'Independent Provider') {
+                                  ref
+                                      .read(accountTypeProvider.notifier)
+                                      .selectAccountType(
+                                          AccountType.independentProvider);
+
                                   Navigator.pushNamedAndRemoveUntil(context,
                                       RouteNames.mainScreen, (route) => false);
                                 } else {

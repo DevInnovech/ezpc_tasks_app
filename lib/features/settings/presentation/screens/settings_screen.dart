@@ -106,7 +106,12 @@ class SettingsScreen extends ConsumerWidget {
         ontap: () =>
             Navigator.pushNamed(context, RouteNames.configurationScreen),
       ),
-      _buildOption(context, Icons.payment, 'Payment Settings'),
+      _buildOption(
+        context,
+        Icons.payment,
+        'Payment Settings',
+        ontap: () => Navigator.pushNamed(context, RouteNames.paymentssettings),
+      ),
       _buildOption(
         context,
         Icons.share,
