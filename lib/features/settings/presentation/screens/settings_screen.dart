@@ -124,7 +124,8 @@ class SettingsScreen extends ConsumerWidget {
           context,
           Icons.group,
           'About me',
-          ontap: () => Navigator.pushNamed(context, RouteNames.employeeScreen),
+          ontap: () =>
+              Navigator.pushNamed(context, RouteNames.providereditaboutScreen),
         ),
       );
     }

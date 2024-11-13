@@ -1,3 +1,6 @@
+import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/preview_aboutme_screen.dart';
+import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/edit_aboutme_screen.dart';
+import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/about_me_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/greates_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/login_screen.dart';
@@ -96,6 +99,10 @@ class RouteNames {
   static const String companyProfileScreen = '/companyProfileScreen';
   static const String twoFactorSetupScreen = '/twoFactorSetupScreen';
   static const String verificationScreen = '/verificationScreen';
+
+  static const String provideraboutScreen = '/providerProfile';
+  static const String providereditaboutScreen = '/editProfile';
+  static const String previewScreen = '/preview';
 
 // services
 
@@ -414,6 +421,12 @@ class RouteNames {
             authMethod: metho,
           ),
         );
+      case RouteNames.provideraboutScreen:
+        return MaterialPageRoute(builder: (_) => AboutMeScreen());
+      case RouteNames.providereditaboutScreen:
+        return MaterialPageRoute(builder: (_) => EditAboutMeScreen());
+      case RouteNames.previewScreen:
+        return MaterialPageRoute(builder: (_) => PreviewAboutMeScreen());
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(
