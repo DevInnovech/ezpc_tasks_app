@@ -11,6 +11,8 @@ final mockCards = [
     expYear: "2024",
     brand: "Visa",
     ownerType: "client",
+    cardHolderName: 'juan',
+    zipCode: '01843',
   ),
   CardModel(
     id: "card_2",
@@ -19,6 +21,8 @@ final mockCards = [
     expYear: "2025",
     brand: "MasterCard",
     ownerType: "provider",
+    cardHolderName: 'juan',
+    zipCode: '01843',
   ),
   CardModel(
     id: "card_3",
@@ -27,6 +31,8 @@ final mockCards = [
     expYear: "2026",
     brand: "Amex",
     ownerType: "client",
+    cardHolderName: 'juan',
+    zipCode: '01843',
   ),
 ];
 
@@ -38,6 +44,7 @@ final mockBankAccounts = [
     bankName: "Bank A",
     ownerType: "provider",
     accountHolderName: 'juan acosta',
+    branchCode: '2867',
   ),
   BankAccountModel(
     id: "account_2",
@@ -45,6 +52,7 @@ final mockBankAccounts = [
     bankName: "Bank B",
     ownerType: "client",
     accountHolderName: 'juan acosta',
+    branchCode: '2867',
   ),
   BankAccountModel(
     id: "account_3",
@@ -52,5 +60,6 @@ final mockBankAccounts = [
     bankName: "Bank C",
     ownerType: "provider",
     accountHolderName: 'juan acosta',
+    branchCode: '2867',
   ),
 ];

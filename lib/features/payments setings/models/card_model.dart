@@ -1,6 +1,8 @@
 // card_model.dart
 class CardModel {
   final String id;
+  final String cardHolderName;
+  final String zipCode;
   final String last4;
   final String expMonth;
   final String expYear;
@@ -9,6 +11,8 @@ class CardModel {
 
   CardModel({
     required this.id,
+    required this.cardHolderName,
+    required this.zipCode,
     required this.last4,
     required this.expMonth,
     required this.expYear,
@@ -20,6 +24,8 @@ class CardModel {
     return CardModel(
       id: json['id'],
       last4: json['last4'],
+      cardHolderName: json['cardHolderName'],
+      zipCode: json['zipCode'],
       expMonth: json['exp_month'],
       expYear: json['exp_year'],
       brand: json['brand'],
@@ -30,6 +36,8 @@ class CardModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'zipCode': zipCode,
+      'cardHolderName': cardHolderName,
       'last4': last4,
       'exp_month': expMonth,
       'exp_year': expYear,

@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:ezpc_tasks_app/features/payments%20setings/data/payment_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-class StripeService {
+class StripeService implements StripeBaseService {
   static final StripeService instance = StripeService._internal();
 
   final String _publishableKey = "your-publishable-key";

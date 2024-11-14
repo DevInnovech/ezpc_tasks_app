@@ -1,6 +1,8 @@
 // mock_stripe_service.dart
 
-class MockStripeService {
+import 'package:ezpc_tasks_app/features/payments%20setings/data/payment_provider.dart';
+
+class MockStripeService implements StripeBaseService {
   static final MockStripeService instance = MockStripeService._internal();
 
   MockStripeService._internal();
