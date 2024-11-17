@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/auth/models/users_models.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,12 +8,11 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Función para generar un código único con prefijo "EZPC" y 10 dígitos
+  // Función para generar un código único con prefijo "EZPC" y 6 dígitos
   String generateUniqueCode() {
     final random = Random();
-    final code = List<int>.generate(6, (_) => random.nextInt(10))
-        .join(); // Genera 6 dígitos aleatorios
-    return 'EZPC$code'; // Código con prefijo "EZPC" + 6 dígitos aleatorios
+    final code = List<int>.generate(6, (_) => random.nextInt(10)).join();
+    return 'EZPC$code';
   }
 
   // Inicio de sesión con correo electrónico y contraseña
@@ -44,15 +44,15 @@ class AuthService {
     }
   }
 
-  // Registro como Independent Provider
-  Future<User?> SignUpMethod({
+  // Registro como Independent Provider utilizando UserModel
+  Future<User?> signUpUser({
     required String email,
     required String name,
     required String lastName,
     required String phoneNumber,
     required String username,
     required String password,
-    required String role, // Agregar parámetro para rol
+    required String role,
   }) async {
     try {
       // Crear usuario en Firebase Auth
@@ -68,17 +68,23 @@ class AuthService {
         // Generar el código único
         String uniqueCode = generateUniqueCode();
 
+        // Crear instancia de UserModel con la información del usuario
+        UserModel newUser = UserModel(
+          uid: user.uid,
+          email: email,
+          name: name,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
+          username: username,
+          role: role,
+          uniqueCode: uniqueCode,
+          country: '', // Placeholder, si no se obtiene información de país
+          state: '', // Placeholder, si no se obtiene información de estado
+          address: '', // Placeholder, si no se obtiene dirección
+        );
+
         // Guardar información adicional en Firestore
-        await _firestore.collection('users').doc(user.uid).set({
-          'name': name,
-          'lastName': lastName,
-          'phoneNumber': phoneNumber,
-          'role': role, // Guardar el rol obtenido
-          'username': username,
-          'email': email,
-          'uniqueCode': uniqueCode, // Guardar el código único
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
 
         return user;
       }
@@ -95,10 +101,7 @@ class AuthService {
   // Obtener el rol del usuario desde Firestore
   Future<String?> getUserRole(User user) async {
     try {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
 
       if (userDoc.exists && userDoc.data()!.containsKey('role')) {
         return userDoc.get('role');
