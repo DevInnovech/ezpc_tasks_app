@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
@@ -92,7 +93,11 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
                     'Here are the terms and conditions...');
               }),
               _buildDivider(),
-              _buildTextTile('2 Step Configuration', null),
+              _buildTextTile(
+                '2 Step Configuration',
+                () => Navigator.pushNamed(
+                    context, RouteNames.twoFactorSetupScreen),
+              ),
               _buildDivider(),
               _buildTextTile('View Privacy Policy', () {
                 _showBottomSheet(

@@ -1,3 +1,6 @@
+import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/preview_aboutme_screen.dart';
+import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/edit_aboutme_screen.dart';
+import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/about_me_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/greates_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/login_screen.dart';
@@ -24,11 +27,20 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_sc
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
+import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employee_screen.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/provider_tracking.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/models/bank_account_model.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/models/card_model.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/add_bank_account_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/add_card_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/edit_bank_account_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/edit_card_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/payment_settings_screen.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/performance.dart';
 import 'package:ezpc_tasks_app/features/performance/screen/review.dart';
+import 'package:ezpc_tasks_app/features/referral/presentation/screens/referral_screen.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/booking_step.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/request_services.dart';
@@ -36,12 +48,16 @@ import 'package:ezpc_tasks_app/features/services/client_services/presentation/sc
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/addnew_services_screen.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/detail_scren.dart';
+import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/CompanyProfileScreen.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/change_password.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/edit_profile.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_config.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
+import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/two_factor_setup_screen.dart';
+import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/verification_screen.dart';
 import 'package:flutter/material.dart';
 
 class RouteNames {
@@ -71,11 +87,15 @@ class RouteNames {
   static const String signUpWithBusinessCodeScreen =
       '/signUpWithBusinessCodeScreen';
   static const String passwordAccountpage = '/passwordAccountpage';
+
   static const String addCardPaymentMethodScreen =
       '/addCardPaymentMethodScreen';
-  static const String backgroundCheckScreen = '/backgroundCheckScreen';
+
   static const String addBankAccountInformationScreen =
       '/addBankAccountInformationScreen';
+
+  static const String backgroundCheckScreen = '/backgroundCheckScreen';
+
   static const String verificationSelectionScreen =
       '/verificationSelectionScreen';
   static const String verificationCompletedScreen =
@@ -83,12 +103,29 @@ class RouteNames {
 
   static const String providerTracking = '/providerTracking';
   static const String orderDetails = '/orderDetails';
+
+  // referidos y employess ,settings
+  static const String referralScreen = '/referralScreen';
+  static const String employeeScreen = '/employeeScreen';
+  static const String companyProfileScreen = '/companyProfileScreen';
+  static const String twoFactorSetupScreen = '/twoFactorSetupScreen';
+  static const String verificationScreen = '/verificationScreen';
+
+  static const String provideraboutScreen = '/providerProfile';
+  static const String providereditaboutScreen = '/editProfile';
+  static const String previewScreen = '/preview';
+
 // services
 
   static const String primierServiceScreen = '/primierServiceScreen';
   static const String seconServiceScreen = '/seconServiceScreen';
   static const String lastServiceScreen = '/lastServiceScreen';
-
+// PAYMENT SETTING
+  static const String paymentssettings = '/paymentssettings';
+  static const String paymentssettingsadd_car = '/paymentssettingsadd_car';
+  static const String paymentssettingsadd_bank = '/paymentssettingsadd_bank';
+  static const String paymentssettingsedit_car = '/paymentssettingsedit_car';
+  static const String paymentssettingsedit_bank = '/paymentssettingsedit_bank';
   //chats
   static const String customerChatScreen = '/customerChat';
   static const String supportChatScreen = '/supportChat';
@@ -369,6 +406,63 @@ class RouteNames {
           settings: settings,
           builder: (_) => ProviderTrackingScreen(orderId: orderId),
         );
+      case RouteNames.referralScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => ReferralScreen(),
+        );
+      case RouteNames.employeeScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const EmployeeScreen(),
+        );
+      case RouteNames.companyProfileScreen:
+        final company =
+            settings.arguments as Company; // Recibe el modelo de la compañía
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => CompanyProfileScreen(company: company),
+        );
+      case RouteNames.twoFactorSetupScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => TwoFactorSetupScreen(),
+        );
+
+      case RouteNames.verificationScreen:
+        final metho = settings.arguments as String;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => VerificationScreen(
+            authMethod: metho,
+          ),
+        );
+      case RouteNames.provideraboutScreen:
+        return MaterialPageRoute(builder: (_) => AboutMeScreen());
+      case RouteNames.providereditaboutScreen:
+        return MaterialPageRoute(builder: (_) => EditAboutMeScreen());
+      case RouteNames.previewScreen:
+        return MaterialPageRoute(builder: (_) => PreviewAboutMeScreen());
+
+      case RouteNames.paymentssettings:
+        return MaterialPageRoute(builder: (_) => PaymentSettingsScreen());
+      case RouteNames.paymentssettingsadd_car:
+        return MaterialPageRoute(builder: (_) => AddCardScreen());
+      case RouteNames.paymentssettingsadd_bank:
+        return MaterialPageRoute(builder: (_) => AddBankAccountScreen());
+      case RouteNames.paymentssettingsedit_car:
+        final card = settings.arguments as CardModel;
+        return MaterialPageRoute(
+            builder: (_) => EditCardScreen(
+                  card: card,
+                ));
+      case RouteNames.paymentssettingsedit_bank:
+        final bank = settings.arguments as BankAccountModel;
+        return MaterialPageRoute(
+            builder: (_) => EditBankAccountScreen(
+                  account: bank,
+                ));
+
       /*  
       case RouteNames.registerProviderScreen:
         return MaterialPageRoute(

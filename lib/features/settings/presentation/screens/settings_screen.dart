@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
+import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/services.dart';
@@ -186,15 +187,66 @@ class _SettingsScreenState extends State<SettingsScreen>
         ontap: () =>
             Navigator.pushNamed(context, RouteNames.configurationScreen),
       ),
-      _buildOption(context, Icons.payment, 'Payment Settings'),
-      _buildOption(context, Icons.share, 'Referrals'),
+      _buildOption(
+        context,
+        Icons.payment,
+        'Payment Settings',
+        ontap: () => Navigator.pushNamed(context, RouteNames.paymentssettings),
+      ),
+      _buildOption(
+        context,
+        Icons.share,
+        'Referrals',
+        ontap: () => Navigator.pushNamed(context, RouteNames.referralScreen),
+      ),
       _buildOption(context, Icons.history, 'View transaction history'),
     ];
-
-    if (accountType == AccountType.corporateProvider) {
-      options.insert(4, _buildOption(context, Icons.group, 'Employees'));
-    } else if (accountType == AccountType.employeeProvider) {
-      options.insert(4, _buildOption(context, Icons.apartment, 'My Company'));
+    if (accountType != AccountType.client ||
+        accountType != AccountType.employeeProvider) {
+      options.insert(
+        1,
+        _buildOption(
+          context,
+          Icons.group,
+          'About me',
+          ontap: () =>
+              Navigator.pushNamed(context, RouteNames.providereditaboutScreen),
+        ),
+      );
+    }
+    if (accountType != AccountType.corporateProvider) {
+      options.insert(
+        4,
+        _buildOption(
+          context,
+          Icons.group,
+          'Employees',
+          ontap: () => Navigator.pushNamed(context, RouteNames.employeeScreen),
+        ),
+      );
+    } else if (accountType != AccountType.employeeProvider) {
+      options.insert(
+        4,
+        _buildOption(
+          context,
+          Icons.apartment,
+          'My Company',
+          ontap: () => Navigator.pushNamed(
+            context,
+            RouteNames.companyProfileScreen,
+            arguments: Company(
+              image: KImages.d01,
+              name: "Tech Solutions",
+              fin: "12-3456789",
+              email: "info@techsolutions.com",
+              phone: "+1 123 456 7890",
+              address: "Dominican Republic",
+              description:
+                  "We provide cutting-edge software development and IT consultancy services to businesses worldwide.",
+            ),
+          ),
+        ),
+      );
     }
 
     options.addAll([
