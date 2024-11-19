@@ -33,6 +33,7 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
     String email = args['email'];
     String name = args['name'];
     String lastName = args['lastName'];
+    //  DateTime dob = args['dob'];
     String phoneNumber = args['phoneNumber'];
 
     return Scaffold(
@@ -111,13 +112,15 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                       final accountType = ref.watch(accountTypeProvider);
 
                       // Crear instancia de AuthService
-                      var authService = AuthService();
+                      var authService =
+                          AuthService(); // Instancia de AuthService
 
-                      // Llamar a la nueva función de registro utilizando signUpUser
-                      var user = await authService.signUpUser(
+                      // Llamar a la función de registro
+                      var user = await authService.SignUpMethod(
                         email: email,
                         name: name,
                         lastName: lastName,
+                        //       dob: dob,
                         phoneNumber: phoneNumber,
                         username: username,
                         password: password,
@@ -131,6 +134,13 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                                             AccountType.employeeProvider
                                         ? 'Employee Provider'
                                         : '',
+                        description: '',
+                        address: '',
+                        communicationPreference: '',
+                        experienceYears: 0,
+                        languages: '',
+                        preferredPaymentMethod: '',
+                        profileImageUrl: '', accountType: '',
                       );
 
                       if (user != null) {

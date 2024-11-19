@@ -1,6 +1,8 @@
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/preview_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/edit_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/about_me_screen.dart';
+import 'package:ezpc_tasks_app/features/checkr/screens/candidate_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/accountverificationscreen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/greates_page.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/login_screen.dart';
@@ -64,6 +66,8 @@ class RouteNames {
   static const String splashScreen = '/splashScreen';
   static const String onBoardingScreen = '/onBoardingScreen';
   static const String authenticationScreen = '/authenticationScreen';
+  static const String accountVerificationScreen = '/accountverificationscreen';
+  static const String createCandidateScreen = '/createCandidateScreen';
 
   // static const String signInScreen = '/signInScreen';
   static const String forgotPasswordScreen = '/forgotPasswordScreen';
@@ -184,6 +188,11 @@ class RouteNames {
         return MaterialPageRoute(
             settings: settings, builder: (_) => const AuthenticationScreen());
 
+      case RouteNames.accountVerificationScreen:
+        return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => const AccountVerificationScreen());
+
       case RouteNames.forgotPasswordScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const ForgotPasswordScreen());
@@ -195,6 +204,10 @@ class RouteNames {
       case RouteNames.verificationCodeScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const VerificationCodeScreen());
+
+      case RouteNames.createCandidateScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => CreateCandidateScreen());
 
       case RouteNames.accountTypeSelectionScreen:
         return MaterialPageRoute(
