@@ -27,6 +27,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_sc
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
+import 'package:ezpc_tasks_app/features/leaning/presentations/screnn/video_screen.dart';
 import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employee_screen.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
@@ -64,6 +65,8 @@ class RouteNames {
   static const String splashScreen = '/splashScreen';
   static const String onBoardingScreen = '/onBoardingScreen';
   static const String authenticationScreen = '/authenticationScreen';
+//learnig
+  static const String learningScreen = '/learning'; // Nueva ruta para Learning
 
   // static const String signInScreen = '/signInScreen';
   static const String forgotPasswordScreen = '/forgotPasswordScreen';
@@ -462,6 +465,9 @@ class RouteNames {
             builder: (_) => EditBankAccountScreen(
                   account: bank,
                 ));
+
+      case RouteNames.learningScreen:
+        return MaterialPageRoute(builder: (_) => LearningScreen());
 
       /*  
       case RouteNames.registerProviderScreen:

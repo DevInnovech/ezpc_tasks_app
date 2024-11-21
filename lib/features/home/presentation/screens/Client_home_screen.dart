@@ -5,6 +5,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_he
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_single_category_view.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_slider_section.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
+import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
@@ -184,7 +185,13 @@ class HomeLoadedData extends StatelessWidget {
             // Imagen Promocional
             InkWell(
               onTap: () {
-                // Acción al hacer clic en la imagen promocional (opcional)
+                showDialog(
+                  context: context,
+                  builder: (context) => ReferralPopup(
+                    referralCode:
+                        "referral01", // Código de referido del usuario
+                  ),
+                );
               },
               child: Container(
                 height: 160.h,
@@ -193,8 +200,7 @@ class HomeLoadedData extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: const CustomImage(
-                    path: KImages
-                        .Referalflayer, // Reemplaza con tu imagen promocional
+                    path: KImages.Referalflayer,
                     fit: BoxFit.contain,
                     url: null,
                   ),

@@ -252,7 +252,7 @@ class ClientAppDrawer extends ConsumerWidget {
   void navigatePage(BuildContext context, int index) {
     switch (index) {
       case 0:
-        // Navigator.popAndPushNamed(context, RouteNames.categoryScreen);
+        Navigator.popAndPushNamed(context, RouteNames.learningScreen);
         break;
       case 1:
         Navigator.popAndPushNamed(context, RouteNames.senttingsScreen);
@@ -283,8 +283,8 @@ class ClientAppDrawer extends ConsumerWidget {
 
 List<Map<String, String>> drawerItems = [
   {
-    "name": "All Category",
-    "icon": KImages.drawerCategory,
+    "name": "Learning",
+    "icon": KImages.booking,
   },
   {
     "name": "Edit Profile",
