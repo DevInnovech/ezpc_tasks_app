@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
@@ -98,81 +99,98 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                 _buildPasswordForm(),
                 Utils.verticalSpace(20.0),
                 PrimaryButton(
-                    text: 'Login',
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                            // Ocultar el teclado
-                            Utils.closeKeyBoard(context);
+                  text: 'Login',
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          // Ocultar el teclado
+                          Utils.closeKeyBoard(context);
 
-                            // Validar los campos
-                            if (email == null ||
-                                email!.isEmpty ||
-                                password == null ||
-                                password!.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Please fill in all fields')));
-                              return;
-                            }
-                            try {
-                              UserCredential? userCredential =
-                                  await _authService.signInWithEmailAndPassword(
-                                      email!, password!);
+                          // Validar los campos
+                          if (email == null ||
+                              email!.isEmpty ||
+                              password == null ||
+                              password!.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Please fill in all fields')),
+                            );
+                            return;
+                          }
 
-                              if (userCredential != null) {
-                                await _authService.savePreferences(
-                                    email!, password!, isRemember);
-                                final userRole = await _authService
-                                    .getUserRole(userCredential.user!);
+                          try {
+                            UserCredential? userCredential = await _authService
+                                .signInWithEmailAndPassword(email!, password!);
 
-                                // Redirección en función del rol
-                                if (userRole == 'Client') {
-                                  // Después de autenticar al usuario y determinar su tipo de cuenta
-                                  ref
-                                      .read(accountTypeProvider.notifier)
-                                      .selectAccountType(AccountType.client);
+                            if (userCredential != null) {
+                              await _authService.savePreferences(
+                                  email!, password!, isRemember);
 
+                              final userDoc = await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(userCredential.user!.uid)
+                                  .get();
+
+                              if (userDoc.exists) {
+                                final userStatus = userDoc.get('status');
+                                final userRole = userDoc.get('accountType');
+
+                                // Verificar estado del usuario
+                                if (userStatus == 'Approved') {
+                                  // Redirigir según el rol
+                                  if (userRole == 'Client') {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        RouteNames.ClientmainScreen,
+                                        (route) => false);
+                                  } else if (userRole ==
+                                      'Independent Provider') {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        RouteNames.mainScreen,
+                                        (route) => false);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'An error occurred. Unrecognized role.')),
+                                    );
+                                  }
+                                  ///////////////////////////////////////////////
+                                } else if (userStatus == 'Pending') {
+                                  // Redirigir a pantalla de verificación
                                   Navigator.pushNamedAndRemoveUntil(
                                       context,
-                                      RouteNames.ClientmainScreen,
+                                      RouteNames.accountVerificationScreen,
                                       (route) => false);
-                                } else if (userRole == 'Independent Provider') {
-                                  ref
-                                      .read(accountTypeProvider.notifier)
-                                      .selectAccountType(
-                                          AccountType.independentProvider);
-
-                                  Navigator.pushNamedAndRemoveUntil(context,
-                                      RouteNames.mainScreen, (route) => false);
                                 } else {
-                                  print('Unrecognized user role: $userRole');
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                         content: Text(
-                                            'An error occurred during login. Unrecognized user role.')),
+                                            'Your account is not active. Contact support.')),
                                   );
                                 }
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Incorrect email or password')),
-                                );
                               }
-                            } catch (e) {
-                              print('Error during login: $e');
+                            } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          'An error occurred during login')));
-                            } finally {
-                              setState(() {
-                                isLoading = false;
-                              });
+                                const SnackBar(
+                                    content:
+                                        Text('Incorrect email or password')),
+                              );
                             }
-                          }),
+                          } catch (e) {
+                            print('Error during login: $e');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'An error occurred during login')));
+                          } finally {
+                            setState(() {
+                              isLoading = false;
+                            });
+                          }
+                        },
+                ),
                 _buildRemember(),
                 Utils.verticalSpace(12.0),
                 _createNewAccount(context),

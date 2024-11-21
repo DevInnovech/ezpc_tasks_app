@@ -168,8 +168,8 @@ class ServiceScreen extends ConsumerWidget {
                 const SizedBox(height: 4.0),
                 // Mostrar fecha de creación
                 CustomText(
-                  text: DateFormat.yMMMMd()
-                      .format(DateTime.parse(task.issueDate)),
+                  text: DateFormat.yMMMMd().format(
+                      DateTime.tryParse(task.issueDate) ?? DateTime.now()),
                   fontSize: 14.0,
                   color: Colors.grey,
                 ),

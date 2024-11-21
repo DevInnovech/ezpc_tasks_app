@@ -1,83 +1,164 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final accountType = ref.watch(accountTypeProvider);
+  _SettingsScreenState createState() => _SettingsScreenState();
+}
 
-    // esto debe ser sustituido por un valor dentro de los provedores si son clientes
-    // y vicerversa uno para los clientes si son provedores o tiene mabs cuentas
-    int esclient = 0;
+class _SettingsScreenState extends State<SettingsScreen>
+    with WidgetsBindingObserver {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Settings'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
-        child: Column(
-          children: [
-            _buildProfileHeader(context),
-            const SizedBox(height: 15),
-            Expanded(
-              child: SingleChildScrollView(
-                child: _buildSettingsOptions(context, accountType),
-              ),
+  String _name = '';
+  String _email = '';
+  String _profileImageUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadUserData();
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    User? currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      try {
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(currentUser.uid).get();
+
+        if (userDoc.exists) {
+          Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+
+          setState(() {
+            _name = '${data['name'] ?? ''} ${data['lastName'] ?? ''}';
+            _email = data['email'] ?? '';
+            _profileImageUrl = data['profileImageUrl'] ?? '';
+          });
+        }
+      } catch (e) {
+        print('Error al cargar los datos del usuario: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load user data')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final accountType = ref.watch(accountTypeProvider);
+
+        int esclient = 0;
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: () => Navigator.pop(context),
             ),
-            if (accountType == AccountType.client)
-              esclient == 0
-                  ? _buildActionButton(context, 'Become a Provider')
-                  : _buildActionButton(context, 'Switch to Provider')
-            else
-              esclient == 0
-                  ? _buildActionButton(context, 'Become a Client')
-                  : _buildActionButton(context, 'Switch to Client'),
-            _buildDeleteAccount(context),
-          ],
-        ),
-      ),
+            title: const Text('Settings'),
+            centerTitle: true,
+          ),
+          body: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+            child: Column(
+              children: [
+                _buildProfileHeader(),
+                const SizedBox(height: 15),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: _buildSettingsOptions(context, accountType),
+                  ),
+                ),
+                if (accountType == AccountType.client)
+                  esclient == 0
+                      ? _buildActionButton(context, 'Become a Provider')
+                      : _buildActionButton(context, 'Switch to Provider')
+                else
+                  esclient == 0
+                      ? _buildActionButton(context, 'Become a Client')
+                      : _buildActionButton(context, 'Switch to Client'),
+                _buildDeleteAccount(context),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
-    return const Row(
+  Widget _buildProfileHeader() {
+    return Row(
       children: [
         CircleAvatar(
           radius: 40,
           backgroundColor: Colors.transparent,
           child: ClipOval(
-            child: CustomImage(
-              url: null,
-              path: KImages.pp,
-              fit: BoxFit.cover,
-              width: 80,
-              height: 80,
-            ),
+            child: _profileImageUrl.isNotEmpty
+                ? Image.network(
+                    _profileImageUrl,
+                    fit: BoxFit.cover,
+                    width: 80,
+                    height: 80,
+                    errorBuilder: (context, error, stackTrace) {
+                      print('Error loading image: $error');
+                      return const Icon(
+                          Icons.error); // Fallback in case of error
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const CircularProgressIndicator();
+                    },
+                  )
+                : const Image(
+                    image: AssetImage(KImages.pp),
+                    fit: BoxFit.cover,
+                    width: 80,
+                    height: 80,
+                  ),
           ),
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Alam Cordero',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text('alamcordero1230@gmail.com',
-                style: TextStyle(fontSize: 16, color: Colors.grey)),
+            Text(
+              _name.isEmpty ? 'Loading...' : _name,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              _email.isEmpty ? 'Loading...' : _email,
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
+            ),
           ],
         ),
       ],
@@ -119,7 +200,6 @@ class SettingsScreen extends ConsumerWidget {
         ontap: () => Navigator.pushNamed(context, RouteNames.referralScreen),
       ),
       _buildOption(context, Icons.history, 'View transaction history'),
-      _buildOption(context, Icons.language, 'Language')
     ];
     if (accountType != AccountType.client ||
         accountType != AccountType.employeeProvider) {
@@ -230,42 +310,24 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: const Text('Are you sure you want to log out?'),
+          title: const Text('Are you sure?'),
+          content: const Text('Do you want to log out?'),
           actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Add logout logic here
-              },
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Text(
-                'No',
-                style: TextStyle(color: primaryColor),
-              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
             ),
-            ElevatedButton(
-              onPressed: () {
+            TextButton(
+              onPressed: () async {
                 Navigator.of(context).pop();
-                // Add logout logic here
+                await _auth.signOut();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  RouteNames.authenticationScreen,
+                  (route) => false,
+                );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Text(
-                'Yes',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('Yes'),
             ),
           ],
         );
@@ -298,7 +360,7 @@ class SettingsScreen extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
-        onTap: () {},
+        onTap: () => _showDeleteAccountDialog(context),
         child: const Text(
           'Delete Account',
           style: TextStyle(
@@ -307,6 +369,85 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Are you sure?'),
+          content: const Text(
+            'Do you really want to delete your account? This action cannot be undone.',
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  minimumSize: const Size(80, 40),
+                ),
+                child: const Text(
+                  'No',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  User? currentUser = _auth.currentUser;
+                  if (currentUser != null) {
+                    try {
+                      await _firestore
+                          .collection('users')
+                          .doc(currentUser.uid)
+                          .delete();
+                      await currentUser.delete();
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        RouteNames.authenticationScreen,
+                        (route) => false,
+                      );
+                    } catch (e) {
+                      print('Error deleting account: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Failed to delete account'),
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  minimumSize: const Size(80, 40),
+                ),
+                child: const Text(
+                  'Yes',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

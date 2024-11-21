@@ -28,8 +28,11 @@ class CustomerChatScreen extends StatefulWidget {
 
 class _CustomerChatScreenState extends State<CustomerChatScreen> {
   final List<types.Message> _messages = [];
-  late types.User _user;
+  late types.User _currentUser;
+  String _chatPartnerName = 'Chat Partner'; // Default text
   final TextEditingController _messageController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -38,28 +41,57 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
   }
 
   void _initializeChat() {
-    if (widget.isFakeData) {
-      _user =
-          const types.User(id: 'fake_provider_id', firstName: 'Fake Provider');
-      _loadFakeMessages();
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      _currentUser = types.User(
+        id: currentUser.uid,
+        firstName: currentUser.displayName ?? 'User',
+      );
+      _createChatRoomIfNeeded();
+      _loadChatPartnerInfo(); // Load chat partner's name
+      _loadMessages();
     } else {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        _user = types.User(
-          id: currentUser.uid,
-          firstName: currentUser.displayName ?? 'Provider',
-        );
-        _loadMessages();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No user is signed in!')),
-        );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No user is signed in!')),
+      );
+    }
+  }
+
+  Future<void> _loadChatPartnerInfo() async {
+    try {
+      String chatPartnerId = _currentUser.id == widget.customerId
+          ? widget.providerId
+          : widget.customerId;
+      DocumentSnapshot partnerSnapshot =
+          await _firestore.collection('users').doc(chatPartnerId).get();
+      if (partnerSnapshot.exists) {
+        setState(() {
+          Map<String, dynamic> data =
+              partnerSnapshot.data() as Map<String, dynamic>;
+          _chatPartnerName =
+              '${data['name'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+        });
       }
+    } catch (e) {
+      print('Error loading chat partner info: $e');
+    }
+  }
+
+  Future<void> _createChatRoomIfNeeded() async {
+    final chatRoomRef = _firestore.collection('chats').doc(widget.chatRoomId);
+    final chatRoomSnapshot = await chatRoomRef.get();
+
+    if (!chatRoomSnapshot.exists) {
+      await chatRoomRef.set({
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+        'customerId': widget.customerId,
+        'providerId': widget.providerId,
+      });
     }
   }
 
   void _loadMessages() {
-    FirebaseFirestore.instance
+    _firestore
         .collection('chats')
         .doc(widget.chatRoomId)
         .collection('messages')
@@ -83,55 +115,27 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     });
   }
 
-  void _loadFakeMessages() {
-    final fakeMessages = [
-      types.TextMessage(
-        author: types.User(id: widget.customerId, firstName: 'Fake Customer'),
-        createdAt: DateTime.now()
-            .subtract(const Duration(minutes: 5))
-            .millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        text: 'Hola, ¿en qué puedo ayudarte?',
-      ),
-      types.TextMessage(
-        author: types.User(id: widget.providerId, firstName: 'Fake Provider'),
-        createdAt: DateTime.now()
-            .subtract(const Duration(minutes: 2))
-            .millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        text: 'Necesito ayuda con mi reserva.',
-      ),
-    ];
-
-    setState(() {
-      _messages.clear();
-      _messages.addAll(fakeMessages);
-    });
-  }
-
   void _handleSendPressed(String messageText) {
     if (messageText.isEmpty) return;
 
     final textMessage = types.TextMessage(
-      author: _user,
+      author: _currentUser,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
       text: messageText,
     );
 
-    if (!widget.isFakeData) {
-      FirebaseFirestore.instance
-          .collection('chats')
-          .doc(widget.chatRoomId)
-          .collection('messages')
-          .doc(textMessage.id)
-          .set({
-        'authorId': _user.id,
-        'createdAt': textMessage.createdAt,
-        'id': textMessage.id,
-        'text': textMessage.text,
-      });
-    }
+    _firestore
+        .collection('chats')
+        .doc(widget.chatRoomId)
+        .collection('messages')
+        .doc(textMessage.id)
+        .set({
+      'authorId': _currentUser.id,
+      'createdAt': textMessage.createdAt,
+      'id': textMessage.id,
+      'text': textMessage.text,
+    });
 
     setState(() {
       _messages.insert(0, textMessage);
@@ -166,21 +170,14 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   Widget customAppBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(
-        top: 25,
-        bottom: 5,
-      ), // Ajusta el espacio superior e inferior
-      color: Colors.transparent, // Fondo transparente
+      padding: const EdgeInsets.only(top: 25, bottom: 5),
+      color: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment
-              .spaceBetween, // Asegura que los elementos se distribuyan correctamente
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Botón de retroceso
-
-            // Perfil e información
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -189,17 +186,17 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      width: 35, // Tamaño más pequeño del botón
+                      width: 35,
                       height: 35,
                       decoration: const BoxDecoration(
-                        color: Colors.white, // Fondo blanco
-                        shape: BoxShape.circle, // Botón circular
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                       ),
                       child: const Center(
                         child: Icon(
                           Icons.arrow_back_ios_rounded,
                           color: Colors.black,
-                          size: 20, // Tamaño pequeño del ícono
+                          size: 20,
                         ),
                       ),
                     ),
@@ -207,35 +204,31 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                 ),
                 const CircleAvatar(
                   radius: 25,
-                  backgroundColor: Colors.transparent, // Fondo transparente
+                  backgroundColor: Colors.transparent,
                   child: ClipOval(
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: CustomImage(
                         url: null,
-                        path: KImages.pp, // Reemplaza con la ruta de tu imagen
-                        fit: BoxFit
-                            .cover, // Ajusta la imagen para que rellene el CircleAvatar
-                        // width: 50,
-                        //  height: 50,
+                        path: KImages.pp,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
                 ),
-
-                const SizedBox(width: 10), // Espacio entre el avatar y el texto
-                const Column(
+                const SizedBox(width: 10),
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Cristal Pirstone',
-                      style: TextStyle(
+                      _chatPartnerName,
+                      style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.white),
                     ),
-                    Text(
+                    const Text(
                       'Online',
                       style: TextStyle(
                           fontSize: 12,
@@ -246,23 +239,20 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                 ),
               ],
             ),
-            // Icono de más opciones
             GestureDetector(
-              onTap: () {
-                // Acción del botón
-              },
+              onTap: () {},
               child: Container(
-                width: 35, // Tamaño más pequeño del botón
+                width: 35,
                 height: 35,
                 decoration: const BoxDecoration(
-                  color: Colors.white, // Fondo blanco
-                  shape: BoxShape.circle, // Botón circular
+                  color: Colors.white,
+                  shape: BoxShape.circle,
                 ),
                 child: const Center(
                   child: Icon(
                     Icons.more_vert,
                     color: Colors.black,
-                    size: 25, // Tamaño pequeño del ícono
+                    size: 25,
                   ),
                 ),
               ),
@@ -292,9 +282,9 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
         return Column(
           mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: message.author.id == _user.id
+          crossAxisAlignment: message.author.id == _currentUser.id
               ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start, // Fix message alignment here
+              : CrossAxisAlignment.start,
           children: [
             if (showDateHeader) _buildDateHeader(message.createdAt!),
             _buildChatBubble(message),
@@ -335,7 +325,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
   }
 
   Widget _buildChatBubble(types.TextMessage message) {
-    bool isMe = message.author.id == _user.id;
+    bool isMe = message.author.id == _currentUser.id;
     return Column(
       mainAxisSize: MainAxisSize.max,
       crossAxisAlignment:
@@ -390,7 +380,7 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5), // Sombra del borde
+                    color: Colors.grey.withOpacity(0.5),
                     spreadRadius: 2,
                     blurRadius: 8,
                     offset: const Offset(0, 2),
@@ -402,27 +392,24 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                 decoration: InputDecoration(
                   hintText: 'Type a message...',
                   enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(12), // Bordes redondeados
+                    borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(
-                      color: Colors
-                          .grey, // Color del borde cuando no está enfocado
+                      color: Colors.grey,
                       width: 1.5,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(
-                      color:
-                          Colors.blue, // Color del borde cuando está enfocado
+                      color: Colors.blue,
                       width: 2.0,
                     ),
                   ),
                   filled: true,
-                  fillColor: Colors.white, // Fondo blanco para que sea visible
+                  fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
-                    vertical: 12, // Espaciado dentro del campo de texto
+                    vertical: 12,
                   ),
                 ),
               ),
