@@ -72,12 +72,6 @@ class RouteNames {
   static const String accountVerificationScreen = '/accountverificationscreen';
   static const String createCandidateScreen = '/createCandidateScreen';
 
-//learnig
-  static const String learningScreen = '/learning'; // Nueva ruta para Learning
-
-  static const String accountVerificationScreen = '/accountverificationscreen';
-  static const String createCandidateScreen = '/createCandidateScreen';
-
   // static const String signInScreen = '/signInScreen';
   static const String forgotPasswordScreen = '/forgotPasswordScreen';
   static const String verificationCodeScreen = '/verificationCodeScreen';
