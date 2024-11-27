@@ -1,0 +1,118 @@
+import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Provider for fetching a list of ProviderModels
+final providerListProvider = FutureProvider<List<ProviderModel>>((ref) async {
+  // Simulate asynchronous data fetching with a delay
+  await Future.delayed(const Duration(seconds: 0));
+
+  // List of providers with 12 time slots each
+  // taks desde firebase convertidas en provideModel
+  return [
+    const ProviderModel(
+      id: 1,
+      name: "John Doe",
+      email: "john.doe@example.com",
+      phone: "5551234567",
+      image: KImages.pp,
+      createdAt: "2024-08-01",
+      userName: "johndoe",
+      rating: 4.9,
+      reviews: 50,
+      timeSlots: [
+        TimeSlotModel(time: "08:00", isAvailable: true),
+        TimeSlotModel(time: "08:30", isAvailable: false),
+        TimeSlotModel(time: "09:00", isAvailable: true),
+        TimeSlotModel(time: "09:30", isAvailable: true),
+        TimeSlotModel(time: "10:00", isAvailable: false),
+        TimeSlotModel(time: "10:30", isAvailable: true),
+        TimeSlotModel(time: "11:00", isAvailable: true),
+        TimeSlotModel(time: "11:30", isAvailable: false),
+        TimeSlotModel(time: "12:00", isAvailable: true),
+        TimeSlotModel(time: "12:30", isAvailable: true),
+        TimeSlotModel(time: "01:00", isAvailable: true),
+        TimeSlotModel(time: "01:30", isAvailable: false),
+      ],
+      profession: 'Cleaning',
+    ),
+    const ProviderModel(
+      profession: 'Cleaning',
+      id: 2,
+      name: "Jane Smith",
+      email: "jane.smith@example.com",
+      phone: "5559876543",
+      image: KImages.pp,
+      createdAt: "2024-08-10",
+      userName: "janesmith",
+      rating: 4.7,
+      reviews: 45,
+      timeSlots: [
+        TimeSlotModel(time: "08:00", isAvailable: false),
+        TimeSlotModel(time: "08:30", isAvailable: true),
+        TimeSlotModel(time: "09:00", isAvailable: true),
+        TimeSlotModel(time: "09:30", isAvailable: true),
+        TimeSlotModel(time: "10:00", isAvailable: false),
+        TimeSlotModel(time: "10:30", isAvailable: true),
+        TimeSlotModel(time: "11:00", isAvailable: true),
+        TimeSlotModel(time: "11:30", isAvailable: false),
+        TimeSlotModel(time: "12:00", isAvailable: true),
+        TimeSlotModel(time: "12:30", isAvailable: true),
+        TimeSlotModel(time: "01:00", isAvailable: true),
+        TimeSlotModel(time: "01:30", isAvailable: true),
+      ],
+    ),
+    const ProviderModel(
+      profession: 'Cleaning',
+      id: 3,
+      name: "Michael Johnson",
+      email: "michael.johnson@example.com",
+      phone: "5558765432",
+      image: KImages.pp,
+      createdAt: "2024-07-25",
+      userName: "michaeljohnson",
+      rating: 4.8,
+      reviews: 40,
+      timeSlots: [
+        TimeSlotModel(time: "08:00", isAvailable: true),
+        TimeSlotModel(time: "08:30", isAvailable: false),
+        TimeSlotModel(time: "09:00", isAvailable: true),
+        TimeSlotModel(time: "09:30", isAvailable: true),
+        TimeSlotModel(time: "10:00", isAvailable: true),
+        TimeSlotModel(time: "10:30", isAvailable: true),
+        TimeSlotModel(time: "11:00", isAvailable: false),
+        TimeSlotModel(time: "11:30", isAvailable: true),
+        TimeSlotModel(time: "12:00", isAvailable: true),
+        TimeSlotModel(time: "12:30", isAvailable: false),
+        TimeSlotModel(time: "01:00", isAvailable: true),
+        TimeSlotModel(time: "01:30", isAvailable: true),
+      ],
+    ),
+    const ProviderModel(
+      profession: 'Cleaning',
+      id: 4,
+      name: "Emily Clark",
+      email: "emily.clark@example.com",
+      phone: "5557654321",
+      image: KImages.pp,
+      createdAt: "2024-07-15",
+      userName: "emilyclark",
+      rating: 4.6,
+      reviews: 35,
+      timeSlots: [
+        TimeSlotModel(time: "08:00", isAvailable: false),
+        TimeSlotModel(time: "08:30", isAvailable: true),
+        TimeSlotModel(time: "09:00", isAvailable: true),
+        TimeSlotModel(time: "09:30", isAvailable: true),
+        TimeSlotModel(time: "10:00", isAvailable: false),
+        TimeSlotModel(time: "10:30", isAvailable: true),
+        TimeSlotModel(time: "11:00", isAvailable: true),
+        TimeSlotModel(time: "11:30", isAvailable: false),
+        TimeSlotModel(time: "12:00", isAvailable: true),
+        TimeSlotModel(time: "12:30", isAvailable: true),
+        TimeSlotModel(time: "01:00", isAvailable: true),
+        TimeSlotModel(time: "01:30", isAvailable: true),
+      ],
+    ),
+  ];
+});
