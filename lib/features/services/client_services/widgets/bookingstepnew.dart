@@ -425,24 +425,44 @@ class _BookingDetailsState extends State<BookingDetails> {
                     return;
                   }
 
+                  // Construye los datos para la colección bookings
                   final bookingData = {
-                    'firstName': firstNameController.text,
-                    'lastName': lastNameController.text,
-                    'phoneNumber': phoneController.text,
-                    'email': emailController.text,
-                    'address': addressController.text,
-                    'description': descriptionController.text,
-                    'taskDuration': taskDuration,
-                    'date': DateFormat('yyyy-MM-dd').format(selectedDate!),
-                    'time': selectedTime!.format(context),
                     'taskId': widget.task.id,
                     'taskName': widget.task.name,
+                    'providerId': widget.task.providerId ?? '',
+                    'providerName':
+                        '${widget.task.firstName ?? ''} ${widget.task.lastName ?? ''}',
+                    'type': widget.task.type ??
+                        '', // Asegúrate de tener este campo en el modelo de tareas
+                    'address': addressController.text,
+                    'date': DateFormat('yyyy-MM-dd').format(selectedDate!),
+                    'time': selectedTime!.format(context),
+                    'taskDuration': '$taskDuration minutes',
                     'price': widget.task.price,
+                    'customerId': widget.userId,
+                    'customerName':
+                        '${firstNameController.text} ${lastNameController.text}',
+                    'email': emailController.text,
+                    'phoneNumber': phoneController.text,
+                    'status': 'pending', // Estado inicial de la reserva
+                    'paymentStatus': 'pending', // Estado inicial del pago
+                    'paymentMethod':
+                        '', // Inicialmente vacío; se llenará en la pantalla de pago
+                    'description': descriptionController.text,
+                    'refundAmount': 0, // Por defecto, sin reembolso
+                    'refundStatus': '', // Estado inicial del reembolso
+                    'cancellationCharges':
+                        0, // Por defecto, sin cargos de cancelación
+                    'cancellationChargeAmount':
+                        0, // Cantidad específica de cargos de cancelación
+                    'cancellationChargeHours':
+                        0, // Horas mínimas necesarias para cancelar sin cargos
+                    'reason': '', // Inicialmente vacío
                     'createdAt': FieldValue.serverTimestamp(),
-                    'userId': widget.userId,
                   };
 
                   try {
+                    // Guarda los datos en la colección `bookings`
                     await FirebaseFirestore.instance
                         .collection('bookings')
                         .add(bookingData);
@@ -453,10 +473,13 @@ class _BookingDetailsState extends State<BookingDetails> {
                       ),
                     );
 
+                    // Navegar a la pantalla de pago
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const PaymentScreen()),
+                        builder: (context) =>
+                            const PaymentScreen(), // Implementa PaymentScreen
+                      ),
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(

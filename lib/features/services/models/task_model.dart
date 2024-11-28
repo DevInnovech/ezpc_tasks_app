@@ -8,6 +8,7 @@ class Task {
   final String categoryId;
   final String subCategory;
   final double price;
+  final String type;
   final String imageUrl;
   final bool requiresLicense;
   final String licenseType;
@@ -48,6 +49,7 @@ class Task {
     required this.category,
     required this.subCategory,
     required this.price,
+    required this.type,
     required this.imageUrl,
     required this.requiresLicense,
     required this.licenseType,
@@ -90,6 +92,7 @@ class Task {
     String? category,
     String? subCategory,
     double? price,
+    String? type,
     String? imageUrl,
     bool? requiresLicense,
     String? licenseType,
@@ -130,6 +133,7 @@ class Task {
       categoryId: categoryId ?? this.categoryId,
       category: category ?? this.category,
       subCategory: subCategory ?? this.subCategory,
+      type: type ?? this.type,
       price: price ?? this.price,
       imageUrl: imageUrl ?? this.imageUrl,
       requiresLicense: requiresLicense ?? this.requiresLicense,
@@ -176,6 +180,7 @@ class Task {
       'category': category,
       'subCategory': subCategory,
       'price': price,
+      'type': type,
       'imageUrl': imageUrl,
       'requiresLicense': requiresLicense,
       'licenseType': licenseType,
@@ -219,6 +224,7 @@ class Task {
       category: map['category'] ?? '',
       subCategory: map['subCategory'] ?? '',
       price: (map['price'] ?? 0.0).toDouble(),
+      type: map['type'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       requiresLicense: map['requiresLicense'] ?? false,
       licenseType: map['licenseType'] ?? '',
