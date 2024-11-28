@@ -11,6 +11,8 @@ class GooglePlacesService {
 }
 
 class GooglePlacesAutocomplete extends StatefulWidget {
+  const GooglePlacesAutocomplete({super.key});
+
   @override
   _GooglePlacesAutocompleteState createState() =>
       _GooglePlacesAutocompleteState();
@@ -35,7 +37,11 @@ class _GooglePlacesAutocompleteState extends State<GooglePlacesAutocomplete> {
           ),
           debounceTime:
               800, // Retraso de debounce para optimizar llamadas a la API
-          countries: ["US", "MX", "CA"], // Opcional: restringir por países
+          countries: const [
+            "US",
+            "MX",
+            "CA"
+          ], // Opcional: restringir por países
           getPlaceDetailWithLatLng: (prediction) {
             Navigator.of(context).pop(prediction.description);
           },

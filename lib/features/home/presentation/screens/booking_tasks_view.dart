@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:text_scroll/text_Scroll.dart';
 
 class MyBookingsScreen extends StatelessWidget {
-  const MyBookingsScreen({Key? key}) : super(key: key);
+  const MyBookingsScreen({super.key});
 
   Future<List<Map<String, dynamic>>> fetchUserBookings() async {
     try {

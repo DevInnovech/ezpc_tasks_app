@@ -31,7 +31,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     super.initState();
     screenList = [
       const HomeScreen(),
-      const BookingScreen(),
+      const ProviderOrdersScreen(),
       const ServiceScreen(),
       const HomeScreen(),
       const SettingsScreen(),

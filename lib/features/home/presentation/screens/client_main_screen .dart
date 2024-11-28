@@ -34,7 +34,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       const OrderScreen(
         message: "",
       ),
-      const BookingScreen(),
+      const ProviderOrdersScreen(),
       const ClientHomeScreen(),
     ];
 

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByCategory.dart';
-import 'package:ezpc_tasks_app/features/services/client_services/widgets/bookingstepnew.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/Booking_Screen.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';

@@ -102,6 +102,7 @@ flutter:
      - assets/icons/
      - assets/images/
 
+
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
