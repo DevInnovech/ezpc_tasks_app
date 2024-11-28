@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/newpaymentscreen.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/widgets/googleplaceautocomplete.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -43,8 +44,12 @@ class BookingScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Book Task'),
+        backgroundColor: const Color(0xFF404C8C),
+        titleTextStyle: const TextStyle(
+            fontSize: 18,
+            color: Colors.white), // Cambia el color del texto a blanco,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -401,7 +406,16 @@ class _BookingDetailsState extends State<BookingDetails> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF404C8C), // Fondo azul
+                  foregroundColor: Colors.white, // Texto blanco
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(12.0), // Bordes redondeados
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                ),
+                onPressed: () async {
                   if (selectedDate == null || selectedTime == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -411,25 +425,51 @@ class _BookingDetailsState extends State<BookingDetails> {
                     return;
                   }
 
-                  debugPrint('First Name: ${firstNameController.text}');
-                  debugPrint('Last Name: ${lastNameController.text}');
-                  debugPrint('Phone Number: ${phoneController.text}');
-                  debugPrint('Email: ${emailController.text}');
-                  debugPrint('Address: ${addressController.text}');
-                  debugPrint('Description: ${descriptionController.text}');
-                  debugPrint('Duration: $taskDuration');
-                  debugPrint(
-                      'Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}');
-                  debugPrint('Time: ${selectedTime!.format(context)}');
+                  final bookingData = {
+                    'firstName': firstNameController.text,
+                    'lastName': lastNameController.text,
+                    'phoneNumber': phoneController.text,
+                    'email': emailController.text,
+                    'address': addressController.text,
+                    'description': descriptionController.text,
+                    'taskDuration': taskDuration,
+                    'date': DateFormat('yyyy-MM-dd').format(selectedDate!),
+                    'time': selectedTime!.format(context),
+                    'taskId': widget.task.id,
+                    'taskName': widget.task.name,
+                    'price': widget.task.price,
+                    'createdAt': FieldValue.serverTimestamp(),
+                    'userId': widget.userId,
+                  };
 
-                  // Proceed to payment logic
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Proceeding to Payment...'),
-                    ),
-                  );
+                  try {
+                    await FirebaseFirestore.instance
+                        .collection('bookings')
+                        .add(bookingData);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Booking successfully created.'),
+                      ),
+                    );
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const PaymentScreen()),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error saving booking: $e'),
+                      ),
+                    );
+                  }
                 },
-                child: const Text('Proceed to Payment'),
+                child: const Text(
+                  'Proceed to Payment',
+                  style: TextStyle(fontSize: 16.0),
+                ),
               ),
             ),
           ],
