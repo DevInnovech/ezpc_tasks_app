@@ -75,13 +75,15 @@ class TaskNotifier extends StateNotifier<TaskState> {
       // Crear una tarea inicializada con los datos del proveedor
       final emptyTask = TaskModel.Task(
         id: const Uuid().v4(),
-        name: '',
+        taskId: '',
+        taskName: '',
         firstName: firstName,
         lastName: lastName,
         slug: '',
         categoryId: '',
         category: '',
         subCategory: '',
+        subCategoryprice: 0.0,
         price: 0.0,
         type: '',
         imageUrl: '',
@@ -232,30 +234,38 @@ class TaskNotifier extends StateNotifier<TaskState> {
 
   Future<void> saveTask(TaskModel.Task task) async {
     try {
-      // Ensure provider data is correctly assigned to the task before saving
+      // Automatically generate a taskId if not provided
+      final taskId = task.taskId.isNotEmpty ? task.taskId : const Uuid().v4();
+
+      // Determine the taskName based on subCategory and category
+      final taskName =
+          (task.subCategory.isNotEmpty) ? task.subCategory : task.category;
+
+      // Create a new instance of the task with updated values
       final newTask = TaskModel.Task(
         id: task.id.isNotEmpty ? task.id : const Uuid().v4(),
-        name: task.name,
-        firstName: task.firstName, // Connected provider's first name
-        lastName: task.lastName, // Connected provider's last name
+        taskId: taskId, // Assign the generated or existing taskId
+        taskName: taskName, // Assign taskName based on conditional logic
+        firstName: task.firstName,
+        lastName: task.lastName,
         slug: task.slug,
         categoryId: task.categoryId,
         category: task.category,
         subCategory: task.subCategory,
         price: task.price,
+        subCategoryprice: task.subCategoryprice,
         type: task.type,
         imageUrl: task.imageUrl,
         requiresLicense: task.requiresLicense,
         licenseType: task.licenseType,
         licenseNumber: task.licenseNumber,
         licenseExpirationDate: task.licenseExpirationDate,
-        workingDays: List<String>.from(
-            task.workingDays), // Ensure working days are a list of strings
+        workingDays: List<String>.from(task.workingDays),
         workingHours: task.workingHours.map(
           (key, value) => MapEntry(
-              key,
-              Map<String, String>.from(
-                  value)), // Ensure working hours are properly mapped
+            key,
+            Map<String, String>.from(value),
+          ),
         ),
         specialDays: List<Map<String, String>>.from(task.specialDays),
         documentUrl: task.documentUrl,
@@ -271,13 +281,14 @@ class TaskNotifier extends StateNotifier<TaskState> {
         averageRating: task.averageRating,
         totalReview: task.totalReview,
         totalOrder: task.totalOrder,
-        providerId: task.providerId, // Connected provider's ID
-        provider: task.provider, // Additional provider details if available
+        providerId: task.providerId,
+        provider: task.provider,
         details: task.details,
         questionResponses: task.questionResponses,
         duration: task.duration,
         description: task.description,
-        clientName: task.clientName, clientLastName: task.clientLastName,
+        clientName: task.clientName,
+        clientLastName: task.clientLastName,
       );
 
       // Save the task in the repository
@@ -290,16 +301,17 @@ class TaskNotifier extends StateNotifier<TaskState> {
         currentTask: newTask,
       );
 
-      debugPrint('Task saved successfully.');
+      debugPrint('Task successfully saved with taskId: $taskId');
     } catch (e) {
-      // Capture errors and update state with the error message
+      // Capture errors and update the state with the error message
       state = state.copyWith(error: e.toString());
       debugPrint('Error saving task: $e');
     }
   }
 
   void updateTask({
-    String? name,
+    String? taskName,
+    String? taskId,
     String? firstName,
     String? lastName,
     String? slug,
@@ -307,6 +319,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
     String? category,
     String? subCategory,
     double? price,
+    double? subCategoryprice,
     String? imageUrl,
     bool? requiresLicense,
     String? licenseType,
@@ -336,7 +349,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
     if (state.currentTask == null) return;
 
     final updatedTask = state.currentTask!.copyWith(
-      name: name,
+      taskName: taskName,
       firstName: firstName,
       lastName: lastName,
       slug: slug,
@@ -344,6 +357,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
       category: category,
       subCategory: subCategory,
       price: price,
+      subCategoryprice: subCategoryprice,
       imageUrl: imageUrl,
       requiresLicense: requiresLicense,
       licenseType: licenseType,

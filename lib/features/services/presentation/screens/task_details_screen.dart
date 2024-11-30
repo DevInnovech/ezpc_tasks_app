@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 
 class TaskDetailsScreen extends ConsumerWidget {
   final Task task;
@@ -11,13 +10,11 @@ class TaskDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.read(taskProvider.notifier);
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Tasks Details',
+          'Task Details',
           style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
@@ -52,79 +49,96 @@ class TaskDetailsScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    text: task.subCategory,
-                    fontSize: 22.0,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    task.subCategory,
+                    style: const TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 8.0),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 16.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF404C8C), // Color modificado
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Text(
-                      '\$${task.price}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '\$${task.price}',
+                        style: const TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
                       ),
-                    ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.star,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 4.0),
+                          Text(
+                            task.averageRating.toString(),
+                            style: const TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
               const SizedBox(height: 16.0),
 
-              // Sección de "Questions" utilizando `questionResponses`
-              _buildSectionTitle('Questions'),
-              task.questionResponses != null &&
-                      task.questionResponses!.isNotEmpty
-                  ? Container(
-                      width: double.infinity, // Ocupa todo el ancho disponible
-                      padding: const EdgeInsets.all(16.0),
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 0), // Ajustar los márgenes
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFF404C8C)),
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: Colors.grey.shade50,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: task.questionResponses!.entries.map((entry) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text(
-                              '${entry.key}: ${entry.value}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16.0,
-                                color: Color(0xFF404C8C),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    )
-                  : Center(
-                      child: Text(
-                        'No Questions Available',
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ),
+              // Sección de descripción
+              _buildSectionTitle('Description'),
+              Text(
+                task.description,
+                style: const TextStyle(
+                  fontSize: 16.0,
+                  height: 1.5,
+                  color: Colors.black87,
+                ),
+              ),
               const SizedBox(height: 16.0),
 
-              // Sección de "Working Days & Hours" (Solo Working Hours)
-              _buildSectionTitle('Working Days & Hours'),
+              // Sección de "Questions"
+              if (task.questionResponses != null &&
+                  task.questionResponses!.isNotEmpty) ...[
+                _buildSectionTitle('FAQs'),
+                ...task.questionResponses!.entries.map((entry) {
+                  return ExpansionTile(
+                    title: Text(
+                      entry.key,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: Text(
+                          entry.value,
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ],
+              const SizedBox(height: 16.0),
+
+              // Sección de "Working Hours"
+              _buildSectionTitle('Working Hours'),
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
@@ -134,23 +148,59 @@ class TaskDetailsScreen extends ConsumerWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Solo mostramos las horas de trabajo, eliminamos los días
-                    ...task.workingHours.entries.map((entry) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.access_time,
-                                  size: 16.0, color: Color(0xFF404C8C)),
-                              const SizedBox(width: 10.0),
-                              Text(
-                                '${entry.key}: ${entry.value['start']} - ${entry.value['end']}',
-                                style: const TextStyle(fontSize: 16.0),
-                              ),
-                            ],
+                  children: task.workingHours.entries.map((entry) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time,
+                              size: 16.0, color: Color(0xFF404C8C)),
+                          const SizedBox(width: 10.0),
+                          Text(
+                            '${entry.key}: ${entry.value['start']} - ${entry.value['end']}',
+                            style: const TextStyle(fontSize: 16.0),
                           ),
-                        )),
-                  ],
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 20.0),
+
+              // Sección de "Reviews"
+              _buildSectionTitle('Reviews (1)'),
+              Card(
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(task.imageUrl ??
+                        'https://via.placeholder.com/150'), // Placeholder si no hay imagen
+                  ),
+                  title: Text(
+                    task.clientName ?? 'Anonymous',
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    task.createdAt ?? '',
+                    style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, color: Colors.orange, size: 20.0),
+                      Text(
+                        task.averageRating.toString(),
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20.0),

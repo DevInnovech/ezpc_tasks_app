@@ -58,16 +58,16 @@ class MyBottomNavigationBar extends StatelessWidget {
                       label: 'Home',
                     ),
                     BottomNavigationBarItem(
-                      tooltip: "Booking",
+                      tooltip: "Bookings",
                       icon: _navIcon(KImages.booking),
                       activeIcon: _navIcon(KImages.bookingActive),
-                      label: "Booking",
+                      label: "Bookings",
                     ),
                     BottomNavigationBarItem(
-                      tooltip: "Service",
+                      tooltip: "My Tasks",
                       icon: _navIcon(KImages.service),
                       activeIcon: _navIcon(KImages.serviceActive),
-                      label: "Service",
+                      label: "My Tasks",
                     ),
                     BottomNavigationBarItem(
                       tooltip: "Wallet",

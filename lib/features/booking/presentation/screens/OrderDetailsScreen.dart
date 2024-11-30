@@ -1,16 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class OrderDetailsScreen extends StatelessWidget {
+class OrderDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> order;
 
-  const OrderDetailsScreen({Key? key, required this.order}) : super(key: key);
+  const OrderDetailsScreen({super.key, required this.order});
+
+  @override
+  _OrderDetailsScreenState createState() => _OrderDetailsScreenState();
+}
+
+class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+  bool isAccepted = false; // Track if the order is accepted
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.order['status']?.toLowerCase() == 'accepted') {
+      isAccepted = true; // Set isAccepted to true if status is 'accepted'
+    }
+  }
+
+  void _acceptOrder() async {
+    // Update the order status in Firestore to 'accepted'
+    await FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(widget.order['bookingId'])
+        .update({'status': 'accepted'});
+
+    setState(() {
+      isAccepted =
+          true; // Update the state to reflect that the order was accepted
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          order['status']?.toUpperCase() ?? 'DETAILS',
+          widget.order['status']?.toUpperCase() ?? 'DETAILS',
           style: const TextStyle(
             fontSize: 18,
             color: Colors.white,
@@ -22,7 +51,7 @@ class OrderDetailsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {
-              // Implement "Check Status" logic
+              _showStatusModal(context, widget.order['bookingId']);
             },
             child: const Text(
               "Check Status",
@@ -47,11 +76,10 @@ class OrderDetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Booking ID: #${order['id'] ?? 'N/A'}',
+              'Booking ID: #${widget.order['bookingId'] ?? 'N/A'}',
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 16),
-
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -60,7 +88,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        order['taskName'] ?? 'Task Name',
+                        widget.order['taskName'] ?? 'Task Name',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -76,7 +104,7 @@ class OrderDetailsScreen extends StatelessWidget {
                               color: Colors.grey,
                             ),
                           ),
-                          Text(order['date'] ?? 'N/A'),
+                          Text(widget.order['date'] ?? 'N/A'),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -89,7 +117,7 @@ class OrderDetailsScreen extends StatelessWidget {
                               color: Colors.grey,
                             ),
                           ),
-                          Text(order['time'] ?? 'N/A'),
+                          Text(widget.order['time'] ?? 'N/A'),
                         ],
                       ),
                     ],
@@ -98,24 +126,24 @@ class OrderDetailsScreen extends StatelessWidget {
                 const SizedBox(width: 16),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
-                  child:
-                      order['imageUrl'] != null && order['imageUrl'].isNotEmpty
-                          ? Image.network(
-                              order['imageUrl'],
-                              height: 80,
-                              width: 80,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              height: 80,
-                              width: 80,
-                              color: Colors.grey[300],
-                              child: const Icon(
-                                Icons.image,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
-                            ),
+                  child: widget.order['imageUrl'] != null &&
+                          widget.order['imageUrl'].isNotEmpty
+                      ? Image.network(
+                          widget.order['imageUrl'],
+                          height: 80,
+                          width: 80,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          height: 80,
+                          width: 80,
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.image,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -149,21 +177,21 @@ class OrderDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          order['customerName'] ?? 'N/A',
+                          widget.order['customerName'] ?? 'N/A',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          order['email'] ?? 'N/A',
+                          widget.order['email'] ?? 'N/A',
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
                           ),
                         ),
                         Text(
-                          order['address'] ?? 'N/A',
+                          widget.order['address'] ?? 'N/A',
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
@@ -237,17 +265,18 @@ class OrderDetailsScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildPriceRow('Price', '\$${order['price'] ?? '0.00'}'),
                   _buildPriceRow(
-                      'Discount', '-\$${order['discount'] ?? '0.00'} (5% off)'),
+                      'Price', '\$${widget.order['price'] ?? '0.00'}'),
+                  _buildPriceRow('Discount',
+                      '-\$${widget.order['discount'] ?? '0.00'} (5% off)'),
                   _buildPriceRow(
-                      'Sub Total', '\$${order['subtotal'] ?? '0.00'}'),
-                  _buildPriceRow('Tax', '\$${order['tax'] ?? '0.00'}',
+                      'Sub Total', '\$${widget.order['subtotal'] ?? '0.00'}'),
+                  _buildPriceRow('Tax', '\$${widget.order['tax'] ?? '0.00'}',
                       isHighlighted: true),
                   const Divider(),
                   _buildPriceRow(
                     'Total Amount',
-                    '\$${order['totalAmount'] ?? '0.00'}',
+                    '\$${widget.order['totalAmount'] ?? '0.00'}',
                     isHighlighted: true,
                   ),
                 ],
@@ -255,51 +284,206 @@ class OrderDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Accept and Decline Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Implement "Accept" logic
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 79, 76, 175),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+            // Show "Accept" and "Decline" buttons only if the order is not accepted
+            if (!isAccepted) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _acceptOrder,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 79, 76, 175),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Accept',
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 255, 255, 255)),
                       ),
                     ),
-                    child: const Text(
-                      'Accept',
-                      style:
-                          TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      // Implement "Decline" logic
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        // Implement "Decline" logic
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Decline',
+                        style: TextStyle(color: Colors.red),
                       ),
                     ),
-                    child: const Text(
-                      'Decline',
-                      style: TextStyle(color: Colors.red),
-                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Show "Drive to Tasks" button if the order is accepted
+            if (isAccepted) ...[
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Implement navigation to tasks screen
+                },
+                child: const Text("Drive to Tasks"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  void _showStatusModal(BuildContext context, String bookingId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.7,
+          child: FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('bookings')
+                .doc(bookingId)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return const Center(
+                  child: Text(
+                    'No status data available.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                );
+              }
+
+              final data = snapshot.data!.data() as Map<String, dynamic>;
+              final status = data['status'] ?? 'Unknown';
+              final updatedAt = (data['updatedAt'] as Timestamp?)?.toDate();
+
+              String description;
+              switch (status.toLowerCase()) {
+                case 'pending':
+                  description =
+                      '${widget.order['customerName']} has requested your Task. Please confirm the booking to proceed.';
+                  break;
+                case 'in progress':
+                  description = 'Your order is being processed.';
+                  break;
+                case 'completed':
+                  description = 'Your order has been completed.';
+                  break;
+                case 'cancelled':
+                  description = 'Your order has been cancelled.';
+                  break;
+                default:
+                  description = 'Status information is not available.';
+              }
+
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ListView(
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Booking History',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          children: [
+                            const SizedBox(height: 4),
+                            CircleAvatar(
+                              radius: 6,
+                              backgroundColor: _getStatusColor(status),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                status,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                description,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                updatedAt != null
+                                    ? '${updatedAt.toLocal()}'
+                                    : 'Unknown time',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'in progress':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _rectangularButton({
@@ -308,7 +492,7 @@ class OrderDetailsScreen extends StatelessWidget {
     required String label,
     required VoidCallback onPressed,
   }) {
-    return Container(
+    return SizedBox(
       width: 120,
       height: 50,
       child: ElevatedButton.icon(

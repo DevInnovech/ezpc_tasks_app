@@ -52,7 +52,7 @@ class ClientBottomNavigationBar extends StatelessWidget {
                 _bottomNavItem(
                     icon: KImages.order,
                     active: KImages.orderActive,
-                    title: "Bookings"),
+                    title: "My Bookings"),
                 _bottomNavItem(
                     icon: KImages.service,
                     active: KImages.serviceActive,

@@ -103,10 +103,21 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                   }
                 },
               ),
-              if (selectedSubCategory != null &&
-                  selectedSubCategory.additionalOptions != null)
+              if (selectedSubCategory != null) ...[
                 _buildAdditionalOptions(
                     context, currentTask, selectedSubCategory),
+                const SizedBox(height: 16),
+                _buildSectionTitle(context, 'Subcategory Pricing'),
+                RateInputWidget(
+                  onRateChanged: (double subCategoryPrice) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            subCategoryprice: subCategoryPrice,
+                          );
+                    }
+                  },
+                ),
+              ],
             ],
             const SizedBox(height: 16),
             _buildSectionTitle(context, 'Professional License'),
@@ -193,6 +204,9 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
 
   Widget _buildAdditionalOptions(
       BuildContext context, Task? currentTask, var selectedSubCategory) {
+    final List<String> additionalOptions =
+        List<String>.from(selectedSubCategory.additionalOptions ?? []);
+
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
       child: Column(
@@ -204,8 +218,8 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
             isExpanded: true,
             value: _selectedAdditionalOption,
             hint: const Text('Select an additional option'),
-            items: selectedSubCategory.additionalOptions!
-                .map((option) => DropdownMenuItem(
+            items: additionalOptions
+                .map((option) => DropdownMenuItem<String>(
                       value: option,
                       child: Text(option),
                     ))

@@ -46,22 +46,15 @@ class _QuestionsStepState extends ConsumerState<QuestionsStep> {
                         labelText: question,
                       ),
                       onChanged: (value) {
-                        // Validar que `currentTask` no sea null antes de actualizar
                         if (currentTask != null) {
-                          // Obtener el mapa de respuestas actual
                           Map<String, String> questionResponses =
                               currentTask.questionResponses ?? {};
-
-                          // Actualizar la respuesta a la pregunta
                           questionResponses[question] = value;
-
-                          // Usar `updateTask` para actualizar el campo `questionResponses`
                           ref.read(taskProvider.notifier).updateTask(
                                 questionResponses: questionResponses,
                               );
                         }
                       },
-                      // Validación de campo vacío
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please fill in this field';
@@ -76,6 +69,35 @@ class _QuestionsStepState extends ConsumerState<QuestionsStep> {
               )
             else
               const Center(child: Text('No additional questions.')),
+
+            const SizedBox(height: 16),
+
+            // Campo para agregar detalles adicionales
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Additional Details',
+                  hintText: 'Enter any additional details here...',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  if (currentTask != null) {
+                    ref.read(taskProvider.notifier).updateTask(
+                          details: value,
+                        );
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please provide some details';
+                  }
+                  return null;
+                },
+                maxLines: 4, // Permitir varias líneas
+                initialValue: currentTask?.details ?? '',
+              ),
+            ),
           ],
         ),
       ),

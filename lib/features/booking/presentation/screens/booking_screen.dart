@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ProviderOrdersScreen extends StatelessWidget {
-  const ProviderOrdersScreen({Key? key}) : super(key: key);
+  const ProviderOrdersScreen({super.key});
 
   Future<List<Map<String, dynamic>>> fetchProviderOrders() async {
     try {

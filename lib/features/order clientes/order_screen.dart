@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class OrderScreen extends ConsumerWidget {
-  const OrderScreen({super.key, required this.message});
+class AllCategoriesScreen extends ConsumerWidget {
+  const AllCategoriesScreen({super.key, required this.message});
 
   final String message;
 

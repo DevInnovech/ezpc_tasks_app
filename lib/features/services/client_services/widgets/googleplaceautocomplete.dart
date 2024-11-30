@@ -5,7 +5,7 @@ class GooglePlacesService {
   static Future<String?> getAddressPrediction(BuildContext context) async {
     return await showDialog<String>(
       context: context,
-      builder: (context) => GooglePlacesAutocomplete(),
+      builder: (context) => const GooglePlacesAutocomplete(),
     );
   }
 }

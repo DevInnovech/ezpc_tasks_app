@@ -1,12 +1,12 @@
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_data_model.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/AllcategoriesScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/booking_tasks_view.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/Client_home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_app_drawer.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_bottom_navigation_bar.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/feedback_dialog.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/order_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
@@ -31,9 +31,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
     super.initState();
     screenList = [
       const ClientHomeScreen(),
-      const OrderScreen(
-        message: "",
-      ),
+      const AllCategoryScreen(),
       const ProviderOrdersScreen(),
       const ClientHomeScreen(),
     ];
@@ -145,9 +143,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       case 1:
         return const MyBookingsScreen();
       case 2:
-        return const OrderScreen(
-          message: '',
-        );
+        return const AllCategoryScreen();
 
       default:
         return const SizedBox();

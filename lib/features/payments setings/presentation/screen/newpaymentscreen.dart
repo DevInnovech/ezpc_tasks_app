@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'stripe_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
@@ -21,6 +22,52 @@ class _PaymentScreenState extends State<PaymentScreen> {
     cvvController.dispose();
     cardHolderNameController.dispose();
     super.dispose();
+  }
+
+  Future<void> processPayment() async {
+    String cardNumber = cardNumberController.text.replaceAll(' ', '');
+    String expiryDate = expiryDateController.text;
+    String cvv = cvvController.text;
+    String cardHolderName = cardHolderNameController.text;
+
+    if (cardNumber.isEmpty ||
+        expiryDate.isEmpty ||
+        cvv.isEmpty ||
+        cardHolderName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all the fields.')),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Processing payment...')),
+    );
+
+    try {
+      bool success = await StripeService.processPayment(
+        cardNumber: cardNumber,
+        expiryDate: expiryDate,
+        cvv: cvv,
+        cardHolderName: cardHolderName,
+        currency: '',
+        amount: 50,
+      );
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Payment successful!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Payment failed. Please try again.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override
@@ -114,31 +161,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     backgroundColor: const Color(0xFF404C8C), // Fondo azul
                     foregroundColor: Colors.white, // Texto blanco
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(12.0), // Bordes redondeados
+                      borderRadius: BorderRadius.circular(12.0),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14.0),
                   ),
-                  onPressed: () {
-                    if (cardNumberController.text.isEmpty ||
-                        expiryDateController.text.isEmpty ||
-                        cvvController.text.isEmpty ||
-                        cardHolderNameController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please fill in all the fields.'),
-                        ),
-                      );
-                      return;
-                    }
-
-                    // Payment processing logic here
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Processing payment...'),
-                      ),
-                    );
-                  },
+                  onPressed: processPayment,
                   child: const Text(
                     'Pay Now',
                     style: TextStyle(fontSize: 16.0),

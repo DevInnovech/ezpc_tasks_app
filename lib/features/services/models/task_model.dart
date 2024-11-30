@@ -1,6 +1,7 @@
 class Task {
   String id;
-  final String name;
+  final String taskId;
+  final String taskName;
   final String firstName; // Nuevo campo
   final String lastName; // Nuevo campo
   final String slug; // Nuevo campo
@@ -8,6 +9,7 @@ class Task {
   final String categoryId;
   final String subCategory;
   final double price;
+  final double subCategoryprice;
   final String type;
   final String imageUrl;
   final bool requiresLicense;
@@ -41,7 +43,8 @@ class Task {
 
   Task({
     required this.id,
-    required this.name,
+    required this.taskId,
+    required this.taskName,
     required this.firstName,
     required this.lastName,
     required this.slug,
@@ -49,6 +52,7 @@ class Task {
     required this.category,
     required this.subCategory,
     required this.price,
+    required this.subCategoryprice,
     required this.type,
     required this.imageUrl,
     required this.requiresLicense,
@@ -84,7 +88,8 @@ class Task {
   // Método para copiar la tarea con modificaciones
   Task copyWith({
     String? id,
-    String? name,
+    String? taskId,
+    String? taskName,
     String? firstName,
     String? lastName,
     String? slug,
@@ -92,6 +97,7 @@ class Task {
     String? category,
     String? subCategory,
     double? price,
+    double? subCategoryprice,
     String? type,
     String? imageUrl,
     bool? requiresLicense,
@@ -126,7 +132,8 @@ class Task {
   }) {
     return Task(
       id: id ?? this.id,
-      name: name ?? this.name,
+      taskId: taskId ?? this.taskId,
+      taskName: taskName ?? this.taskName,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       slug: slug ?? this.slug,
@@ -135,6 +142,7 @@ class Task {
       subCategory: subCategory ?? this.subCategory,
       type: type ?? this.type,
       price: price ?? this.price,
+      subCategoryprice: subCategoryprice ?? this.subCategoryprice,
       imageUrl: imageUrl ?? this.imageUrl,
       requiresLicense: requiresLicense ?? this.requiresLicense,
       licenseType: licenseType ?? this.licenseType,
@@ -172,7 +180,8 @@ class Task {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name,
+      'taskId': taskId,
+      'taskName': taskName,
       'firstName': firstName,
       'lastName': lastName,
       'slug': slug,
@@ -180,6 +189,7 @@ class Task {
       'category': category,
       'subCategory': subCategory,
       'price': price,
+      'subCategoryprice': subCategoryprice,
       'type': type,
       'imageUrl': imageUrl,
       'requiresLicense': requiresLicense,
@@ -216,7 +226,8 @@ class Task {
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       id: map['id'] ?? '',
-      name: map['name'] ?? '',
+      taskId: map['taskId'] ?? '',
+      taskName: map['name'] ?? '',
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
       slug: map['slug'] ?? '',
@@ -224,6 +235,7 @@ class Task {
       category: map['category'] ?? '',
       subCategory: map['subCategory'] ?? '',
       price: (map['price'] ?? 0.0).toDouble(),
+      subCategoryprice: (map['subCategoryprice'] ?? 0.0).toDouble(),
       type: map['type'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       requiresLicense: map['requiresLicense'] ?? false,

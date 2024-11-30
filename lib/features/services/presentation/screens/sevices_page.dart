@@ -16,9 +16,8 @@ class ServiceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Obtenemos el estado de las tareas utilizando Riverpod
     final taskState = ref.watch(taskProvider);
-    final taskNotifier = ref.read(taskProvider.notifier); // Acceder al notifier
+    final taskNotifier = ref.read(taskProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,29 +34,28 @@ class ServiceScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // Botón "Add New Task" siempre visible en la parte superior
+          // Botón "Add New Task"
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton.icon(
               icon: const Icon(Icons.add, color: Color(0xFF404C8C)),
               label: const Text(
                 'Add New Task',
-                style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                style: TextStyle(color: Colors.black),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(
-                  color: Color(0xFF404C8C), // Borde del color especificado
-                  width: 2.0, // Grosor del borde
+                  color: Color(0xFF404C8C),
+                  width: 2.0,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
                 padding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 24.0),
+                    vertical: 14.0, horizontal: 20.0),
               ),
               onPressed: () {
-                // Navegar a la pantalla de agregar nueva tarea
                 Navigator.pushNamed(context, '/addNewServiceScreen');
               },
             ),
@@ -68,7 +66,7 @@ class ServiceScreen extends ConsumerWidget {
                 : taskState.error != null
                     ? FetchErrorText(text: taskState.error!)
                     : (taskState.tasks.isEmpty ?? true)
-                        ? _buildEmptyState() // Estado vacío con imagen y mensaje
+                        ? _buildEmptyState()
                         : ListView.builder(
                             itemCount: taskState.tasks.length ?? 0,
                             itemBuilder: (context, index) {
@@ -84,13 +82,12 @@ class ServiceScreen extends ConsumerWidget {
     );
   }
 
-  // Widget para construir la tarjeta de cada tarea
   Widget _buildTaskCard(
       Task task, TaskNotifier taskNotifier, BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(10.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,8 +97,8 @@ class ServiceScreen extends ConsumerWidget {
               // Imagen de la tarea
               ClipRRect(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12.0),
-                  topRight: Radius.circular(12.0),
+                  topLeft: Radius.circular(10.0),
+                  topRight: Radius.circular(10.0),
                 ),
                 child: CustomImage(
                   url: null,
@@ -110,10 +107,10 @@ class ServiceScreen extends ConsumerWidget {
                   fit: BoxFit.cover,
                   path: task.imageUrl.isNotEmpty
                       ? task.imageUrl
-                      : KImages.emptyBookingImage, // URL de la imagen
+                      : KImages.emptyBookingImage,
                 ),
               ),
-              // Estado de la tarea (Activo por defecto)
+              // Estado de la tarea
               Positioned(
                 top: 10.0,
                 left: 10.0,
@@ -121,9 +118,8 @@ class ServiceScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 6.0),
                   decoration: BoxDecoration(
-                    // Asignar todos los tasks como "Active" por defecto
                     color: Colors.green,
-                    borderRadius: BorderRadius.circular(20.0),
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: const Text(
                     'Active',
@@ -138,11 +134,10 @@ class ServiceScreen extends ConsumerWidget {
                 right: 10.0,
                 child: GestureDetector(
                   onTap: () async {
-                    // Mostrar el cuadro de diálogo de confirmación de eliminación
                     final shouldDelete =
                         await _showDeleteConfirmationDialog(context);
                     if (shouldDelete) {
-                      await taskNotifier.deleteTask(task); // Eliminar tarea
+                      await taskNotifier.deleteTask(task);
                     }
                   },
                   child:
@@ -156,17 +151,14 @@ class ServiceScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Mostrar categoría
                 _buildCategoryTag(task.category),
                 const SizedBox(height: 8.0),
-                // Mostrar subcategoría
                 CustomText(
-                  text: task.subCategory,
+                  text: task.taskName,
                   fontSize: 18.0,
                   fontWeight: FontWeight.w700,
                 ),
                 const SizedBox(height: 4.0),
-                // Mostrar fecha de creación
                 CustomText(
                   text: DateFormat.yMMMMd().format(
                       DateTime.tryParse(task.issueDate) ?? DateTime.now()),
@@ -174,7 +166,6 @@ class ServiceScreen extends ConsumerWidget {
                   color: Colors.grey,
                 ),
                 const SizedBox(height: 4.0),
-                // Mostrar precio
                 CustomText(
                   text: '\$${task.price}',
                   fontSize: 20.0,
@@ -182,7 +173,6 @@ class ServiceScreen extends ConsumerWidget {
                   color: primaryColor,
                 ),
                 const SizedBox(height: 10.0),
-                // Botón "View Details" con ajuste de tamaño y estilo
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
@@ -196,11 +186,11 @@ class ServiceScreen extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
+                        borderRadius: BorderRadius.circular(10.0),
                       ),
                       padding: const EdgeInsets.symmetric(
-                        vertical: 8.0,
-                        horizontal: 20.0,
+                        vertical: 12.0,
+                        horizontal: 16.0,
                       ),
                     ),
                     child: const Text(
@@ -220,13 +210,12 @@ class ServiceScreen extends ConsumerWidget {
     );
   }
 
-  // Método para mostrar el diálogo de confirmación de eliminación
   Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0)),
+                borderRadius: BorderRadius.circular(10.0)),
             title: const Text(
               'Confirm Delete',
               style: TextStyle(
@@ -239,7 +228,6 @@ class ServiceScreen extends ConsumerWidget {
               style: TextStyle(fontSize: 16.0),
             ),
             actions: [
-              // Botón "Cancel" en azul
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
                 child: const Text(
@@ -247,7 +235,6 @@ class ServiceScreen extends ConsumerWidget {
                   style: TextStyle(color: Colors.blue, fontSize: 16.0),
                 ),
               ),
-              // Botón "Delete" en rojo
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 child: const Text(
@@ -261,13 +248,12 @@ class ServiceScreen extends ConsumerWidget {
         false;
   }
 
-  // Método para construir las etiquetas de categoría y subcategoría
   Widget _buildCategoryTag(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       decoration: BoxDecoration(
         color: primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20.0),
+        borderRadius: BorderRadius.circular(10.0),
       ),
       child: Text(
         label,
@@ -280,14 +266,13 @@ class ServiceScreen extends ConsumerWidget {
     );
   }
 
-  // Método para construir el estado vacío
   Widget _buildEmptyState() {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomImage(
-            path: KImages.emptyBookingImage, // Imagen de estado vacío
+            path: KImages.emptyBookingImage,
             url: null,
           ),
           SizedBox(height: 20.0),
