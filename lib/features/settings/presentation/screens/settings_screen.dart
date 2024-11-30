@@ -335,24 +335,137 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildActionButton(BuildContext context, String text) {
-    return Padding(
-      padding: const EdgeInsets.all(5.0),
-      child: ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+  void _showConfirmationDialog(BuildContext context, String actionText,
+      String currentRole, String secondaryRole) {
+    // Determinar el nuevo rol (el contrario al actual)
+    final newRole = currentRole == 'Provider' ? 'Client' : 'Provider';
+
+    // Prevenir que el rol y el rol secundario sean iguales
+    if (newRole == secondaryRole) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Role and Secondary Role cannot be the same.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmation'),
+          content: Text(
+            'Are you sure you want to $actionText? You will be redirected to your $newRole dashboard.',
           ),
-          minimumSize: const Size(double.infinity, 40),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _switchRoleAndNavigate(context, currentRole, newRole);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _switchRoleAndNavigate(
+      BuildContext context, String currentRole, String newRole) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception("User not logged in");
+      }
+
+      // Determinar el nombre de la ruta de navegación basado en el nuevo rol
+      final routeName = newRole == 'Client'
+          ? RouteNames.ClientmainScreen // Home para "Client"
+          : RouteNames.mainScreen; // Home para "Independent Provider"
+
+      // Navegar primero al Home del nuevo rol
+      Navigator.pushReplacementNamed(context, routeName);
+
+      // Esperar un breve tiempo para asegurarse de que la navegación se complete
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Luego actualizar `role` y `secondaryRole` en Firebase
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'role': newRole,
+        'secondaryRole':
+            currentRole, // El rol actual se convierte en secundario
+      });
+
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Switched to $newRole successfully.'),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
+      );
+    } catch (e) {
+      // Manejar errores
+      print('Error updating role: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to switch role.')),
+      );
+    }
+  }
+
+  Widget _buildActionButton(BuildContext context, String defaultButtonText) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+          return const Text("Error loading role data");
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final currentRole = userData['role'] ?? '';
+        final secondaryRole = userData['secondaryRole'] ?? '';
+
+        // Determinar el texto del botón
+        final buttonText = secondaryRole.isNotEmpty
+            ? "Switch to ${currentRole == 'Client' ? 'Independent Provider' : 'Client'}"
+            : defaultButtonText;
+
+        return Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: ElevatedButton(
+            onPressed: () => _switchRoleAndNavigate(
+              context,
+              currentRole,
+              currentRole == 'Client' ? 'Independent Provider' : 'Client',
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              minimumSize: const Size(double.infinity, 40),
+            ),
+            child: Text(
+              buttonText,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      },
     );
   }
 
