@@ -35,11 +35,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       const ServiceScreen(),
       const HomeScreen(),
       const SettingsScreen(),
-
-      // Añadir más pantallas aquí si es necesario
-      // const BookingScreen(),
-      // const ServiceScreen(),
-      // const WalletScreen(),
     ];
   }
 
