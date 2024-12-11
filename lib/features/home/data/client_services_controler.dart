@@ -74,6 +74,8 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         id: doc.id,
         name: data['name'] ?? 'Unnamed Category',
         subCategories: subCategories,
+        pathImage: null,
+        categoryId: '',
       );
     }).toList();
 
@@ -105,49 +107,43 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
       const ServiceArea(id: 2, name: "Service Area 2", slug: '2'),
     ];
 
-    // Asignamos los proveedores a los servicios destacados
-    final featuredServices = [
-      ServiceItem(
-        id: 1,
-        name: "Featured Service 1",
-        slug: "featured-service-1",
-        image: KImages.s01,
-        price: 100.0,
-        categoryId: loadedCategories[0],
-        providerId: providers[0].id,
-        makeFeatured: 1,
-        isBanned: 0,
-        details: "This is a featured service by John Doe",
-        status: 1,
-        createdAt: "2024-01-01",
-        approveByAdmin: 1,
-        averageRating: "5",
-        totalReview: 10,
-        totalOrder: 5,
-        category: loadedCategories[0],
-        provider: providers[0], // John Doe
-      ),
-      ServiceItem(
-        id: 2,
-        name: "Featured Service 2",
-        slug: "featured-service-2",
-        image: KImages.s01,
-        price: 120.0,
-        categoryId: loadedCategories[1],
-        providerId: providers[1].id,
-        makeFeatured: 1,
-        isBanned: 0,
-        details: "This is a featured service by Jane Smith",
-        status: 1,
-        createdAt: "2024-01-01",
-        approveByAdmin: 1,
-        averageRating: "4.5",
-        totalReview: 10,
-        totalOrder: 5,
-        category: loadedCategories[1],
-        provider: providers[1], // Jane Smith
-      ),
-    ];
+    // Cargar servicios destacados desde Firebase
+    final featuredServicesSnapshot = await _firestore
+        .collection('tasks')
+        .where('makeFeatured', isEqualTo: 1)
+        .get();
+
+    final featuredServices = featuredServicesSnapshot.docs.map((doc) {
+      final data = doc.data();
+      return ServiceItem(
+        id: int.tryParse(doc.id) ?? 0,
+        name: data['subCategory'] ?? '',
+        slug: '',
+        image: data['imageUrl'] ?? '',
+        price: (data['price'] ?? 0).toDouble(),
+        categoryId: loadedCategories.firstWhere(
+          (category) => category.id == data['categoryId'],
+          orElse: () => Category(
+              id: '',
+              name: 'Unknown',
+              subCategories: [],
+              pathImage: null,
+              categoryId: ''),
+        ),
+        providerId: int.tryParse(data['providerId']?.toString() ?? '0') ?? 0,
+        makeFeatured: data['makeFeatured'] ?? 0,
+        isBanned: data['isBanned'] ?? 0,
+        details: data['details'] ?? '',
+        status: data['status'] ?? 0,
+        createdAt: data['createdAt'] ?? '',
+        approveByAdmin: data['approveByAdmin'] ?? 0,
+        averageRating: data['averageRating'] ?? '0.0',
+        totalReview: data['totalReview'] ?? 0,
+        totalOrder: data['totalOrder'] ?? 0,
+        category: null, // Opcional
+        provider: null, // Opcional
+      );
+    }).toList();
 
     final counters = [
       const CounterModel(

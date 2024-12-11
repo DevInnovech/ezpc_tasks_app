@@ -1,6 +1,8 @@
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_data_model.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/Client_Services_View.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/AllcategoriesScreen.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/booking_tasks_view.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/Client_home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_app_drawer.dart';
@@ -31,10 +33,8 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
     super.initState();
     screenList = [
       const ClientHomeScreen(),
-      const OrderScreen(
-        message: "",
-      ),
-      const BookingScreen(),
+      const AllCategoryScreen(),
+      const ProviderOrdersScreen(),
       const ClientHomeScreen(),
     ];
 
@@ -143,11 +143,9 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       case 0:
         return const ClientHomeScreen();
       case 1:
-        return const OrderScreen(
-          message: '',
-        );
+        return const MyBookingsScreen();
       case 2:
-        return const ClientServiceView();
+        return const AllCategoryScreen();
 
       default:
         return const SizedBox();

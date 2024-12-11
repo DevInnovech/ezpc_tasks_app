@@ -6,13 +6,13 @@ import 'package:intl/intl.dart';
 class AboutMeReviews extends StatelessWidget {
   final List<ReviewModel> reviews;
 
-  const AboutMeReviews({Key? key, required this.reviews}) : super(key: key);
+  const AboutMeReviews({super.key, required this.reviews});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: reviews.length,
       itemBuilder: (context, index) {
         final review = reviews[index];
@@ -32,7 +32,7 @@ class AboutMeReviews extends StatelessWidget {
             children: [
               Text(
                 review.userName,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               Text(
                 DateFormat('yyyy-MM-dd').format(review.date).toString(),
@@ -48,9 +48,9 @@ class AboutMeReviews extends StatelessWidget {
                 children: [
                   Text(
                     review.rating.toString(),
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Icon(Icons.star, color: Colors.amber),
+                  const Icon(Icons.star, color: Colors.amber),
                 ],
               ),
             ],

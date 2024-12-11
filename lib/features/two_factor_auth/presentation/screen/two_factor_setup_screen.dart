@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class TwoFactorSetupScreen extends ConsumerWidget {
   final Color textColor = primaryColor;
 
+  const TwoFactorSetupScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
@@ -43,7 +45,8 @@ class TwoFactorSetupScreen extends ConsumerWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => VerificationScreen(authMethod: 'SMS'),
+                          builder: (_) =>
+                              const VerificationScreen(authMethod: 'SMS'),
                         ),
                       );
                     } else {
@@ -55,7 +58,7 @@ class TwoFactorSetupScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               'Authentication app (Recommended)',
               style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -77,7 +80,8 @@ class TwoFactorSetupScreen extends ConsumerWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => VerificationScreen(authMethod: 'App'),
+                          builder: (_) =>
+                              const VerificationScreen(authMethod: 'App'),
                         ),
                       );
                     } else {

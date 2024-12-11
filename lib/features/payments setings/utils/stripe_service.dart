@@ -91,7 +91,7 @@ class StripeService implements StripeBaseService {
 
       // Crea el PaymentMethod
       final paymentMethod = await Stripe.instance.createPaymentMethod(
-        params: PaymentMethodParams.card(
+        params: const PaymentMethodParams.card(
           paymentMethodData: PaymentMethodData(),
         ),
       );
@@ -108,6 +108,7 @@ class StripeService implements StripeBaseService {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> deleteCard(String cardId) async {
     try {
       // La eliminación de la tarjeta debe manejarse en el backend
@@ -143,6 +144,7 @@ class StripeService implements StripeBaseService {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> deleteBankAccount(String bankAccountId) async {
     try {
       // La eliminación de cuentas bancarias debe manejarse en el backend

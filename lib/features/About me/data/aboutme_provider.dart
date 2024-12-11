@@ -19,7 +19,7 @@ final aboutMeEditProvider =
 });
 
 class AboutMeEditNotifier extends StateNotifier<AboutMeModel?> {
-  AboutMeEditNotifier(AboutMeModel? initialProfile) : super(initialProfile);
+  AboutMeEditNotifier(super.initialProfile);
 
   // Método para actualizar el perfil con nuevos datos
   void updateProfile(AboutMeModel updatedProfile) {

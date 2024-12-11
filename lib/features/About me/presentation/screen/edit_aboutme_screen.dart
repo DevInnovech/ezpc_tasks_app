@@ -1,14 +1,15 @@
 import 'dart:io';
-import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:ezpc_tasks_app/features/About%20me/data/aboutme_provider.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 
 class EditAboutMeScreen extends ConsumerStatefulWidget {
-  const EditAboutMeScreen({Key? key}) : super(key: key);
+  const EditAboutMeScreen({super.key});
 
   @override
   _EditAboutMeScreenState createState() => _EditAboutMeScreenState();
@@ -22,21 +23,53 @@ class _EditAboutMeScreenState extends ConsumerState<EditAboutMeScreen> {
   late TextEditingController serviceTypeController;
   String? profileImage;
   List<String> galleryImages = [];
+  bool isLoading = true; // Indicador de carga
 
   @override
   void initState() {
     super.initState();
-    final aboutMe = ref.read(aboutMeProvider).asData?.value;
-    nameController = TextEditingController(text: aboutMe?.name ?? "");
-    descriptionController =
-        TextEditingController(text: aboutMe?.description ?? "");
-    locationController = TextEditingController(text: aboutMe?.location ?? "");
-    contactController =
-        TextEditingController(text: aboutMe?.contactNumber ?? "");
-    serviceTypeController =
-        TextEditingController(text: aboutMe?.serviceType ?? "");
-    profileImage = aboutMe?.imagen;
-    galleryImages = aboutMe?.gallery ?? [];
+    nameController = TextEditingController();
+    descriptionController = TextEditingController();
+    locationController = TextEditingController();
+    contactController = TextEditingController();
+    serviceTypeController = TextEditingController();
+
+    _loadAboutMeData(); // Cargar datos existentes
+  }
+
+  Future<void> _loadAboutMeData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not logged in");
+
+      // Recuperar datos desde Firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('about_me')
+          .doc(user.uid)
+          .get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null) {
+          setState(() {
+            nameController.text = data['name'] ?? '';
+            descriptionController.text = data['description'] ?? '';
+            locationController.text = data['location'] ?? '';
+            contactController.text = data['contactNumber'] ?? '';
+            serviceTypeController.text = data['serviceType'] ?? '';
+            profileImage = data['imagen'] ?? '';
+            galleryImages = List<String>.from(data['gallery'] ?? []);
+          });
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load data: $e")),
+      );
+    } finally {
+      setState(() {
+        isLoading = false; // Finalizar la carga
+      });
+    }
   }
 
   Future<void> pickProfileImage() async {
@@ -65,24 +98,75 @@ class _EditAboutMeScreenState extends ConsumerState<EditAboutMeScreen> {
     });
   }
 
-  void viewGalleryImage(String imagePath) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: CustomImage(
-          path: imagePath,
-          height: MediaQuery.of(context).size.height * 0.8,
-          width: MediaQuery.of(context).size.width * 0.8,
-          fit: BoxFit.cover,
-          isFile: imagePath.startsWith('/'),
-          url: null,
-        ),
-      ),
-    );
+  Future<String> uploadImageToFirebase(
+      String filePath, String storagePath) async {
+    final file = File(filePath);
+    final ref = FirebaseStorage.instance.ref().child(storagePath);
+    await ref.putFile(file);
+    return await ref.getDownloadURL();
+  }
+
+  Future<void> saveAboutMeToFirebase() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not logged in");
+
+      // Upload profile image
+      String? profileImageUrl;
+      if (profileImage != null && profileImage!.startsWith('/')) {
+        profileImageUrl = await uploadImageToFirebase(
+            profileImage!, 'profile_images/${user.uid}');
+      }
+
+      // Upload gallery images
+      List<String> galleryUrls = [];
+      for (String imagePath in galleryImages) {
+        if (imagePath.startsWith('/')) {
+          String url = await uploadImageToFirebase(imagePath,
+              'gallery/${user.uid}/${DateTime.now().millisecondsSinceEpoch}');
+          galleryUrls.add(url);
+        } else {
+          galleryUrls.add(imagePath); // If already a URL
+        }
+      }
+
+      // Save to Firestore
+      final aboutMeData = {
+        "name": nameController.text,
+        "description": descriptionController.text,
+        "location": locationController.text,
+        "contactNumber": contactController.text,
+        "serviceType": serviceTypeController.text,
+        "imagen": profileImageUrl ?? profileImage,
+        "gallery": galleryUrls,
+        "userId": user.uid,
+        "createdAt": FieldValue.serverTimestamp(),
+      };
+
+      await FirebaseFirestore.instance
+          .collection('about_me')
+          .doc(user.uid)
+          .set(aboutMeData);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("About Me saved successfully!")),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to save About Me: $e")),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Edit About Me")),
       body: Padding(
@@ -98,7 +182,9 @@ class _EditAboutMeScreenState extends ConsumerState<EditAboutMeScreen> {
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.cover,
                   isFile: profileImage != null && profileImage!.startsWith('/'),
-                  url: null,
+                  url: profileImage?.startsWith('/') == true
+                      ? null
+                      : profileImage,
                 ),
               ),
               const SizedBox(height: 16),
@@ -158,15 +244,16 @@ class _EditAboutMeScreenState extends ConsumerState<EditAboutMeScreen> {
                           child: Stack(
                             children: [
                               GestureDetector(
-                                onTap: () =>
-                                    viewGalleryImage(galleryImages[index]),
+                                onTap: () => {},
                                 child: CustomImage(
                                   path: galleryImages[index],
                                   height: 120,
                                   width: 120,
                                   fit: BoxFit.cover,
                                   isFile: galleryImages[index].startsWith('/'),
-                                  url: null,
+                                  url: galleryImages[index].startsWith('/')
+                                      ? null
+                                      : galleryImages[index],
                                 ),
                               ),
                               Positioned(
@@ -175,7 +262,7 @@ class _EditAboutMeScreenState extends ConsumerState<EditAboutMeScreen> {
                                 child: GestureDetector(
                                   onTap: () => removeGalleryImage(index),
                                   child: Container(
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Colors.red,
                                     ),
@@ -198,31 +285,7 @@ class _EditAboutMeScreenState extends ConsumerState<EditAboutMeScreen> {
               const SizedBox(height: 32),
               PrimaryButton(
                 text: "Save Changes",
-                onPressed: () {
-                  final updatedAboutMe =
-                      ref.read(aboutMeProvider).asData?.value?.copyWith(
-                            name: nameController.text,
-                            description: descriptionController.text,
-                            location: locationController.text,
-                            contactNumber: contactController.text,
-                            serviceType: serviceTypeController.text,
-                            imagen: profileImage,
-                            gallery: galleryImages,
-                          );
-                  if (updatedAboutMe != null) {
-                    ref
-                        .read(aboutMeEditProvider.notifier)
-                        .updateProfile(updatedAboutMe);
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              PrimaryButton(
-                text: "Preview",
-                onPressed: () {
-                  Navigator.pushNamed(context, RouteNames.previewScreen);
-                },
+                onPressed: saveAboutMeToFirebase,
               ),
             ],
           ),

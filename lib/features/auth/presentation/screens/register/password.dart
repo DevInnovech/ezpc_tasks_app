@@ -134,6 +134,13 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                                             AccountType.employeeProvider
                                         ? 'Employee Provider'
                                         : '',
+                        description: '',
+                        address: '',
+                        communicationPreference: '',
+                        experienceYears: 0,
+                        languages: '',
+                        preferredPaymentMethod: '',
+                        profileImageUrl: '', accountType: '',
                       );
 
                       if (user != null) {

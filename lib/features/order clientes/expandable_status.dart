@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 class ExpandableStatusDescription extends StatefulWidget {
   final TrackingStatus status;
 
-  const ExpandableStatusDescription({Key? key, required this.status})
-      : super(key: key);
+  const ExpandableStatusDescription({super.key, required this.status});
 
   @override
   _ExpandableStatusDescriptionState createState() =>

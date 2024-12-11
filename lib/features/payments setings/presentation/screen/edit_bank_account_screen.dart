@@ -8,8 +8,7 @@ import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 class EditBankAccountScreen extends ConsumerWidget {
   final BankAccountModel account;
 
-  const EditBankAccountScreen({Key? key, required this.account})
-      : super(key: key);
+  const EditBankAccountScreen({super.key, required this.account});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,17 +25,17 @@ class EditBankAccountScreen extends ConsumerWidget {
       );
     }
 
-    final _formKey = GlobalKey<FormState>();
-    final _accountHolderNameController =
+    final formKey = GlobalKey<FormState>();
+    final accountHolderNameController =
         TextEditingController(text: account.accountHolderName);
-    final _accountNumberController =
+    final accountNumberController =
         TextEditingController(text: account.accountNumber);
-    final _branchCodeController =
+    final branchCodeController =
         TextEditingController(text: account.branchCode);
-    final _bankNameController = TextEditingController(text: account.bankName);
+    final bankNameController = TextEditingController(text: account.bankName);
 
-    Future<void> _saveBankAccount() async {
-      if (_formKey.currentState!.validate()) {
+    Future<void> saveBankAccount() async {
+      if (formKey.currentState!.validate()) {
         // Logic to update the bank account details
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Bank account updated successfully!')),
@@ -45,7 +44,7 @@ class EditBankAccountScreen extends ConsumerWidget {
       }
     }
 
-    Future<void> _removeBankAccount() async {
+    Future<void> removeBankAccount() async {
       final result = await StripeService.instance.deleteBankAccount(account.id);
 
       if (result['success']) {
@@ -83,13 +82,13 @@ class EditBankAccountScreen extends ConsumerWidget {
             bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
           ),
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _bankNameController,
+                  controller: bankNameController,
                   decoration: InputDecoration(
                     labelText: 'Bank',
                     border: OutlineInputBorder(
@@ -104,7 +103,7 @@ class EditBankAccountScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _accountHolderNameController,
+                  controller: accountHolderNameController,
                   decoration: InputDecoration(
                     labelText: 'Account Holder Name',
                     border: OutlineInputBorder(
@@ -122,7 +121,7 @@ class EditBankAccountScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _branchCodeController,
+                        controller: branchCodeController,
                         decoration: InputDecoration(
                           labelText: 'Branch Code',
                           border: OutlineInputBorder(
@@ -140,7 +139,7 @@ class EditBankAccountScreen extends ConsumerWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: TextFormField(
-                        controller: _accountNumberController,
+                        controller: accountNumberController,
                         decoration: InputDecoration(
                           labelText: 'Account Number',
                           border: OutlineInputBorder(
@@ -159,7 +158,7 @@ class EditBankAccountScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _saveBankAccount,
+                  onPressed: saveBankAccount,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(
@@ -175,7 +174,7 @@ class EditBankAccountScreen extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Center(
                   child: TextButton(
-                    onPressed: _removeBankAccount,
+                    onPressed: removeBankAccount,
                     child: const Text(
                       'Remove Bank Account',
                       style: TextStyle(color: Colors.red, fontSize: 16),

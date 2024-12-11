@@ -15,7 +15,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import "package:flutter_svg/flutter_svg.dart";
 
 class OrderDetails extends ConsumerWidget {
-  const OrderDetails({Key? key, required this.order}) : super(key: key);
+  const OrderDetails({super.key, required this.order});
 
   final OrderDetailsDto order;
 
@@ -35,7 +35,7 @@ class OrderDetails extends ConsumerWidget {
 }
 
 class LoadedWidget extends StatelessWidget {
-  const LoadedWidget({Key? key, required this.data}) : super(key: key);
+  const LoadedWidget({super.key, required this.data});
   final OrderDetailsDto data;
 
   @override
@@ -257,7 +257,7 @@ class ProviderInfo extends StatelessWidget {
                     SvgPicture.asset(KImages.call),
                     Utils.horizontalSpace(4),
                     Text(
-                      provider.phone,
+                      provider.phone!,
                       style: const TextStyle(
                         color: Color(0xFF535769),
                         fontSize: 12,
@@ -279,7 +279,7 @@ class ProviderInfo extends StatelessWidget {
                     ),
                     Utils.horizontalSpace(4),
                     Text(
-                      provider.email,
+                      provider.email!,
                       style: const TextStyle(
                         color: Color(0xFF535769),
                         fontSize: 12,

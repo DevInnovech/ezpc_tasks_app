@@ -21,7 +21,7 @@ final invoiceProvider =
       clientId: 10,
       serviceName: 'services 1',
     ),
-    provider: ProviderModel(
+    provider: const ProviderModel(
       id: 1,
       name: 'Alam Cordero',
       email: 'alam@example.com',

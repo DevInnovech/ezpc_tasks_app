@@ -11,7 +11,7 @@ import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 final selectedPaymentMethodProvider = StateProvider<String?>((ref) => null);
 
 class PaymentSettingsScreen extends ConsumerWidget {
-  const PaymentSettingsScreen({Key? key}) : super(key: key);
+  const PaymentSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +37,7 @@ class PaymentSettingsScreen extends ConsumerWidget {
                         ref,
                         methodId: card.id,
                         title: '**** ${card.last4}',
-                        subtitle: '${card.brand}',
+                        subtitle: card.brand,
                         icon: Icons.credit_card,
                         onEdit: () => Navigator.push(
                           context,
@@ -57,7 +57,7 @@ class PaymentSettingsScreen extends ConsumerWidget {
                         context,
                         ref,
                         methodId: account.id,
-                        title: '${account.bankName}',
+                        title: account.bankName,
                         subtitle: '**** ${account.accountNumber}',
                         icon: Icons.account_balance,
                         onEdit: () => Navigator.push(

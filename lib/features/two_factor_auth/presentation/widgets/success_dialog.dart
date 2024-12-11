@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class SuccessDialog extends StatelessWidget {
+  const SuccessDialog({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -10,24 +12,24 @@ class SuccessDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Two-factor authentication is on',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 10),
+            const Text(
               'From now, we will ask you for a code to sign in.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
                 Navigator.of(context).pop(); // Navigate back to settings
               },
-              child: Text('Got it'),
+              child: const Text('Got it'),
             ),
           ],
         ),

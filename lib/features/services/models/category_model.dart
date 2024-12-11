@@ -4,14 +4,17 @@ import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 class Category {
   final String id;
   final String name;
+  final String categoryId;
   final List<SubCategory> subCategories;
   final String? pathimage;
 
   Category({
     required this.id,
     required this.name,
+    required this.categoryId,
     required this.subCategories,
     this.pathimage,
+    required pathImage,
   });
 
   // Convertir la categoría a un mapa
@@ -29,10 +32,12 @@ class Category {
     return Category(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
+      categoryId: map['categoryId'] ?? '',
       subCategories: List<SubCategory>.from(
         map['subCategories']?.map((x) => SubCategory.fromMap(x)) ?? [],
       ),
       pathimage: map['pathimage'],
+      pathImage: null,
     );
   }
 
@@ -117,6 +122,8 @@ final categories = [
         ],
       ),
     ],
+    pathImage: null,
+    categoryId: '',
   ),
   Category(
     id: '2',
@@ -152,6 +159,8 @@ final categories = [
         ],
       ),
     ],
+    pathImage: null,
+    categoryId: '',
   ),
   Category(
     id: '3',
@@ -182,6 +191,8 @@ final categories = [
         ],
       ),
     ],
+    pathImage: null,
+    categoryId: '',
   ),
   Category(
     id: '4',
@@ -219,6 +230,8 @@ final categories = [
       SubCategory(id: '4.5', name: 'Minor Repairs'),
       SubCategory(id: '4.6', name: 'Home Maintenance Tasks'),
     ],
+    pathImage: null,
+    categoryId: '',
   ),
   Category(
     id: '5',
@@ -227,5 +240,7 @@ final categories = [
       SubCategory(id: '5.1', name: 'Need a Car?'),
       SubCategory(id: '5.2', name: 'Need a Truck?'),
     ],
+    pathImage: null,
+    categoryId: '',
   ),
 ];

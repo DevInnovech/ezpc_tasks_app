@@ -16,7 +16,7 @@ class MockStripeService implements StripeBaseService {
       String amount, String currency) async {
     // Simulated response for PaymentIntent creation
     return Future.delayed(
-      Duration(seconds: 1),
+      const Duration(seconds: 1),
       () => {
         "id": "mock_payment_intent_id",
         "client_secret": "mock_client_secret",
@@ -29,7 +29,7 @@ class MockStripeService implements StripeBaseService {
   Future<void> confirmPayment(
       String clientSecret, String paymentMethodId) async {
     // Simulated confirmation logic
-    return Future.delayed(Duration(milliseconds: 500), () {
+    return Future.delayed(const Duration(milliseconds: 500), () {
       print("Payment confirmed for clientSecret: \$clientSecret");
     });
   }
@@ -42,7 +42,7 @@ class MockStripeService implements StripeBaseService {
   }) async {
     // Simulate adding a card
     return Future.delayed(
-      Duration(seconds: 1),
+      const Duration(seconds: 1),
       () => {
         "success": true,
         "token": "mock_card_token",
@@ -50,10 +50,11 @@ class MockStripeService implements StripeBaseService {
     );
   }
 
+  @override
   Future<Map<String, dynamic>> deleteCard(String cardId) async {
     // Simulate card deletion
     return Future.delayed(
-      Duration(milliseconds: 500),
+      const Duration(milliseconds: 500),
       () => {
         "success": true,
         "message": "Card deleted successfully",
@@ -69,7 +70,7 @@ class MockStripeService implements StripeBaseService {
   }) async {
     // Simulate adding a bank account
     return Future.delayed(
-      Duration(seconds: 1),
+      const Duration(seconds: 1),
       () => {
         "success": true,
         "message": "Bank account added successfully",
@@ -77,10 +78,11 @@ class MockStripeService implements StripeBaseService {
     );
   }
 
+  @override
   Future<Map<String, dynamic>> deleteBankAccount(String bankAccountId) async {
     // Simulate bank account deletion
     return Future.delayed(
-      Duration(milliseconds: 500),
+      const Duration(milliseconds: 500),
       () => {
         "success": true,
         "message": "Bank account deleted successfully",

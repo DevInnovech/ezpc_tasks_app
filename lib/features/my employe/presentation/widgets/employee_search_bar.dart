@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class EmployeeSearchBar extends ConsumerWidget {
-  const EmployeeSearchBar({Key? key}) : super(key: key);
+  const EmployeeSearchBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

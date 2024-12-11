@@ -4,7 +4,7 @@ import '../../models/employee_model.dart';
 class EmployeeCard extends StatelessWidget {
   final EmployeeModel employee;
 
-  const EmployeeCard({Key? key, required this.employee}) : super(key: key);
+  const EmployeeCard({super.key, required this.employee});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,7 @@ class EmployeeCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4.0),
                       Text(
-                        '${employee.date}',
+                        employee.date,
                         style:
                             TextStyle(fontSize: 14.0, color: Colors.grey[700]),
                       ),
@@ -56,7 +56,7 @@ class EmployeeCard extends StatelessWidget {
                     children: [
                       Text(
                         'Task: ${employee.tasksCompleted}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
                         ),

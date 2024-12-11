@@ -13,7 +13,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
   final String orderId;
   final MapController _mapController = MapController(); // Add MapController
 
-  ProviderTrackingScreen({Key? key, required this.orderId}) : super(key: key);
+  ProviderTrackingScreen({super.key, required this.orderId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -157,7 +157,8 @@ class ProviderTrackingScreen extends ConsumerWidget {
               child: FlutterMap(
                 mapController: _mapController, // Attach controller
                 options: MapOptions(
-                  initialCenter: trackingData.providerLocation ?? LatLng(0, 0),
+                  initialCenter:
+                      trackingData.providerLocation ?? const LatLng(0, 0),
                   initialZoom: 15.0,
                 ),
                 children: [
@@ -227,7 +228,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
               color: activeColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.gps_fixed,
               color: Colors.white,
               size: 28,
@@ -256,7 +257,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
                   : inactiveColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.person,
               color: Colors.white,
               size: 28,
@@ -282,7 +283,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
                   : inactiveColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.location_on,
               color: Colors.white,
               size: 28,

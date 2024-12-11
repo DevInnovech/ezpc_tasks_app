@@ -7,11 +7,11 @@ class EmployeeBonusHeader extends StatelessWidget {
   final int totalEmployees;
 
   const EmployeeBonusHeader({
-    Key? key,
+    super.key,
     required this.totalEarnings,
     required this.totalTasks,
     required this.totalEmployees,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

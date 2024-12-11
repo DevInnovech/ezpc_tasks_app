@@ -46,4 +46,37 @@ class AboutMeModel {
       reviews: reviews ?? this.reviews,
     );
   }
+
+  // Método fromMap
+  factory AboutMeModel.fromMap(Map<String, dynamic> map) {
+    return AboutMeModel(
+      name: map['name'] ?? '', // Asegura que no sea null
+      imagen: map['imagen'] ?? '',
+      description: map['description'] ?? '',
+      location: map['location'] ?? '',
+      contactNumber: map['contactNumber'] ?? '',
+      rating: (map['rating'] ?? 0.0).toDouble(), // Convierte a double
+      serviceType: map['serviceType'] ?? '',
+      gallery: List<String>.from(
+          map['gallery'] ?? []), // Convierte explícitamente a List<String>
+      reviews: (map['reviews'] as List<dynamic>? ?? [])
+          .map((review) => ReviewModel.fromMap(review as Map<String, dynamic>))
+          .toList(), // Convierte cada elemento a ReviewModel
+    );
+  }
+
+  // Método toMap
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'imagen': imagen,
+      'description': description,
+      'location': location,
+      'contactNumber': contactNumber,
+      'rating': rating,
+      'serviceType': serviceType,
+      'gallery': gallery,
+      'reviews': reviews.map((review) => review.toMap()).toList(),
+    };
+  }
 }

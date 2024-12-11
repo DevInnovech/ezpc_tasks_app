@@ -6,6 +6,7 @@ class ServiceModel {
   final String name;
   final String slug;
   final String price;
+  final num? discount;
   final Category categoryId;
   final String subCategoryId;
   final String details;
@@ -18,13 +19,30 @@ class ServiceModel {
   final List<Map<String, String>>? workingHours;
   final List<Map<String, String>>? specialDays;
   final String status;
-  late final ProviderModel provider; // Nuevo parámetro para el proveedor
+  final ProviderModel? provider; // Proveedor asociado
+  final String? type; // Tipo de servicio (horario, fijo, etc.)
+  final bool? isFeatured;
+  final num? totalRating;
+  final num? totalReview;
+  final num? isSlot;
+  final String? duration;
+  final String? visitType;
+  final List<String>? attachments;
+  final List<Map<String, dynamic>>? servicePackage; // Paquetes del servicio
+  final int? providerId; // Nuevo campo agregado
+
+  // Propiedades calculadas
+  bool get isSlotAvailable => isSlot == 1;
+  bool get isHourlyService => type == 'hourly';
+  bool get isFixedService => type == 'fixed';
+  bool get isFreeService => price == 0;
 
   ServiceModel({
     required this.id,
     required this.name,
     required this.slug,
     required this.price,
+    this.discount,
     required this.categoryId,
     required this.subCategoryId,
     required this.details,
@@ -37,7 +55,17 @@ class ServiceModel {
     this.workingHours,
     this.specialDays,
     required this.status,
-    required this.provider, // Inicialización del proveedor
+    required this.provider,
+    this.type,
+    this.isFeatured,
+    this.totalRating,
+    this.totalReview,
+    this.isSlot,
+    this.duration,
+    this.visitType,
+    this.attachments,
+    this.servicePackage,
+    this.providerId, // Inicialización de providerId
   });
 
   // Factory method to convert from map
@@ -46,9 +74,9 @@ class ServiceModel {
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       slug: map['slug'] ?? '',
-      price: map['price'] ?? '',
-      categoryId: Category.fromMap(map['category_id'] ??
-          {}), // Actualización para aceptar Category completo
+      price: map['price'] ?? 0,
+      discount: map['discount'],
+      categoryId: Category.fromMap(map['category_id'] ?? {}),
       subCategoryId: map['sub_category_id'] ?? '',
       details: map['details'] ?? '',
       image: map['image'] ?? '',
@@ -60,8 +88,20 @@ class ServiceModel {
       workingHours: List<Map<String, String>>.from(map['working_hours'] ?? []),
       specialDays: List<Map<String, String>>.from(map['special_days'] ?? []),
       status: map['status'] ?? '',
-      provider: ProviderModel.fromMap(
-          map['provider'] ?? []), // Asignación del proveedor
+      provider: map['provider'] != null
+          ? ProviderModel.fromMap(map['provider'])
+          : null,
+      type: map['type'],
+      isFeatured: map['is_featured'],
+      totalRating: map['total_rating'],
+      totalReview: map['total_review'],
+      isSlot: map['is_slot'],
+      duration: map['duration'],
+      visitType: map['visit_type'],
+      attachments: List<String>.from(map['attachments'] ?? []),
+      servicePackage:
+          List<Map<String, dynamic>>.from(map['service_package'] ?? []),
+      providerId: map['provider_id'], // Asignación de providerId
     );
   }
 
@@ -72,7 +112,8 @@ class ServiceModel {
       'name': name,
       'slug': slug,
       'price': price,
-      'category_id': categoryId.toMap(), // Conversión de Category a Map
+      'discount': discount,
+      'category_id': categoryId.toMap(),
       'sub_category_id': subCategoryId,
       'details': details,
       'image': image,
@@ -84,7 +125,17 @@ class ServiceModel {
       'working_hours': workingHours,
       'special_days': specialDays,
       'status': status,
-      'provider': provider.toMap(), // Conversión del proveedor a Map
+      'provider': provider?.toMap(),
+      'type': type,
+      'is_featured': isFeatured,
+      'total_rating': totalRating,
+      'total_review': totalReview,
+      'is_slot': isSlot,
+      'duration': duration,
+      'visit_type': visitType,
+      'attachments': attachments,
+      'service_package': servicePackage,
+      'provider_id': providerId, // Conversión de providerId a Map
     };
   }
 }

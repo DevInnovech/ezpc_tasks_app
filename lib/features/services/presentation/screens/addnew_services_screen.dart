@@ -5,7 +5,7 @@ import 'package:ezpc_tasks_app/features/services/presentation/screens/special_da
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
-import 'package:flutter/scheduler.dart'; // Importar para usar SchedulerBinding
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddNewTaskScreen extends ConsumerStatefulWidget {
   const AddNewTaskScreen({super.key});
@@ -18,34 +18,27 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
-  // Añadimos un GlobalKey para manejar las validaciones en cada step.
-  final _formKeys = [
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-  ];
+  final _formKeys = List.generate(4, (_) => GlobalKey<FormState>());
 
   @override
   void initState() {
     super.initState();
 
-    // Reiniciar el estado del task cuando se abra la pantalla
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      // Inicializamos la tarea fuera del ciclo de construcción
-      ref.read(taskProvider.notifier).initializeNewTask();
-
-      // Forzamos la reconstrucción del estado al abrir la pantalla
-      setState(() {
-        _currentStep = 0; // Reiniciamos el paso actual
-        _pageController.jumpToPage(0); // Volvemos a la primera página
-      });
+    // Initialize task with provider ID
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final providerId = user.uid;
+        await ref.read(taskProvider.notifier).initializeNewTask(providerId);
+        debugPrint('Task initialized successfully.');
+      } else {
+        debugPrint('No authenticated user.');
+      }
     });
   }
 
   final List<Widget> _steps = [
-    CategoryPricingStep(
-        formKey: GlobalKey<FormState>()), // Añadir formKey en cada Step
+    CategoryPricingStep(formKey: GlobalKey<FormState>()),
     QuestionsStep(formKey: GlobalKey<FormState>()),
     ScheduleStep(formKey: GlobalKey<FormState>()),
     SpecialDaysStep(formKey: GlobalKey<FormState>()),
@@ -56,7 +49,12 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add New Task'),
-        automaticallyImplyLeading: false,
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: PageView.builder(
         controller: _pageController,
@@ -70,50 +68,22 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
         },
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 30.0),
+        padding: const EdgeInsets.all(16.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (_currentStep > 0)
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_currentStep > 0) {
-                      setState(() {
-                        _currentStep--;
-                        _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      });
-                    }
-                  },
+                  onPressed: _handlePrevious,
                   child: const Text('Back'),
                 ),
               ),
             if (_currentStep > 0) const SizedBox(width: 16.0),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  // Validar el formulario actual antes de avanzar
-                  if (_formKeys[_currentStep].currentState!.validate()) {
-                    // Si no es el último paso, pasar al siguiente paso
-                    if (_currentStep < _steps.length - 1) {
-                      setState(() {
-                        _currentStep++;
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      });
-                    } else {
-                      // Si es el último paso, guardar la tarea
-                      _saveTask(context);
-                    }
-                  }
-                },
-                child: const Text('Next'),
+                onPressed: _handleNext,
+                child:
+                    Text(_currentStep == _steps.length - 1 ? 'Finish' : 'Next'),
               ),
             ),
           ],
@@ -122,67 +92,84 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
     );
   }
 
-  // Método para guardar la tarea en Firebase sin actualizar valores incorrectos
-  void _saveTask(BuildContext context) async {
-    // Obtener la tarea actual del estado
+  void _handleNext() {
+    if (_formKeys[_currentStep].currentState!.validate()) {
+      if (_currentStep < _steps.length - 1) {
+        setState(() {
+          _currentStep++;
+          _pageController.nextPage(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        });
+      } else {
+        _saveTask(context);
+      }
+    }
+  }
+
+  void _handlePrevious() {
+    setState(() {
+      _currentStep--;
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  Future<void> _saveTask(BuildContext context) async {
     final currentTask = ref.read(taskProvider).currentTask;
-    String image = currentTask!.imageUrl;
+
+    if (currentTask == null) {
+      _showDialog(context, 'Error', 'No task available to save.');
+      return;
+    }
+
+    if (currentTask.imageUrl.isEmpty) {
+      _showDialog(
+          context, 'Error', 'No image URL provided. Please upload an image.');
+      return;
+    }
 
     try {
-      // Guardar la tarea usando el método saveTask del taskProvider
-      await ref
-          .read(taskProvider.notifier)
-          .uploadImageFromLocalUrl(image, currentTask);
-
-      // Mostrar un diálogo de éxito al guardar la tarea
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Success'),
-            content: const Text('Task saved successfully!'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Cerrar el diálogo
-                  Navigator.of(context).pop(); // Cerrar la pantalla actual
-                },
-              ),
-            ],
+      await ref.read(taskProvider.notifier).uploadImageFromLocalUrl(
+            currentTask.imageUrl,
+            currentTask,
           );
-        },
-      );
 
-      // Restablecer el estado de la tarea para que no afecte nuevas creaciones
-      ref.read(taskProvider.notifier).initializeNewTask();
+      _showDialog(context, 'Success', 'Task saved successfully.',
+          onDismiss: () {
+        Navigator.pop(context); // Close AddNewTaskScreen
+      });
 
-      // Reiniciar las páginas y el estado del formulario
+      ref.read(taskProvider.notifier).initializeNewTask(currentTask.providerId);
       setState(() {
-        _currentStep = 0; // Volver al primer paso
-        _pageController.jumpToPage(0); // Volver a la primera página
-        for (var key in _formKeys) {
-          key.currentState?.reset(); // Resetear todos los formularios
-        }
+        _currentStep = 0;
+        _pageController.jumpToPage(0);
       });
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to save task: ${e.toString()}'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showDialog(context, 'Error', 'Failed to save task: ${e.toString()}');
     }
+  }
+
+  void _showDialog(BuildContext context, String title, String message,
+      {VoidCallback? onDismiss}) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.pop(context);
+              if (onDismiss != null) onDismiss();
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

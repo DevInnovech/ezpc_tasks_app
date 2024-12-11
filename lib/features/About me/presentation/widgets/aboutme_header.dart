@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class AboutMeHeader extends StatelessWidget {
   final AboutMeModel aboutMe;
 
-  const AboutMeHeader({Key? key, required this.aboutMe}) : super(key: key);
+  const AboutMeHeader({super.key, required this.aboutMe});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class AboutMeHeader extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.star,
                     color: Colors.amber,
                   ),
@@ -77,7 +77,7 @@ class AboutMeHeader extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Icon(Icons.location_history, color: primaryColor),
+              const Icon(Icons.location_history, color: primaryColor),
               Text(
                 aboutMe.location,
                 style: const TextStyle(

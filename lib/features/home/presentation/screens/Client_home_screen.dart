@@ -51,7 +51,7 @@ class ClientHomeScreen extends ConsumerWidget {
               return HomeLoadedData(data: state.homeModel);
             } else {
               return Container(
-                child: Text("No Enable"),
+                child: const Text("No Enable"),
               ); // Maneja cualquier otro estado inesperado
             }
           },
@@ -157,7 +157,7 @@ class HomeLoadedData extends StatelessWidget {
                 //error corregir mas tarde
                 Navigator.pushNamed(context, RouteNames.serviceScreen,
                     arguments: {
-                      'title': 'Feature Services',
+                      'title': 'Featured Services',
                       'slug': 'feature'
                     });
               },
@@ -200,7 +200,8 @@ class HomeLoadedData extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: const CustomImage(
-                    path: KImages.Referalflayer,
+                    path: KImages
+                        .Referalflayer, // Reemplaza con tu imagen promocional
                     fit: BoxFit.contain,
                     url: null,
                   ),

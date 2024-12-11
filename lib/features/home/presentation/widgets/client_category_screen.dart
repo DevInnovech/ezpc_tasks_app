@@ -1,5 +1,7 @@
-import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByCategory.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
+import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -9,17 +11,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+final categoryProvider = FutureProvider<List<Category>>((ref) async {
+  try {
+    QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('categories').get();
+    return snapshot.docs.map((doc) {
+      return Category(
+        id: doc.id,
+        name: doc['name'] ?? '',
+        pathimage: doc['imageUrl'] ?? '',
+        subCategories: (doc['subcategories'] as List<dynamic>?)
+                ?.map((sub) => SubCategory.fromMap(sub as Map<String, dynamic>))
+                .toList() ??
+            [],
+        categoryId: doc['id'] ?? '',
+        pathImage: null,
+      );
+    }).toList();
+  } catch (e) {
+    throw Exception("Failed to load categories: $e");
+  }
+});
+
 class ClientCategoryScreen extends ConsumerWidget {
   const ClientCategoryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Obtenemos el estado del controlador del home con AsyncValue
-    final asyncHomeControllerState = ref.watch(homeControllerProvider);
+    final asyncCategoryState = ref.watch(categoryProvider);
 
     return Scaffold(
       appBar: const CustomAppBar(title: "All Categories"),
-      body: asyncHomeControllerState.when(
+      body: asyncCategoryState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -33,26 +56,24 @@ class ClientCategoryScreen extends ConsumerWidget {
               IconButton(
                 onPressed: () {
                   // Refrescamos los datos
-                  ref.refresh(homeControllerProvider);
+                  ref.refresh(categoryProvider);
                 },
                 icon: const Icon(Icons.refresh_outlined),
               ),
             ],
           ),
         ),
-        data: (homeControllerState) {
-          // Si la data fue cargada con éxito
-          if (homeControllerState is HomeControllerLoaded) {
-            return _buildCategoryGrid(homeControllerState);
-          } else {
-            return const SizedBox(); // Caso por defecto para manejar un estado inesperado
+        data: (categories) {
+          if (categories.isEmpty) {
+            return const Center(child: Text("No categories found."));
           }
+          return _buildCategoryGrid(categories);
         },
       ),
     );
   }
 
-  Widget _buildCategoryGrid(HomeControllerLoaded state) {
+  Widget _buildCategoryGrid(List<Category> categories) {
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -60,9 +81,9 @@ class ClientCategoryScreen extends ConsumerWidget {
         crossAxisSpacing: 14,
         mainAxisSpacing: 14,
       ),
-      itemCount: state.homeModel.categories.length,
+      itemCount: categories.length,
       itemBuilder: (context, index) {
-        return ClientCategoryItem(item: state.homeModel.categories[index]);
+        return ClientCategoryItem(item: categories[index]);
       },
     );
   }
@@ -77,7 +98,12 @@ class ClientCategoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navegación a la pantalla de servicios de categoría
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ServicesByCategoryScreen(category: item),
+          ),
+        );
       },
       child: Container(
         width: 102.w,
@@ -100,31 +126,52 @@ class ClientCategoryItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 38.w,
-              height: 38.h,
-              padding: const EdgeInsets.all(7),
-              decoration: const ShapeDecoration(
-                color: Color(0xFFEAF4FF),
-                shape: OvalBorder(),
-              ),
-              child: CustomImage(
-                path:
-                    item.pathimage != null ? item.pathimage! : KImages.booking,
-                url:
-                    null, // Usamos el operador ternario para manejar el caso en que `pathimage` sea null
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ServicesByCategoryScreen(category: item),
+                  ),
+                );
+              },
+              child: Container(
+                width: 38.w,
+                height: 38.h,
+                padding: const EdgeInsets.all(7),
+                decoration: const ShapeDecoration(
+                  color: Color(0xFFEAF4FF),
+                  shape: OvalBorder(),
+                ),
+                child: CustomImage(
+                  path: null,
+                  url: item.pathimage ??
+                      KImages.booking, // Usamos el valor por defecto si es null
+                ),
               ),
             ),
             Utils.verticalSpace(8),
-            Text(
-              item.name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: textColor,
-                fontSize: 12,
-                fontFamily: 'Work Sans',
-                fontWeight: FontWeight.w500,
-                height: 1.33,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ServicesByCategoryScreen(category: item),
+                  ),
+                );
+              },
+              child: Text(
+                item.name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: textColor,
+                  fontSize: 12,
+                  fontFamily: 'Work Sans',
+                  fontWeight: FontWeight.w500,
+                  height: 1.33,
+                ),
               ),
             ),
           ],

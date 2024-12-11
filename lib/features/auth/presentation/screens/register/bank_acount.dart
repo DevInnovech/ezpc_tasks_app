@@ -178,7 +178,8 @@ class _AddBankAccountPageState extends ConsumerState<AddBankAccountPage> {
                     // Skip action
                     Navigator.pushNamed(
                       context,
-                      RouteNames.authenticationScreen,
+                      /*   RouteNames.authenticationScreen,*/
+                      RouteNames.createCandidateScreen,
                     );
                   },
                 ),

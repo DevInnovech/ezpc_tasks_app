@@ -82,7 +82,8 @@ class PaymentInformationScreen extends StatelessWidget {
                       label: "Card number",
                       hintText: "Enter your card number",
                       controller: cardNumberController,
-                      suffixIcon: const Icon(Icons.credit_card, color: Colors.grey),
+                      suffixIcon:
+                          const Icon(Icons.credit_card, color: Colors.grey),
                       textValidator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Card number is required";
@@ -188,7 +189,7 @@ class PaymentInformationScreen extends StatelessWidget {
               PrimaryButton(
                 text: "Skip - Do it later",
                 onPressed: () {
-                  // Acción al presionar omitir
+                  Navigator.pushNamed(context, RouteNames.authenticationScreen);
                 },
                 bgColor: Colors.orange,
               ),

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final orderProvider = Provider<List<OrderItems>>((ref) {
   // Fake data list
   return [
-    OrderItems(
+    const OrderItems(
       id: 1,
       orderId: '405406464040645',
       clientId: 123,
@@ -14,7 +14,7 @@ final orderProvider = Provider<List<OrderItems>>((ref) {
       orderStatus: 'approved_by_provider',
       serviceName: 'Home Cleaning', // Example service name
     ),
-    OrderItems(
+    const OrderItems(
       id: 2,
       orderId: '102934857564928',
       clientId: 456,
@@ -23,7 +23,7 @@ final orderProvider = Provider<List<OrderItems>>((ref) {
       orderStatus: 'Pending',
       serviceName: 'Lawn Mowing', // Example service name
     ),
-    OrderItems(
+    const OrderItems(
       id: 3,
       orderId: '293847564837563',
       clientId: 789,

@@ -1,5 +1,5 @@
-import 'package:ezpc_tasks_app/features/home/data/client_provider.dart';
-import 'package:ezpc_tasks_app/features/home/models/userdash_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Para autenticar al usuario
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,12 +10,35 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 
 class ClientHomeHeader extends ConsumerWidget {
-  const ClientHomeHeader({
-    super.key,
-  });
+  const ClientHomeHeader({super.key});
+
+  // Función para obtener un saludo según la hora actual
+  String getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good Morning!';
+    } else if (hour < 18) {
+      return 'Good Afternoon!';
+    } else {
+      return 'Good Evening!';
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Obtener el ID del usuario logueado
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+    // Si no hay usuario logueado, mostrar un mensaje
+    if (currentUserId == null) {
+      return Center(
+        child: Text(
+          'No user logged in.',
+          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 178.h,
       child: Stack(
@@ -26,112 +49,115 @@ class ClientHomeHeader extends ConsumerWidget {
             color: primaryColor,
             height: 178.h,
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ref.watch(clientDashBoardProfileProvider).when(
-                  data: (UserDashBoardModel userDashboardModel) {
-                    final user = userDashboardModel.user;
-                    return Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: ShapeDecoration(
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(
-                                width: 0.50,
-                                color: Color(0xFFEAF4FF),
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                              /* Navigator.pushNamed(
-                                  context, RouteNames.editProfile);*/
-                            },
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: const CustomImage(
-                                path: KImages.pp,
-                                // CUANDO FUNCIONE CON FIREBASE ESAS ES LA PREGUNTA  AHCER
-                                /* user.image != null
-                                    ? RemoteUrls.imageUrl(user.image!)
-                                    : KImages
-                                        .appLayer, */ // Imagen por defecto si es nulo
-                                fit: BoxFit.cover, url: null,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Utils.horizontalSpace(10),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Good Morning!',
-                                style: TextStyle(
-                                  color: Color(0xFFEAF4FF),
-                                  fontSize: 14,
-                                  fontFamily: 'Work Sans',
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.57,
-                                ),
-                              ),
-                              Text(
-                                user.name, // Asegurando que el nombre está disponible
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontFamily: 'Work Sans',
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Text(
-                                //aqui poner un if con los tipo de cuenta
+            child: FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(currentUserId) // Usar el userID dinámico
+                  .get(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return const Center(child: Text('User not found.'));
+                } else {
+                  final userData =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  final String nombre = userData['name'] ?? 'N/A';
+                  final String apellido = userData['lastName'] ?? 'N/A';
+                  final String rol = userData['role'] ?? 'Client';
+                  final String greeting = getGreeting();
 
-                                "Role: Cliente", // Asegurando que el nombre está disponible
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontFamily: 'Work Sans',
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              )
-                            ],
+                  return Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: ShapeDecoration(
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(
+                              width: 0.50,
+                              color: Color(0xFFEAF4FF),
+                            ),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        Utils.horizontalSpace(10),
-                        Row(
+                        child: GestureDetector(
+                          onTap: () {
+                            // Acción para editar el perfil
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: const CustomImage(
+                              path: KImages.pp,
+                              fit: BoxFit.cover,
+                              url: null,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Utils.horizontalSpace(10),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                //suporte
-                              },
-                              child: Container(
-                                height: Utils.vSize(50.0),
-                                width: Utils.vSize(50.0),
-                                margin: Utils.only(right: 10.0),
-                                child: ClipRRect(
-                                  borderRadius: Utils.borderRadius(r: 6.0),
-                                  child: const CustomImage(
-                                    path: KImages.supportIcon,
-                                    fit: BoxFit.contain, url: null,
-                                    //height: 50,
-                                    // width: 50,
-                                  ),
-                                ),
+                            Text(
+                              greeting,
+                              style: const TextStyle(
+                                color: Color(0xFFEAF4FF),
+                                fontSize: 14,
+                                fontFamily: 'Work Sans',
+                                fontWeight: FontWeight.w500,
+                                height: 1.57,
+                              ),
+                            ),
+                            Text(
+                              '$nombre $apellido',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontFamily: 'Work Sans',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              "Role: $rol",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontFamily: 'Work Sans',
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
-                        )
-                      ],
-                    );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(child: Text('Error: $error')),
-                ),
+                        ),
+                      ),
+                      Utils.horizontalSpace(10),
+                      GestureDetector(
+                        onTap: () {
+                          // Acción para soporte
+                        },
+                        child: Container(
+                          height: Utils.vSize(50.0),
+                          width: Utils.vSize(50.0),
+                          margin: Utils.only(right: 10.0),
+                          child: ClipRRect(
+                            borderRadius: Utils.borderRadius(r: 6.0),
+                            child: const CustomImage(
+                              path: KImages.supportIcon,
+                              fit: BoxFit.contain,
+                              url: null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
           ),
           Positioned(
             bottom: -25,
@@ -140,7 +166,7 @@ class ClientHomeHeader extends ConsumerWidget {
             child: Center(
               child: GestureDetector(
                 onTap: () {
-                  /* Navigator.pushNamed(context, RouteNames.searchServices);*/
+                  // Navegar a la pantalla de búsqueda de servicios
                 },
                 child: Container(
                   width: double.infinity,
@@ -161,9 +187,6 @@ class ClientHomeHeader extends ConsumerWidget {
                     ],
                   ),
                   child: ListTile(
-                    //  leading: SvgPicture.asset(KImages.searchIcon),
-                    horizontalTitleGap: 10,
-                    minLeadingWidth: 0,
                     title: const Text(
                       'Search Services or Providers',
                       style: TextStyle(
@@ -175,7 +198,7 @@ class ClientHomeHeader extends ConsumerWidget {
                     ),
                     trailing: GestureDetector(
                       onTap: () {
-                        /*   Navigator.pushNamed(context, RouteNames.filterScreen);*/
+                        // Navegar a la pantalla de filtros
                       },
                       child: SvgPicture.asset(KImages.filterMenu),
                     ),

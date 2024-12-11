@@ -1,23 +1,22 @@
-import 'package:ezpc_tasks_app/routes/routes.dart';
-import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
-import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
-import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
-
-// Custom CheckboxListTile for categories and tasks
+import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
+import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
+import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 
 class PremierServiceScreen extends ConsumerStatefulWidget {
-  final ServiceModel selectedService; // Selected service
-  final List<Category> availableCategories; // Available categories
+  final String taskId;
 
   const PremierServiceScreen({
     super.key,
-    required this.selectedService,
-    required this.availableCategories,
+    required this.taskId,
+    required ServiceModel selectedService,
+    required List<Category> availableCategories,
   });
 
   @override
@@ -25,63 +24,170 @@ class PremierServiceScreen extends ConsumerStatefulWidget {
 }
 
 class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
+  late ServiceModel selectedService = ServiceModel(
+    id: '',
+    name: 'Default Service',
+    slug: '',
+    price: '0.0',
+    categoryId: Category(
+      id: '',
+      name: 'Default Category',
+      subCategories: [],
+      pathImage: null,
+      categoryId: '',
+    ),
+    subCategoryId: '',
+    details: '',
+    image: '',
+    packageFeature: [],
+    benefits: [],
+    whatYouWillProvide: [],
+    licenseDocument: '',
+    workingDays: [],
+    workingHours: [],
+    specialDays: [],
+    status: 'Inactive',
+    provider: null,
+  );
+
+  late List<Category> availableCategories = [];
+  late List<SubCategory> selectedSubCategories = [];
+  bool isLoading = true;
+
   String? selectedSize;
   int sizeQuantity = 0;
-  late Category selectedCategory;
-  late List<SubCategory> selectedSubCategories;
   late Map<String, int> sizeQuantities = {}; // Track quantities for each size
 
-  // Available sizes with properties
-  final List<Map<String, dynamic>> serviceSizes = [
-    {'size': 'Small', 'price': 25.0, 'hours': '1 H'},
-    {'size': 'Medium', 'price': 50.0, 'hours': '2-3 H'},
-    {'size': 'Large', 'price': 75.0, 'hours': '+4 H'},
-  ];
+  List<Map<String, dynamic>> serviceSizes = []; // Empty initially
 
   @override
   void initState() {
     super.initState();
-    _loadSelectedCategoryAndSubCategories();
+    _loadServiceData();
   }
 
-  // Method to load the category and subcategories related to the selected service
-  void _loadSelectedCategoryAndSubCategories() {
-    // Find the category corresponding to the selected service
-    selectedCategory = widget.availableCategories.firstWhere(
-      (category) => category.id == widget.selectedService.categoryId,
-      orElse: () => widget.availableCategories.first, // Fallback if not found
-    );
+  Future<void> _loadServiceData() async {
+    try {
+      // Cargar datos del servicio desde Firebase
+      final doc = await FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(widget.taskId)
+          .get();
 
-    // Find the related subcategories for the selected service
-    selectedSubCategories = selectedCategory.subCategories.where((subCategory) {
-      return subCategory.id == widget.selectedService.subCategoryId;
-    }).toList();
+      // Cargar categorías desde Firebase
 
-    // Initialize quantities for each size
-    for (var sizeOption in serviceSizes) {
-      sizeQuantities[sizeOption['size']] = 0;
+      if (doc.exists) {
+        final data = doc.data()!;
+        selectedService = ServiceModel(
+          id: doc.id,
+          name: data['name'] ?? '',
+          slug: data['slug'] ?? '',
+          price: data['price']?.toString() ?? '0.0',
+          categoryId: data['categoryId'] ?? '',
+          subCategoryId: data['subCategoryId'] ?? '',
+          details: data['details'] ?? '',
+          image: data['imageUrl'] ?? '',
+          packageFeature: data['packageFeature'] != null
+              ? List<String>.from(data['packageFeature'])
+              : [],
+          benefits: data['benefits'] != null
+              ? List<String>.from(data['benefits'])
+              : [],
+          whatYouWillProvide: data['whatYouWillProvide'] != null
+              ? List<String>.from(data['whatYouWillProvide'])
+              : [],
+          licenseDocument: data['licenseDocument'] ?? '',
+          workingDays: data['workingDays'] != null
+              ? List<String>.from(data['workingDays'])
+              : [],
+          workingHours: data['workingHours'] != null
+              ? List<Map<String, String>>.from(data['workingHours']
+                  .map((hour) => Map<String, String>.from(hour)))
+              : [],
+          specialDays: data['specialDays'] != null
+              ? List<Map<String, String>>.from(data['specialDays']
+                  .map((day) => Map<String, String>.from(day)))
+              : [],
+          status: data['status'] ?? 'Inactive',
+          provider: null,
+        );
+
+        // Calcular tamaños dinámicamente basados en el precio del task
+        final double basePrice = double.tryParse(selectedService.price) ?? 0.0;
+        serviceSizes = [
+          {'size': 'Small', 'price': basePrice, 'hours': '1 H'},
+          {'size': 'Medium', 'price': basePrice * 2, 'hours': '2 H'},
+          {'size': 'Large', 'price': basePrice * 3, 'hours': '3 H'},
+        ];
+
+        for (var sizeOption in serviceSizes) {
+          sizeQuantities[sizeOption['size']] = 0;
+        }
+
+        // Cargar categorías desde Firebase
+        final categoryDocs =
+            await FirebaseFirestore.instance.collection('categories').get();
+
+        availableCategories = categoryDocs.docs.map((doc) {
+          final categoryData = doc.data();
+          final subCategories = (categoryData['subCategories'] as List? ?? [])
+              .map((sub) => SubCategory.fromMap(sub))
+              .toList();
+
+          return Category(
+            id: doc.id,
+            name: categoryData['subCategory'] ?? '',
+            subCategories: subCategories,
+            pathImage: null,
+            categoryId: '',
+          );
+        }).toList();
+
+        // Obtener subcategorías relacionadas
+        selectedSubCategories = availableCategories
+            .firstWhere(
+              (category) => category.id == selectedService.categoryId,
+              orElse: () => availableCategories.first,
+            )
+            .subCategories
+            .where((subCategory) =>
+                subCategory.id == selectedService.subCategoryId)
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error al cargar los datos del servicio: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(title: "Cleaning Service"),
+      appBar: CustomAppBar(title: selectedService.name),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              _buildCategorySection(), // Category section
+              _buildCategorySection(),
               const SizedBox(height: 16),
               selectedSubCategories.isNotEmpty
                   ? _buildSubcategorySection()
-                  : const SizedBox(), // Task section
+                  : const SizedBox(),
               const SizedBox(height: 16),
-              _buildSizeSection(), // Size section
+              _buildSizeSection(),
               const SizedBox(height: 16),
-              _buildContinueButton(), // Continue button
+              _buildContinueButton(),
             ],
           ),
         ),
@@ -89,7 +195,6 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
     );
   }
 
-  // Category Section with CustomCheckboxListTile
   Widget _buildCategorySection() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -107,33 +212,26 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Category",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          const Text("Category",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
-            children: widget.availableCategories.isNotEmpty
-                ? widget.availableCategories.map((category) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10.0),
-                      child: CustomCheckboxListTile(
-                        title: category.name,
-                        value: selectedCategory.id == category.id,
-                        onChanged: (bool? value) {
-                          // Do nothing, only display
-                        },
-                      ),
-                    );
-                  }).toList()
-                : const [Text("No categories available")],
+            children: availableCategories.map((category) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 10.0),
+                child: CustomCheckboxListTile(
+                  title: category.name,
+                  value: selectedService.categoryId == category.id,
+                  onChanged: (bool? value) {},
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
     );
   }
 
-  // Task (Subcategory) Section with CustomCheckboxListTile
   Widget _buildSubcategorySection() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -163,20 +261,24 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
                 ? selectedSubCategories.map((subCategory) {
                     return CustomCheckboxListTile(
                       title: subCategory.name,
-                      value: true, // Mark selected tasks as checked
+                      value: true, // Marcar como seleccionada por defecto
                       onChanged: (bool? value) {
-                        // Do nothing, only display
+                        // Implementar la lógica si es necesario
                       },
                     );
                   }).toList()
-                : [const Text('No tasks available')],
+                : [
+                    const Text(
+                      'No tasks available',
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  ],
           ),
         ],
       ),
     );
   }
 
-  // Size Section with independent selection and quantity control
   Widget _buildSizeSection() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -200,7 +302,7 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
           ),
           const SizedBox(height: 8),
           ListView(
-            shrinkWrap: true, // Prevent RenderBox overflow
+            shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             children: serviceSizes.map((sizeOption) {
               return ListTile(
@@ -213,7 +315,7 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
                   },
                 ),
                 title: Text(
-                    '${sizeOption['size']} - \$${sizeOption['price']} (${sizeOption['hours']})'),
+                    '${sizeOption['size']} - \$${sizeOption['price'].toStringAsFixed(2)} (${sizeOption['hours']})'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -251,7 +353,6 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
     );
   }
 
-  // Continue button
   Widget _buildContinueButton() {
     return PrimaryButton(
       text: "Continue",
@@ -260,17 +361,14 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
               final selectedHours = serviceSizes
                   .firstWhere((s) => s['size'] == selectedSize)['hours'];
 
-              // Navigate to the next screen (seconServiceScreen) with service, size, hours, and quantity
               Navigator.pushNamed(
                 context,
-                RouteNames
-                    .seconServiceScreen, // Use the correct route name here
+                RouteNames.seconServiceScreen,
                 arguments: {
-                  'selectedService':
-                      widget.selectedService, // Pass the selected service
-                  'selectedSize': selectedSize, // Pass the selected size
-                  'hours': selectedHours, // Pass the selected hours
-                  'quantity': sizeQuantities[selectedSize], // Pass the quantity
+                  'selectedService': selectedService,
+                  'selectedSize': selectedSize,
+                  'hours': selectedHours,
+                  'quantity': sizeQuantities[selectedSize],
                 },
               );
             }

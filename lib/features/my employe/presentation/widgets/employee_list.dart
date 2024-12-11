@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/employee_card.dart';
 
 class EmployeeList extends ConsumerWidget {
-  const EmployeeList({Key? key}) : super(key: key);
+  const EmployeeList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

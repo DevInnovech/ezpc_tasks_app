@@ -10,8 +10,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 class VerificationScreen extends ConsumerStatefulWidget {
   final String authMethod;
 
-  const VerificationScreen({Key? key, required this.authMethod})
-      : super(key: key);
+  const VerificationScreen({super.key, required this.authMethod});
 
   @override
   _VerificationScreenState createState() => _VerificationScreenState();

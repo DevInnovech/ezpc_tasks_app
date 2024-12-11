@@ -11,8 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class OrderScreen extends ConsumerWidget {
-  const OrderScreen({super.key, required this.message});
+class AllCategoriesScreen extends ConsumerWidget {
+  const AllCategoriesScreen({super.key, required this.message});
 
   final String message;
 
@@ -41,10 +41,10 @@ class OrderLoadedWidget extends ConsumerStatefulWidget {
   final String routeMessage;
 
   const OrderLoadedWidget({
-    Key? key,
+    super.key,
     required this.orderedList,
     required this.routeMessage,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<OrderLoadedWidget> createState() => _OrderLoadedWidgetState();
