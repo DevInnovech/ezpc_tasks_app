@@ -1,6 +1,6 @@
-import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/AvailabilityScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'AvailabilityScreen.dart';
 
 class BookingScreen extends StatefulWidget {
   final String taskId;
@@ -13,17 +13,19 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> {
   String? selectedCategory;
-  final List<String> selectedSubCategories = [];
-  final Map<String, int> serviceSizes = {
-    "Small": 0,
-    "Medium": 0,
-    "Large": 0,
-  };
-  double baseTaskPrice = 0.0;
+  String? selectedSubCategory;
+  String? selectedTaskName;
+  int hours = 1;
   double subCategoryPrice = 0.0;
+  double baseTaskPrice = 0.0;
   double totalPrice = 0.0;
 
-  Map<String, List<Map<String, dynamic>>> categories = {};
+  Map<String, dynamic> taskData = {};
+  bool isLoading = true;
+
+  bool isCategoryExpanded = true;
+  bool isSubCategoryExpanded = true;
+  bool isTaskNameExpanded = true;
 
   @override
   void initState() {
@@ -39,78 +41,50 @@ class _BookingScreenState extends State<BookingScreen> {
           .get();
 
       if (taskDoc.exists) {
-        final data = taskDoc.data()!;
-        baseTaskPrice = (data['price'] ?? 0.0).toDouble();
-        final category = data['category'] as String?;
-        final subCategory = data['subCategory'] as String?;
-
-        final querySnapshot =
-            await FirebaseFirestore.instance.collection('categories').get();
-
-        final Map<String, List<Map<String, dynamic>>> loadedCategories = {};
-        for (var doc in querySnapshot.docs) {
-          final categoryName = doc['name'] as String;
-          final subCategories = (doc['subCategories'] as List)
-              .map((sub) => {'name': sub['name'], 'price': sub['price'] ?? 0.0})
-              .toList();
-
-          loadedCategories[categoryName] = subCategories;
-        }
-
         setState(() {
-          categories = loadedCategories;
-          selectedCategory = category;
-          if (selectedCategory != null && subCategory != null) {
-            selectedSubCategories.add(subCategory);
-            subCategoryPrice = loadedCategories[selectedCategory]!
-                .firstWhere((sub) => sub['name'] == subCategory)['price']
-                .toDouble();
-          }
+          taskData = taskDoc.data()!;
+          selectedCategory = taskData['category'] as String?;
+          selectedSubCategory = taskData['subCategory'] as String?;
+          selectedTaskName = taskData['taskName'] as String?;
+          subCategoryPrice = (taskData['subCategoryprice'] ?? 0.0).toDouble();
+          baseTaskPrice = (taskData['price'] ?? 0.0).toDouble();
+          isLoading = false;
           calculateTotalPrice();
         });
       }
     } catch (e) {
       debugPrint('Error fetching task data: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  void toggleSubCategory(String subCategory, double price) {
-    setState(() {
-      if (selectedSubCategories.contains(subCategory)) {
-        selectedSubCategories.remove(subCategory);
-        subCategoryPrice -= price;
-      } else {
-        selectedSubCategories.add(subCategory);
-        subCategoryPrice += price;
-      }
-      calculateTotalPrice();
-    });
-  }
-
   void calculateTotalPrice() {
-    double sizePrice = 0.0;
-
-    // Calculamos el precio adicional basado en los tamaños seleccionados
-    serviceSizes.forEach((size, quantity) {
-      if (size == "Small") {
-        sizePrice += quantity * 25.0;
-      } else if (size == "Medium") {
-        sizePrice += quantity * 50.0;
-      } else if (size == "Large") {
-        sizePrice += quantity * 75.0;
-      }
-    });
-
-    totalPrice = baseTaskPrice + subCategoryPrice + sizePrice;
+    double taxRate = 0.1; // 10% impuestos
+    double taxAmount = (baseTaskPrice + subCategoryPrice * hours) * taxRate;
+    totalPrice = baseTaskPrice + (subCategoryPrice * hours) + taxAmount;
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           "Task Details",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -122,205 +96,337 @@ class _BookingScreenState extends State<BookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Categories Section
-            _buildSectionTitle("Task:"),
-            if (categories.isNotEmpty)
-              DropdownButton<String>(
-                value: selectedCategory,
-                isExpanded: true,
-                items: categories.keys.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategory = value;
-                    selectedSubCategories.clear();
-                    subCategoryPrice = 0.0;
-                    calculateTotalPrice();
-                  });
-                },
-              ),
-
-            const SizedBox(height: 16),
-
-            // Subcategories Section
-            if (selectedCategory != null) _buildSectionTitle("Cleaning Tasks"),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: categories[selectedCategory]?.map((subCategory) {
-                    final isSelected =
-                        selectedSubCategories.contains(subCategory['name']);
-                    final price = subCategory['price'].toDouble();
-                    return FilterChip(
-                      label: Text(
-                          "${subCategory['name']} (\$${price.toStringAsFixed(2)})"),
-                      selected: isSelected,
-                      onSelected: (_) =>
-                          toggleSubCategory(subCategory['name'], price),
-                      selectedColor: Colors.blue.shade100,
-                      checkmarkColor: Colors.blue,
-                      backgroundColor: Colors.grey.shade200,
-                    );
-                  }).toList() ??
-                  [],
+            _buildExpandableCard(
+              title: "Category",
+              isExpanded: isCategoryExpanded,
+              onExpand: () {
+                setState(() {
+                  isCategoryExpanded = !isCategoryExpanded;
+                });
+              },
+              child: _buildCategoryContent(),
             ),
-
-            const SizedBox(height: 16),
-
-            // Service Sizes Section
-            _buildSectionTitle("Size"),
-            Column(
-              children: serviceSizes.keys.map((size) {
-                final int quantity = serviceSizes[size] ?? 0;
-                final String price = size == "Small"
-                    ? "\$25"
-                    : size == "Medium"
-                        ? "\$50"
-                        : "\$75";
-
-                final String duration = size == "Small"
-                    ? "1 H"
-                    : size == "Medium"
-                        ? "2-3 H"
-                        : "4+ H";
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                size,
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                price,
-                                style: const TextStyle(
-                                  fontSize: 14.0,
-                                  color: Colors.green,
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                duration,
-                                style: const TextStyle(
-                                  fontSize: 14.0,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  if (quantity > 0) {
-                                    serviceSizes[size] = quantity - 1;
-                                  }
-                                  calculateTotalPrice();
-                                });
-                              },
-                              icon: const Icon(Icons.remove_circle_outline),
-                            ),
-                            Text(
-                              '$quantity',
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  serviceSizes[size] = quantity + 1;
-                                  calculateTotalPrice();
-                                });
-                              },
-                              icon: const Icon(Icons.add_circle_outline),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+            _buildExpandableCard(
+              title: "Subcategory",
+              isExpanded: isSubCategoryExpanded,
+              onExpand: () {
+                setState(() {
+                  isSubCategoryExpanded = !isSubCategoryExpanded;
+                });
+              },
+              child: _buildSubcategoryContent(),
             ),
-
+            _buildExpandableCard(
+              title: "Task Name",
+              isExpanded: isTaskNameExpanded,
+              onExpand: () {
+                setState(() {
+                  isTaskNameExpanded = !isTaskNameExpanded;
+                });
+              },
+              child: _buildTaskNameContent(),
+            ),
             const SizedBox(height: 20),
-
-            // Total Price Section
+            _buildSectionTitle("Hours"),
+            _buildWhiteCard(_buildHoursCard()),
+            const SizedBox(height: 20),
+            _buildSectionTitle("Price Breakdown"),
+            _buildWhiteCard(_buildPriceBreakdown()),
+            const SizedBox(height: 20),
             _buildSectionTitle("Total Price"),
             Text(
               "\$${totalPrice.toStringAsFixed(2)}",
               style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF404C8C),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14.0),
-                ),
-                onPressed: () {
-                  if (selectedCategory != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AvailabilityScreen(
-                          taskId: widget.taskId,
-                          selectedCategory: selectedCategory ??
-                              "Default Category", // Valor por defecto
-                          selectedSubCategories: selectedSubCategories,
-                          serviceSizes: serviceSizes,
-                          totalPrice: totalPrice,
-                        ),
-                      ),
-                    );
-                  } else {
-                    // Muestra un mensaje de error si selectedCategory es nulo
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Please select a category")),
-                    );
-                  }
-                },
-                child: const Text(
-                  "Continue",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.0,
-                  ),
-                ),
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF404C8C),
               ),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF404C8C),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25.0),
+              ),
+              elevation: 5,
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+            ),
+            onPressed: () {
+              if (selectedCategory != null &&
+                  selectedSubCategory != null &&
+                  selectedTaskName != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AvailabilityScreen(
+                      taskId: widget.taskId,
+                      selectedCategory: selectedCategory!,
+                      selectedSubCategories: [selectedSubCategory!],
+                      serviceSizes: {'Hours': hours},
+                      totalPrice: totalPrice,
+                    ),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Please complete all selections"),
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              "Continue",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpandableCard({
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onExpand,
+    required Widget child,
+  }) {
+    return Column(
+      children: [
+        Card(
+          color: Colors.white,
+          elevation: 6,
+          shadowColor: Colors.grey.withOpacity(0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                title: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF404C8C),
+                  ),
+                ),
+                trailing: Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: const Color(0xFF404C8C),
+                ),
+                onTap: onExpand,
+              ),
+              if (isExpanded)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 12.0,
+                  ),
+                  child: child,
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildWhiteCard(Widget child) {
+    return Card(
+      color: Colors.white,
+      elevation: 6,
+      shadowColor: Colors.grey.withOpacity(0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildHoursCard() {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            "$hours Hour${hours > 1 ? 's' : ''}",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF404C8C),
+            ),
+          ),
+        ),
+        Row(
+          children: [
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  if (hours > 1) {
+                    hours--;
+                    calculateTotalPrice();
+                  }
+                });
+              },
+              icon: Icon(
+                Icons.remove_circle_outline,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            Text(
+              '$hours',
+              style: const TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  hours++;
+                  calculateTotalPrice();
+                });
+              },
+              icon: Icon(
+                Icons.add_circle_outline,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceBreakdown() {
+    double taxRate = 0.1;
+    double taxAmount = (baseTaskPrice + subCategoryPrice * hours) * taxRate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildPriceRow("Category Price:", baseTaskPrice),
+        _buildPriceRow("Tasks Price:", subCategoryPrice * hours),
+        _buildPriceRow("Taxes (10%):", taxAmount),
+        const Divider(
+          height: 20,
+          thickness: 1,
+          color: Colors.grey,
+        ),
+        _buildPriceRow(
+          "Total:",
+          totalPrice,
+          isBold: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRow(String label, double value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          "\$${value.toStringAsFixed(2)}",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: isBold ? const Color(0xFF404C8C) : Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryContent() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.check_circle,
+          color: Color(0xFF404C8C),
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            selectedCategory ?? "No category selected",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubcategoryContent() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.check_circle,
+          color: Color(0xFF404C8C),
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            "${selectedSubCategory ?? "No subcategory selected"} (\$${subCategoryPrice.toStringAsFixed(2)} per hour)",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTaskNameContent() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.check_circle,
+          color: Color(0xFF404C8C),
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            selectedTaskName ?? "No task name selected",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -330,8 +436,9 @@ class _BookingScreenState extends State<BookingScreen> {
       child: Text(
         title,
         style: const TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF404C8C),
         ),
       ),
     );

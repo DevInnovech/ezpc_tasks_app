@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';

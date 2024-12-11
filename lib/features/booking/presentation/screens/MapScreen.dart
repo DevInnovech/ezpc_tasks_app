@@ -51,7 +51,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: GoogleMap(
         onMapCreated: _onMapCreated,
-        initialCameraPosition: CameraPosition(
+        initialCameraPosition: const CameraPosition(
           target: _center,
           zoom: 12.0,
         ),

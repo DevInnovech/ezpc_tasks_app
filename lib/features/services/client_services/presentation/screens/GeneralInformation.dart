@@ -1,7 +1,6 @@
-import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/newpaymentscreen.dart';
 import 'package:flutter/material.dart';
+import 'ConfirmationScreen.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GeneralInformationScreen extends StatefulWidget {
@@ -15,7 +14,7 @@ class GeneralInformationScreen extends StatefulWidget {
   final String userId;
 
   const GeneralInformationScreen({
-    Key? key,
+    super.key,
     required this.taskId,
     required this.timeSlot,
     required this.date,
@@ -24,7 +23,7 @@ class GeneralInformationScreen extends StatefulWidget {
     required this.serviceSizes,
     required this.totalPrice,
     required this.userId,
-  }) : super(key: key);
+  });
 
   @override
   _GeneralInformationScreenState createState() =>
@@ -41,6 +40,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
   late DateTime selectedDate;
   bool isLoading = true;
   String? errorMessage;
+  bool applyForAnotherPerson = false;
 
   @override
   void initState() {
@@ -59,80 +59,130 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
       if (clientDoc.exists) {
         final data = clientDoc.data()!;
         setState(() {
-          nameController.text = data['name'] ?? '';
-          phoneController.text = data['phoneNumber'] ?? '';
-          emailController.text = data['email'] ?? '';
+          if (!applyForAnotherPerson) {
+            nameController.text = data['name'] ?? '';
+            phoneController.text = data['phoneNumber'] ?? '';
+            emailController.text = data['email'] ?? '';
+          }
           isLoading = false;
         });
       } else {
         setState(() {
-          errorMessage = 'No se encontró información para este cliente.';
+          errorMessage = 'No client information found.';
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        errorMessage = 'Error al cargar los datos: $e';
+        errorMessage = 'Error loading client data: $e';
         isLoading = false;
       });
     }
   }
 
-  void selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+  Widget _buildProgressIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildProgressStep("Task", isCompleted: true),
+        _buildProgressStep("Information", isCompleted: true),
+        _buildProgressStep("Confirm", isCompleted: false),
+      ],
     );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
   }
 
-  Future<void> saveBookingToFirestore() async {
-    try {
-      if (nameController.text.isEmpty ||
-          phoneController.text.isEmpty ||
-          emailController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please complete all required fields.')),
-        );
-        return;
-      }
+  Widget _buildProgressStep(String title, {required bool isCompleted}) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: isCompleted ? const Color(0xFF404C8C) : Colors.grey,
+          child: Icon(
+            isCompleted ? Icons.check : Icons.circle_outlined,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 12.0,
+            fontWeight: FontWeight.bold,
+            color: isCompleted ? const Color(0xFF404C8C) : Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
 
-      final bookingData = {
-        'taskId': widget.taskId,
-        'timeSlot': widget.timeSlot,
-        'date': widget.date.toIso8601String(),
-        'category': widget.selectedCategory,
-        'subCategories': widget.selectedSubCategories,
-        'serviceSizes': widget.serviceSizes,
-        'totalPrice': widget.totalPrice,
-        'clientId': widget.userId,
-        'name': nameController.text,
-        'phone': phoneController.text,
-        'email': emailController.text,
-        'address': addressController.text,
-        'notes': notesController.text,
-        'schedule': selectedDate.toIso8601String(),
-        'createdAt': FieldValue.serverTimestamp(),
-      };
-
-      await FirebaseFirestore.instance.collection('bookings').add(bookingData);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Booking saved successfully!')),
-      );
-
-      // Navegar a otra pantalla o realizar alguna acción adicional si es necesario
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save booking: $e')),
-      );
-    }
+  Widget _buildClientInfoCard() {
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 4,
+      margin: const EdgeInsets.only(top: 16.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Client Details",
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Divider(),
+            _buildTextField(
+              label: "Name",
+              controller: nameController,
+              isEnabled: applyForAnotherPerson,
+            ),
+            _buildTextField(
+              label: "Phone",
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              isEnabled: applyForAnotherPerson,
+            ),
+            _buildTextField(
+              label: "Email",
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              isEnabled: applyForAnotherPerson,
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
+              "Address",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
+            ),
+            const SizedBox(height: 8.0),
+            GooglePlaceAutoCompleteTextField(
+              textEditingController: addressController,
+              googleAPIKey:
+                  "AIzaSyDwxlmeFfLFPceI3B4J35xq7UqHan7iA6s", // Reemplaza con tu API Key
+              inputDecoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                hintText: "Enter Address",
+              ),
+              debounceTime: 800,
+              isLatLngRequired: true,
+              getPlaceDetailWithLatLng: (prediction) {
+                debugPrint("Place Details: $prediction");
+              },
+              itemClick: (prediction) {
+                addressController.text = prediction.description!;
+                addressController.selection = TextSelection.fromPosition(
+                    TextPosition(offset: prediction.description!.length));
+              },
+            ),
+            const SizedBox(height: 16.0),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildTextField({
@@ -140,6 +190,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
     required TextEditingController controller,
     bool isMultiline = false,
     TextInputType keyboardType = TextInputType.text,
+    bool isEnabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,6 +204,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
           controller: controller,
           maxLines: isMultiline ? 5 : 1,
           keyboardType: keyboardType,
+          enabled: isEnabled,
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.0),
@@ -161,6 +213,28 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
           ),
         ),
         const SizedBox(height: 16.0),
+      ],
+    );
+  }
+
+  Widget _buildApplyForAnotherPersonCheckbox() {
+    return Row(
+      children: [
+        Checkbox(
+          value: applyForAnotherPerson,
+          onChanged: (value) {
+            setState(() {
+              applyForAnotherPerson = value ?? false;
+              if (!applyForAnotherPerson) {
+                fetchClientData(); // Reload client data when unchecking
+              }
+            });
+          },
+        ),
+        const Text(
+          "Apply for another person",
+          style: TextStyle(fontSize: 14.0),
+        ),
       ],
     );
   }
@@ -193,112 +267,79 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
         title: const Text("General Information"),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTextField(
-              label: "Name",
-              controller: nameController,
-            ),
-            _buildTextField(
-              label: "Phone",
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-            ),
-            _buildTextField(
-              label: "Email",
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const Text(
-              "Address",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
-            ),
-            const SizedBox(height: 8.0),
-            GooglePlaceAutoCompleteTextField(
-              textEditingController: addressController,
-              googleAPIKey:
-                  "AIzaSyDwxlmeFfLFPceI3B4J35xq7UqHan7iA6s", // Reemplaza con tu API Key
-              inputDecoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                hintText: "Enter Address",
-              ),
-              debounceTime: 800,
-              isLatLngRequired: true,
-              getPlaceDetailWithLatLng: (prediction) {
-                debugPrint("Place Details: $prediction");
-              },
-              itemClick: (prediction) {
-                addressController.text = prediction.description!;
-                addressController.selection = TextSelection.fromPosition(
-                    TextPosition(offset: prediction.description!.length));
-              },
-            ),
-            const SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Schedule:",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
+                // Progress Indicator
+                _buildProgressIndicator(),
+                const SizedBox(height: 16.0),
+
+                // Client Information Card
+                _buildClientInfoCard(),
+                const SizedBox(height: 8.0),
+
+                // Apply for Another Person Checkbox
+                _buildApplyForAnotherPersonCheckbox(),
+                const SizedBox(height: 16.0),
+
+                // Notes Section
+                _buildTextField(
+                  label: "Short Notes",
+                  controller: notesController,
+                  isMultiline: true,
                 ),
-                TextButton(
-                  onPressed: () => selectDate(context),
-                  child: Text(
-                    DateFormat('dd MMM, yyyy').format(selectedDate),
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                ),
+                const SizedBox(height: 80.0), // Espacio para el botón fijo
               ],
             ),
-            _buildTextField(
-              label: "Short Notes",
-              controller: notesController,
-              isMultiline: true,
-            ),
-            const SizedBox(height: 16.0),
-            const Divider(),
-            const Text(
-              "Task Information",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-            ),
-            const SizedBox(height: 8.0),
-            Text("Task ID: ${widget.taskId}"),
-            Text("Time Slot: ${widget.timeSlot}"),
-            Text("Date: ${DateFormat('dd MMM, yyyy').format(widget.date)}"),
-            Text("Category: ${widget.selectedCategory}"),
-            Text(
-              "Subcategories: ${widget.selectedSubCategories.join(', ')}",
-            ),
-            Text(
-              "Service Sizes: ${widget.serviceSizes.entries.where((entry) => entry.value > 0).map((entry) => "${entry.key} (${entry.value})").join(', ')}",
-            ),
-            Text("Total Price: \$${widget.totalPrice.toStringAsFixed(2)}"),
-            const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () async {
-                await saveBookingToFirestore();
+          ),
+
+          // Botón Fijo
+          Positioned(
+            bottom: 16.0,
+            left: 16.0,
+            right: 16.0,
+            child: ElevatedButton(
+              onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PaymentScreen(),
+                    builder: (context) => ConfirmationScreen(
+                      bookingData: {
+                        'taskId': widget.taskId,
+                        'timeSlot': widget.timeSlot,
+                        'date': widget.date,
+                        'selectedCategory': widget.selectedCategory,
+                        'selectedSubCategories': widget.selectedSubCategories,
+                        'serviceSizes': widget.serviceSizes,
+                        'totalPrice': widget.totalPrice,
+                        'clientName': nameController.text,
+                        'clientPhone': phoneController.text,
+                        'clientEmail': emailController.text,
+                        'clientAddress': addressController.text,
+                        'shortNotes': notesController.text,
+                      },
+                    ),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF404C8C),
                 minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
               child: const Text(
-                "Proceed to Payment",
-                style: TextStyle(fontSize: 16.0),
+                "Proceed to Confirmation",
+                style: TextStyle(fontSize: 16.0, color: Colors.white),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

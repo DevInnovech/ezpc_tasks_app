@@ -1,17 +1,12 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
-import 'package:ezpc_tasks_app/features/services/data/category_state.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/choose_category_widget.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/choose_subcategory_widget.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/license_document_widget.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/rate_input_widget.dart';
-import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/service_image.dart';
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
-import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import '../../data/task_provider.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/license_document_widget.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/service_image.dart';
+import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 
 class CategoryPricingStep extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -23,17 +18,68 @@ class CategoryPricingStep extends ConsumerStatefulWidget {
 }
 
 class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
-  String? _selectedAdditionalOption;
+  String? _selectedCategoryId;
+  String? _selectedSubCategoryId;
+  String? _selectedServiceId;
+  List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> _subCategories = [];
+  List<String> _services = [];
+  bool _isLoadingCategories = true;
+  bool _isLoadingSubCategories = false;
+
+  double? _categoryRate; // Se asigna al modelo como `price`.
+  double? _serviceRate; // Se asigna al modelo como `subCategoryprice`.
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    setState(() {
+      _isLoadingCategories = true;
+    });
+
+    final snapshot =
+        await FirebaseFirestore.instance.collection('categories').get();
+    final categories =
+        snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+
+    setState(() {
+      _categories = categories;
+      _isLoadingCategories = false;
+    });
+  }
+
+  Future<void> _loadSubCategories(String categoryId) async {
+    setState(() {
+      _isLoadingSubCategories = true;
+    });
+
+    final category = _categories.firstWhere((cat) => cat['id'] == categoryId);
+    final subCategories =
+        List<Map<String, dynamic>>.from(category['subcategories'] ?? []);
+
+    setState(() {
+      _subCategories = subCategories;
+      _isLoadingSubCategories = false;
+      _services = []; // Reiniciar servicios al cargar nuevas subcategorías
+    });
+  }
+
+  void _loadServices(String subCategoryName) {
+    final subCategory =
+        _subCategories.firstWhere((sub) => sub['name'] == subCategoryName);
+
+    setState(() {
+      _services = List<String>.from(subCategory['services'] ?? []);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final selectedCategory = ref.watch(selectedCategoryProvider);
-    final selectedSubCategory = ref.watch(selectedSubCategoryProvider);
     final isLicenseRequired = ref.watch(isLicenseRequiredProvider);
-    final isRateAppliedToSubcategories =
-        ref.watch(isRateAppliedToSubcategoriesProvider);
-    final taskState = ref.watch(taskProvider);
-    final Task? currentTask = taskState.currentTask;
 
     return Form(
       key: widget.formKey,
@@ -46,79 +92,133 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
             const SizedBox(height: 8),
             ServiceImage(
               onImageSelected: (String imageUrl) {
-                if (currentTask != null) {
-                  ref
-                      .read(taskProvider.notifier)
-                      .updateTask(imageUrl: imageUrl);
-                }
+                // Actualizar el estado con la URL de la imagen
+                ref.read(taskProvider.notifier).updateTask(imageUrl: imageUrl);
               },
             ),
-            if (currentTask?.imageUrl.isEmpty ?? true)
-              const Padding(
-                padding: EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'Please select an image.',
-                  style: TextStyle(color: Colors.red, fontSize: 14),
-                ),
-              ),
             const SizedBox(height: 16),
             _buildSectionTitle(context, 'Choose Category'),
-            CategorySelector(
-              onCategorySelected: (String category) {
-                if (currentTask != null) {
-                  ref.read(taskProvider.notifier).updateTask(
-                        category: category,
-                        subCategory: '',
-                      );
-                }
+            _isLoadingCategories
+                ? const Center(child: CircularProgressIndicator())
+                : DropdownButtonFormField<String>(
+                    value: _selectedCategoryId,
+                    hint: const Text('Select a category'),
+                    items: _categories
+                        .map((category) => DropdownMenuItem<String>(
+                              value: category['id'],
+                              child: Text(category['name']),
+                            ))
+                        .toList(),
+                    onChanged: (String? categoryId) {
+                      setState(() {
+                        _selectedCategoryId = categoryId;
+                        _selectedSubCategoryId = null;
+                        _categoryRate = null;
+                        _serviceRate = null;
+                      });
+
+                      if (categoryId != null) {
+                        _loadSubCategories(categoryId);
+
+                        final category = _categories
+                            .firstWhere((cat) => cat['id'] == categoryId);
+
+                        ref.read(taskProvider.notifier).updateTask(
+                              category: category['name'],
+                            );
+                      }
+                    },
+                  ),
+            const SizedBox(height: 16),
+            _buildSectionTitle(context, 'Category Rate'),
+            TextFormField(
+              initialValue: _categoryRate?.toStringAsFixed(2),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Enter Category Rate',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                final rate = double.tryParse(value) ?? 0.0;
+                setState(() {
+                  _categoryRate = rate;
+                });
+
+                ref.read(taskProvider.notifier).updateTask(price: rate);
               },
             ),
-            if (selectedCategory != null) ...[
-              const SizedBox(height: 16),
-              _buildSectionTitle(context, 'Set Pricing'),
-              RateInputWidget(
-                onRateChanged: (double price) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(price: price);
-                  }
-                },
-              ),
-              CustomCheckboxListTile(
-                title: 'Apply pricing to all subcategories',
-                value: isRateAppliedToSubcategories,
-                onChanged: (bool? value) {
+            const SizedBox(height: 16),
+            _buildSectionTitle(context, 'Choose Subcategory'),
+            _isLoadingSubCategories
+                ? const Center(child: CircularProgressIndicator())
+                : DropdownButtonFormField<String>(
+                    value: _selectedSubCategoryId,
+                    hint: const Text('Select a subcategory'),
+                    items: _subCategories
+                        .map((subCategory) => DropdownMenuItem<String>(
+                              value: subCategory['name'],
+                              child: Text(subCategory['name']),
+                            ))
+                        .toList(),
+                    onChanged: (String? subCategoryName) {
+                      setState(() {
+                        _selectedSubCategoryId = subCategoryName;
+                        _serviceRate = null;
+                        _selectedServiceId = null;
+                      });
+
+                      if (subCategoryName != null) {
+                        _loadServices(subCategoryName);
+
+                        ref.read(taskProvider.notifier).updateTask(
+                              subCategory: subCategoryName,
+                            );
+                      }
+                    },
+                  ),
+            const SizedBox(height: 16),
+            if (_services.isNotEmpty)
+              _buildSectionTitle(context, 'Choose Service'),
+            if (_services.isNotEmpty)
+              DropdownButtonFormField<String>(
+                value: _selectedServiceId,
+                hint: const Text('Select a service'),
+                items: _services
+                    .map((service) => DropdownMenuItem<String>(
+                          value: service,
+                          child: Text(service),
+                        ))
+                    .toList(),
+                onChanged: (String? serviceId) {
+                  setState(() {
+                    _selectedServiceId = serviceId;
+                  });
+
                   ref
-                      .read(isRateAppliedToSubcategoriesProvider.notifier)
-                      .state = value ?? false;
-                },
-                activeColor: primaryColor,
-                checkColor: Colors.white,
-              ),
-              SubCategorySelector(
-                onSubCategorySelected: (String subCategory) {
-                  if (currentTask != null) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          subCategory: subCategory,
-                        );
-                  }
+                      .read(taskProvider.notifier)
+                      .updateTask(service: serviceId);
                 },
               ),
-              if (selectedSubCategory != null) ...[
-                _buildAdditionalOptions(
-                    context, currentTask, selectedSubCategory),
-                const SizedBox(height: 16),
-                _buildSectionTitle(context, 'Subcategory Pricing'),
-                RateInputWidget(
-                  onRateChanged: (double subCategoryPrice) {
-                    if (currentTask != null) {
-                      ref.read(taskProvider.notifier).updateTask(
-                            subCategoryprice: subCategoryPrice,
-                          );
-                    }
-                  },
-                ),
-              ],
-            ],
+            const SizedBox(height: 16),
+            _buildSectionTitle(context, 'Service Rate'),
+            TextFormField(
+              initialValue: _serviceRate?.toStringAsFixed(2),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Enter Service Rate',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                final rate = double.tryParse(value) ?? 0.0;
+                setState(() {
+                  _serviceRate = rate;
+                });
+
+                ref
+                    .read(taskProvider.notifier)
+                    .updateTask(subCategoryprice: rate);
+              },
+            ),
             const SizedBox(height: 16),
             _buildSectionTitle(context, 'Professional License'),
             CustomCheckboxListTile(
@@ -128,14 +228,11 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                 ref.read(isLicenseRequiredProvider.notifier).state =
                     value ?? false;
 
-                if (currentTask != null) {
-                  ref.read(taskProvider.notifier).updateTask(
-                        requiresLicense: value ?? false,
-                      );
-                }
+                ref.read(taskProvider.notifier).updateTask(
+                      requiresLicense: value ?? false,
+                    );
               },
-              activeColor: primaryColor,
-              checkColor: Colors.white,
+              activeColor: Colors.blue,
             ),
             AbsorbPointer(
               absorbing: !isLicenseRequired,
@@ -143,46 +240,34 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                 opacity: isLicenseRequired ? 1.0 : 0.5,
                 child: LicenseDocumentInput(
                   onLicenseTypeChanged: (String licenseType) {
-                    if (currentTask != null) {
-                      ref.read(taskProvider.notifier).updateTask(
-                            licenseType: licenseType,
-                          );
-                    }
+                    ref.read(taskProvider.notifier).updateTask(
+                          licenseType: licenseType,
+                        );
                   },
                   onLicenseNumberChanged: (String licenseNumber) {
-                    if (currentTask != null) {
-                      ref.read(taskProvider.notifier).updateTask(
-                            licenseNumber: licenseNumber,
-                          );
-                    }
+                    ref.read(taskProvider.notifier).updateTask(
+                          licenseNumber: licenseNumber,
+                        );
                   },
                   onPhoneChanged: (String phone) {
-                    if (currentTask != null) {
-                      ref.read(taskProvider.notifier).updateTask(
-                            phone: phone,
-                          );
-                    }
+                    ref.read(taskProvider.notifier).updateTask(
+                          phone: phone,
+                        );
                   },
                   onIssueDateChanged: (String issueDate) {
-                    if (currentTask != null) {
-                      ref.read(taskProvider.notifier).updateTask(
-                            issueDate: issueDate,
-                          );
-                    }
+                    ref.read(taskProvider.notifier).updateTask(
+                          issueDate: issueDate,
+                        );
                   },
                   onLicenseExpirationDateChanged: (String expirationDate) {
-                    if (currentTask != null) {
-                      ref.read(taskProvider.notifier).updateTask(
-                            licenseExpirationDate: expirationDate,
-                          );
-                    }
+                    ref.read(taskProvider.notifier).updateTask(
+                          licenseExpirationDate: expirationDate,
+                        );
                   },
                   onDocumentSelected: (File file) {
-                    if (currentTask != null) {
-                      ref.read(taskProvider.notifier).updateTask(
-                            documentUrl: file.path,
-                          );
-                    }
+                    ref.read(taskProvider.notifier).updateTask(
+                          documentUrl: file.path,
+                        );
                   },
                 ),
               ),
@@ -199,45 +284,6 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
-    );
-  }
-
-  Widget _buildAdditionalOptions(
-      BuildContext context, Task? currentTask, var selectedSubCategory) {
-    final List<String> additionalOptions =
-        List<String>.from(selectedSubCategory.additionalOptions ?? []);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle(context, 'Additional Options'),
-          const SizedBox(height: 8.0),
-          DropdownButtonFormField<String>(
-            isExpanded: true,
-            value: _selectedAdditionalOption,
-            hint: const Text('Select an additional option'),
-            items: additionalOptions
-                .map((option) => DropdownMenuItem<String>(
-                      value: option,
-                      child: Text(option),
-                    ))
-                .toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedAdditionalOption = newValue;
-              });
-
-              if (currentTask != null) {
-                ref.read(taskProvider.notifier).updateTask(
-                      service: newValue!,
-                    );
-              }
-            },
-          ),
-        ],
-      ),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 
 class TaskDetailsScreen extends ConsumerWidget {
   final Task task;

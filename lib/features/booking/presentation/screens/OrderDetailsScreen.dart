@@ -333,13 +333,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 onPressed: () {
                   // Implement navigation to tasks screen
                 },
-                child: const Text("Drive to Tasks"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
+                child: const Text("Drive to Tasks"),
               ),
             ],
           ],

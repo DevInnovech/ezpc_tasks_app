@@ -20,8 +20,8 @@ class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
   @override
   void initState() {
     super.initState();
-    _servicesFuture =
-        AllServicesRepository().getServicesByCategory(widget.category.id);
+    _servicesFuture = AllServicesRepository()
+        .getServicesByCategory(widget.category.categoryId);
   }
 
   @override

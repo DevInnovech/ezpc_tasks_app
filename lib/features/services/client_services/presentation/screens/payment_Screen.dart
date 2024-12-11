@@ -8,12 +8,12 @@ class PaymentScreen extends StatelessWidget {
   final PaymentModel paymentModel;
 
   const PaymentScreen({
-    Key? key,
+    super.key,
     required this.paymentModel,
     required String userName,
     required String timeSlot,
     required String taskId,
-  }) : super(key: key);
+  });
 
   Future<void> processPayment() async {
     const String apiUrl = "https://api.yourserver.com/payment-intent";

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_provider.dart';
-import 'package:ezpc_tasks_app/features/home/models/userdash_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';

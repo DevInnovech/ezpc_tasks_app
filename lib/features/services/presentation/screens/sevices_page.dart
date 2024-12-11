@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/services/data/CreateCategoryScreen.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/task_details_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -34,30 +35,68 @@ class ServiceScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // Botón "Add New Task"
+          // Botones "Add New Task" y "Add New Category"
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.add, color: Color(0xFF404C8C)),
-              label: const Text(
-                'Add New Task',
-                style: TextStyle(color: Colors.black),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: const BorderSide(
-                  color: Color(0xFF404C8C),
-                  width: 2.0,
+            child: Row(
+              children: [
+                // Botón "Add New Task"
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.add, color: Color(0xFF404C8C)),
+                    label: const Text(
+                      'Add New Task',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(
+                        color: Color(0xFF404C8C),
+                        width: 2.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14.0, horizontal: 20.0),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/addNewServiceScreen');
+                    },
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+                const SizedBox(width: 16.0),
+                // Botón "Add New Category"
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.category, color: Colors.orange),
+                    label: const Text(
+                      'Add New Category',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(
+                        color: Colors.orange,
+                        width: 2.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14.0, horizontal: 20.0),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreateCategoryScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(
-                    vertical: 14.0, horizontal: 20.0),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/addNewServiceScreen');
-              },
+              ],
             ),
           ),
           Expanded(

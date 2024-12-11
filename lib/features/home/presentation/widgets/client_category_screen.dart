@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByCategory.dart';
-import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/Booking_Screen.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
+import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -19,11 +19,13 @@ final categoryProvider = FutureProvider<List<Category>>((ref) async {
       return Category(
         id: doc.id,
         name: doc['name'] ?? '',
-        pathimage: doc['pathimage'],
-        subCategories: [],
+        pathimage: doc['imageUrl'] ?? '',
+        subCategories: (doc['subcategories'] as List<dynamic>?)
+                ?.map((sub) => SubCategory.fromMap(sub as Map<String, dynamic>))
+                .toList() ??
+            [],
+        categoryId: doc['id'] ?? '',
         pathImage: null,
-        categoryId:
-            doc['categoryId'] ?? '', // Maneja imágenes si están en Firestore
       );
     }).toList();
   } catch (e) {
@@ -96,13 +98,10 @@ class ClientCategoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navegación o acción específica al hacer clic en el ícono
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const BookingScreen(
-              taskId: '',
-            ),
+            builder: (context) => ServicesByCategoryScreen(category: item),
           ),
         );
       },
@@ -129,7 +128,6 @@ class ClientCategoryItem extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: () {
-                // Acción específica para el ícono
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -147,16 +145,15 @@ class ClientCategoryItem extends StatelessWidget {
                   shape: OvalBorder(),
                 ),
                 child: CustomImage(
-                  path: item.pathimage ??
+                  path: null,
+                  url: item.pathimage ??
                       KImages.booking, // Usamos el valor por defecto si es null
-                  url: null,
                 ),
               ),
             ),
             Utils.verticalSpace(8),
             GestureDetector(
               onTap: () {
-                // Acción para el texto
                 Navigator.push(
                   context,
                   MaterialPageRoute(
