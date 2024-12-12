@@ -1,4 +1,4 @@
-import 'package:ezpc_tasks_app/features/booking/data/booking_provider.dart';
+/*import 'package:ezpc_tasks_app/features/booking/data/booking_provider.dart';
 import 'package:ezpc_tasks_app/features/booking/models/booking_data_dto.dart';
 import 'package:ezpc_tasks_app/features/booking/models/provider_booking_dto.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/booking_component.dart';
@@ -10,8 +10,11 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/fetch_error_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/loading_widget.dart';
 import 'package:ezpc_tasks_app/shared/widgets/scrolling_taggle_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';*/
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/OrderDetailsScreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /*class BookingScreen extends ConsumerWidget {
   const BookingScreen({super.key});
@@ -85,10 +88,6 @@ class _LoadedBookingWidgetState extends ConsumerState<LoadedBookingWidget> {
     print("Elementos filtrados: ${bookingList.length}"); // Agrega esta línea
 
     if (mounted) setState(() {});*/
-import 'package:ezpc_tasks_app/features/booking/presentation/screens/OrderDetailsScreen.dart';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class ProviderOrdersScreen extends StatelessWidget {
   const ProviderOrdersScreen({super.key});

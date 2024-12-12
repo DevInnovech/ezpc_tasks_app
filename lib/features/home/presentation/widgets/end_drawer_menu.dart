@@ -1,4 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_curve_shape.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_form.dart';
+import 'package:ezpc_tasks_app/shared/widgets/error_text.dart';
+import 'package:ezpc_tasks_app/shared/widgets/heading_dialog.dart';
+import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
@@ -7,6 +12,7 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class EndDrawerMenu extends StatefulWidget {
   const EndDrawerMenu({super.key});

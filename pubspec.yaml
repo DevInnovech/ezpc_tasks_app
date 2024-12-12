@@ -77,6 +77,8 @@ dependencies:
   google_places_flutter: ^2.0.9
   text_scroll: ^0.2.0
   google_maps_flutter: ^2.10.0
+  webview_flutter: ^4.8.0
+  share_plus: ^10.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

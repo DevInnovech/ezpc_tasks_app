@@ -135,7 +135,7 @@ class ClientServiceView extends ConsumerWidget {
                 // Nombre de la tarea (Sin preguntas)
                 CustomText(
                   text: _cleanTaskName(task
-                      .name), // Limpieza de `task.name` para eliminar preguntas
+                      .firstName), // Limpieza de `task.name` para eliminar preguntas
                   fontSize: 18.0,
                   fontWeight: FontWeight.w700,
                 ),
