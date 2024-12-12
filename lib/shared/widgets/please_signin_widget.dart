@@ -8,7 +8,7 @@ import 'custom_image.dart';
 import 'primary_button.dart';
 
 class PleaseSigninWidget extends StatelessWidget {
-  const PleaseSigninWidget({Key? key}) : super(key: key);
+  const PleaseSigninWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

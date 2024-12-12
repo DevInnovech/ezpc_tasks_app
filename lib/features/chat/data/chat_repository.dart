@@ -6,7 +6,7 @@ class ChatRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String generateChatRoomId(String user1, String user2) {
-    return user1.compareTo(user2) > 0 ? '$user1\_$user2' : '$user2\_$user1';
+    return user1.compareTo(user2) > 0 ? '${user1}_$user2' : '${user2}_$user1';
   }
 
   Future<void> sendMessage(String chatRoomId, ChatMessage message) async {
@@ -31,7 +31,7 @@ class ChatRepository {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        return ChatMessage.fromMap(doc.data() as Map<String, dynamic>);
+        return ChatMessage.fromMap(doc.data());
       }).toList();
     });
   }

@@ -11,11 +11,11 @@ class PaymentListItem extends ConsumerWidget {
   final VoidCallback onDelete;
 
   const PaymentListItem({
-    Key? key,
+    super.key,
     required this.item,
     required this.onEdit,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

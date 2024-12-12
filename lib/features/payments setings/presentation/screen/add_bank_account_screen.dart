@@ -5,7 +5,7 @@ import '../../utils/stripe_service.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 
 class AddBankAccountScreen extends ConsumerWidget {
-  const AddBankAccountScreen({Key? key}) : super(key: key);
+  const AddBankAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,19 +22,19 @@ class AddBankAccountScreen extends ConsumerWidget {
       );
     }
 
-    final _formKey = GlobalKey<FormState>();
-    final _accountHolderNameController = TextEditingController();
-    final _accountNumberController = TextEditingController();
-    final _branchCodeController = TextEditingController();
-    final _bankNameController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final accountHolderNameController = TextEditingController();
+    final accountNumberController = TextEditingController();
+    final branchCodeController = TextEditingController();
+    final bankNameController = TextEditingController();
 
-    Future<void> _addBankAccount() async {
-      if (_formKey.currentState!.validate()) {
+    Future<void> addBankAccount() async {
+      if (formKey.currentState!.validate()) {
         final result = await StripeService.instance.addBankAccount(
-          accountHolderName: _accountHolderNameController.text,
-          accountNumber: _accountNumberController.text,
-          routingNumber: _branchCodeController.text,
-          bankName: _bankNameController.text,
+          accountHolderName: accountHolderNameController.text,
+          accountNumber: accountNumberController.text,
+          routingNumber: branchCodeController.text,
+          bankName: bankNameController.text,
         );
 
         if (result['success']) {
@@ -73,7 +73,7 @@ class AddBankAccountScreen extends ConsumerWidget {
             bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
           ),
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -97,7 +97,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                     );
                   }).toList(),
                   onChanged: (value) {
-                    _bankNameController.text = value ?? '';
+                    bankNameController.text = value ?? '';
                   },
                   validator: (value) => value == null || value.isEmpty
                       ? 'Please select a bank'
@@ -105,7 +105,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _accountHolderNameController,
+                  controller: accountHolderNameController,
                   decoration: InputDecoration(
                     labelText: 'Account Holder Name',
                     border: OutlineInputBorder(
@@ -123,7 +123,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _branchCodeController,
+                        controller: branchCodeController,
                         decoration: InputDecoration(
                           labelText: 'Branch Code',
                           border: OutlineInputBorder(
@@ -141,7 +141,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: TextFormField(
-                        controller: _accountNumberController,
+                        controller: accountNumberController,
                         decoration: InputDecoration(
                           labelText: 'Account Number',
                           border: OutlineInputBorder(
@@ -160,7 +160,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _addBankAccount,
+                  onPressed: addBankAccount,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(

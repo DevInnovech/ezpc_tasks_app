@@ -42,10 +42,10 @@ class _ServiceState extends ConsumerState<Service> {
     super.initState();
     // Initialize the provider selected with the provider of the service
     selectedProvider = widget.selectedService.provider;
-    if (selectedProvider != null && selectedProvider!.timeSlots.isNotEmpty) {
-      final firstAvailableSlot = selectedProvider!.timeSlots.firstWhere(
+    if (selectedProvider != null && selectedProvider!.timeSlots!.isNotEmpty) {
+      final firstAvailableSlot = selectedProvider!.timeSlots!.firstWhere(
         (slot) => slot.isAvailable,
-        orElse: () => selectedProvider!.timeSlots.first,
+        orElse: () => selectedProvider!.timeSlots!.first,
       );
       selectedTimeSlot = firstAvailableSlot.time;
     }
@@ -308,7 +308,7 @@ class _ServiceState extends ConsumerState<Service> {
               ),
               // Profesión del proveedor
               Text(
-                provider.profession,
+                provider.profession!,
                 style: const TextStyle(color: Colors.grey),
               ),
 
@@ -369,8 +369,8 @@ class _ServiceState extends ConsumerState<Service> {
       alignment: WrapAlignment.center,
       spacing: 8,
       runSpacing: 8,
-      children: List.generate(provider.timeSlots.length, (index) {
-        final timeSlot = provider.timeSlots[index];
+      children: List.generate(provider.timeSlots!.length, (index) {
+        final timeSlot = provider.timeSlots![index];
         final isAvailable = timeSlot.isAvailable;
 
         return GestureDetector(

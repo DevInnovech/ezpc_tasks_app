@@ -32,7 +32,7 @@ final providerTrackingProvider =
     orderId: orderId,
     providerName: "Alam Cordero",
     providerImageUrl: "https://example.com/provider_image.jpg",
-    providerLocation: LatLng(37.7749, -122.4194), // Ubicación de ejemplo
+    providerLocation: const LatLng(37.7749, -122.4194), // Ubicación de ejemplo
     status: TrackingStatus.onTheWay, // Estado de ejemplo
   );
 });

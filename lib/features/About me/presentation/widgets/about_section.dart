@@ -8,12 +8,12 @@ class AboutSection extends StatefulWidget {
   final String imagePath;
 
   const AboutSection({
-    Key? key,
+    super.key,
     required this.descripcion,
     required this.providerName,
     required this.providerTitle,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   @override
   _AboutSectionState createState() => _AboutSectionState();
@@ -27,7 +27,7 @@ class _AboutSectionState extends State<AboutSection> {
     return Padding(
         padding: const EdgeInsets.all(2.0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
+          const Text(
             "About Tasks",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),

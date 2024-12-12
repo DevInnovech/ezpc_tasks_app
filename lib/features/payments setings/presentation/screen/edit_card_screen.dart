@@ -8,7 +8,7 @@ import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 class EditCardScreen extends ConsumerWidget {
   final CardModel card;
 
-  const EditCardScreen({Key? key, required this.card}) : super(key: key);
+  const EditCardScreen({super.key, required this.card});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,19 +25,19 @@ class EditCardScreen extends ConsumerWidget {
       );
     }
 
-    final _formKey = GlobalKey<FormState>();
-    final _cardNumberController =
+    final formKey = GlobalKey<FormState>();
+    final cardNumberController =
         TextEditingController(text: '#### #### #### ${card.last4}');
-    final _expMonthController =
+    final expMonthController =
         TextEditingController(text: card.expMonth.toString());
-    final _expYearController =
+    final expYearController =
         TextEditingController(text: card.expYear.toString());
-    final _cvcController = TextEditingController();
-    final _zipCodeController = TextEditingController(text: card.zipCode ?? '');
-    final _nameController = TextEditingController(text: card.cardHolderName);
+    final cvcController = TextEditingController();
+    final zipCodeController = TextEditingController(text: card.zipCode ?? '');
+    final nameController = TextEditingController(text: card.cardHolderName);
 
-    Future<void> _saveCard() async {
-      if (_formKey.currentState!.validate()) {
+    Future<void> saveCard() async {
+      if (formKey.currentState!.validate()) {
         // Logic to update the card details
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Card updated successfully!')),
@@ -46,7 +46,7 @@ class EditCardScreen extends ConsumerWidget {
       }
     }
 
-    Future<void> _removeCard() async {
+    Future<void> removeCard() async {
       final result = await StripeService.instance.deleteCard(card.id);
 
       if (result['success']) {
@@ -84,13 +84,13 @@ class EditCardScreen extends ConsumerWidget {
             bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
           ),
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _cardNumberController,
+                  controller: cardNumberController,
                   decoration: InputDecoration(
                     labelText: 'Card Number',
                     prefixIcon:
@@ -108,7 +108,7 @@ class EditCardScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _expMonthController,
+                        controller: expMonthController,
                         decoration: InputDecoration(
                           labelText: 'Expiration Month',
                           hintText: 'MM',
@@ -127,7 +127,7 @@ class EditCardScreen extends ConsumerWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: TextFormField(
-                        controller: _expYearController,
+                        controller: expYearController,
                         decoration: InputDecoration(
                           labelText: 'Expiration Year',
                           hintText: 'YYYY',
@@ -147,7 +147,7 @@ class EditCardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _zipCodeController,
+                  controller: zipCodeController,
                   decoration: InputDecoration(
                     labelText: 'ZIP Code',
                     border: OutlineInputBorder(
@@ -163,7 +163,7 @@ class EditCardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _nameController,
+                  controller: nameController,
                   decoration: InputDecoration(
                     labelText: 'Titular Name',
                     border: OutlineInputBorder(
@@ -178,7 +178,7 @@ class EditCardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _saveCard,
+                  onPressed: saveCard,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(
@@ -194,7 +194,7 @@ class EditCardScreen extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Center(
                   child: TextButton(
-                    onPressed: _removeCard,
+                    onPressed: removeCard,
                     child: const Text(
                       'Remove Card',
                       style: TextStyle(color: Colors.red, fontSize: 16),

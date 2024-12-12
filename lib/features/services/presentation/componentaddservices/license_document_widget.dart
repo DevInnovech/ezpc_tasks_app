@@ -58,19 +58,17 @@ class _LicenseDocumentInputState extends State<LicenseDocumentInput> {
       lastDate: DateTime(2100),
     );
 
-    if (selectedDate != null) {
-      setState(() {
-        if (isIssueDate) {
-          issueDate = selectedDate;
-          widget.onIssueDateChanged(
-              DateFormat('yyyy-MM-dd').format(selectedDate));
-        } else {
-          expirationDate = selectedDate;
-          widget.onLicenseExpirationDateChanged(
-              DateFormat('yyyy-MM-dd').format(selectedDate));
-        }
-      });
-    }
+    setState(() {
+      if (isIssueDate) {
+        issueDate = selectedDate;
+        widget
+            .onIssueDateChanged(DateFormat('yyyy-MM-dd').format(selectedDate!));
+      } else {
+        expirationDate = selectedDate;
+        widget.onLicenseExpirationDateChanged(
+            DateFormat('yyyy-MM-dd').format(selectedDate!));
+      }
+    });
   }
 
   @override

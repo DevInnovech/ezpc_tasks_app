@@ -1,7 +1,6 @@
 import 'package:ezpc_tasks_app/features/home/models/service_item.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/book_services_screen/book_service_screen.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
-import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
-import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
@@ -136,7 +135,7 @@ class ClientSingleCategoryView extends StatelessWidget {
                         builder: (context, snapshot) {
                           return Expanded(
                             child: Text(
-                              'by ${item.provider.name}',
+                              'by ${item.provider?.name}',
                               maxLines: 1,
                               style: KTextStyle.workSans(
                                   fs: 12.0, c: blackColor, fw: FontWeight.w400),
@@ -147,18 +146,21 @@ class ClientSingleCategoryView extends StatelessWidget {
                 ),
                 Utils.verticalSpace(8),
                 PrimaryButton(
+                  //Boton pantalla principal
                   text: 'Book Now',
                   onPressed: () {
                     // Convierte el ServiceItem al ServiceModel antes de navegar
                     final ServiceModel serviceModel = toServiceModel(item);
 
-                    Navigator.pushNamed(
+                    // Navega a BookServiceScreen con los argumentos necesarios
+                    Navigator.push(
                       context,
-                      RouteNames.primierServiceScreen,
-                      arguments: {
-                        'service': serviceModel, // El servicio convertido
-                        'categories': categories, // Las categorías disponibles
-                      },
+                      MaterialPageRoute(
+                        builder: (context) => BookServiceScreen(
+                          taskId: serviceModel.subCategoryId,
+                          categories: const [], // Pasa el ID del servicio
+                        ),
+                      ),
                     );
                   },
                   fontSize: 14,
@@ -183,19 +185,21 @@ ServiceModel toServiceModel(ServiceItem item) {
     name: item.name,
     slug: item.slug,
     price: item.price.toString(),
-    categoryId: item.categoryId,
-    subCategoryId: item.category!.subCategories.isNotEmpty
-        ? item.category!.subCategories.first.id
-        : '', // Ajusta según lo que necesites
+    categoryId: item.categoryId, // Ajusta según la estructura de Category
+    subCategoryId:
+        (item.category != null && item.category!.subCategories.isNotEmpty)
+            ? item.category!.subCategories.first.id
+            : '', // Manejo seguro de subcategorías
     details: item.details,
     image: item.image,
-    packageFeature: [],
+    packageFeature: [], // Puedes agregar datos adicionales según el modelo
     benefits: [],
     whatYouWillProvide: [],
     licenseDocument: '',
     workingDays: [],
     workingHours: [],
     specialDays: [],
-    status: 'Active', provider: item.provider, // O ajusta según tu lógica
+    status: 'Active',
+    provider: item.provider, // Agrega el proveedor si lo necesitas
   );
 }

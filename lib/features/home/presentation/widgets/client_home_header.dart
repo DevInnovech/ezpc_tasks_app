@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Para autenticar al usuario
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,6 +12,7 @@ import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 class ClientHomeHeader extends ConsumerWidget {
   const ClientHomeHeader({super.key});
 
+  // Función para obtener un saludo según la hora actual
   String getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
@@ -24,6 +26,19 @@ class ClientHomeHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Obtener el ID del usuario logueado
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+    // Si no hay usuario logueado, mostrar un mensaje
+    if (currentUserId == null) {
+      return Center(
+        child: Text(
+          'No user logged in.',
+          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 178.h,
       child: Stack(
@@ -37,8 +52,7 @@ class ClientHomeHeader extends ConsumerWidget {
             child: FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance
                   .collection('users')
-                  .doc(
-                      'userId') // Reemplaza con el ID dinámico del usuario logueado
+                  .doc(currentUserId) // Usar el userID dinámico
                   .get(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -52,7 +66,7 @@ class ClientHomeHeader extends ConsumerWidget {
                       snapshot.data!.data() as Map<String, dynamic>;
                   final String nombre = userData['name'] ?? 'N/A';
                   final String apellido = userData['lastName'] ?? 'N/A';
-                  final String rol = userData['rol'] ?? 'Client';
+                  final String rol = userData['role'] ?? 'Client';
                   final String greeting = getGreeting();
 
                   return Row(

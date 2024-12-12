@@ -1,26 +1,62 @@
-import 'package:ezpc_tasks_app/features/home/data/dashboardprovider.dart';
-import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_curve_shape.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_form.dart';
 import 'package:ezpc_tasks_app/shared/widgets/error_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/heading_dialog.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
-import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class EndDrawerMenu extends ConsumerWidget {
+class EndDrawerMenu extends StatefulWidget {
   const EndDrawerMenu({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final size = MediaQuery.sizeOf(context);
-    final profile = ref.watch(dashboardNotifierProvider);
-    const image = KImages.pp;
+  _EndDrawerMenuState createState() => _EndDrawerMenuState();
+}
+
+class _EndDrawerMenuState extends State<EndDrawerMenu> {
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        throw Exception('No user is logged in');
+      }
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists) {
+        setState(() {
+          userData = doc.data();
+        });
+      } else {
+        print("User document does not exist");
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: Drawer(
         backgroundColor: blackColor,
@@ -33,30 +69,52 @@ class EndDrawerMenu extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Imagen del usuario
                   Container(
                     height: Utils.vSize(50.0),
                     width: Utils.vSize(50.0),
                     margin: Utils.only(right: 10.0),
                     child: ClipRRect(
                       borderRadius: Utils.borderRadius(r: 6.0),
-                      child: CustomImage(
-                        path: image,
-                        fit: BoxFit.cover,
-                        height: Utils.vSize(50.0),
-                        width: Utils.vSize(50.0),
-                        url: null,
-                      ),
+                      child: userData != null &&
+                              userData!['profileImageUrl'] != null
+                          ? Image.network(
+                              userData![
+                                  'profileImageUrl'], // URL de la imagen desde Firestore.
+                              fit: BoxFit.cover,
+                              width: Utils.vSize(50.0),
+                              height: Utils.vSize(50.0),
+                              errorBuilder: (context, error, stackTrace) {
+                                print("Error loading profile image: $error");
+                                return const Icon(Icons.error,
+                                    color: Colors.red);
+                              },
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const CircularProgressIndicator();
+                              },
+                            )
+                          : Image.asset(
+                              KImages.pp, // Imagen por defecto si no hay URL.
+                              fit: BoxFit.cover,
+                              width: Utils.vSize(50.0),
+                              height: Utils.vSize(50.0),
+                            ),
                     ),
                   ),
-                  const Column(
+                  // Nombre y correo electrónico
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        text: "name",
+                        text: userData != null
+                            ? "${userData!['name']} ${userData!['lastName']}"
+                            : 'Loading...',
                         color: whiteColor,
                       ),
                       CustomText(
-                        text: "email",
+                        text: userData?['email'] ?? 'Loading...',
                         fontSize: 12.0,
                         color: whiteColor,
                       ),
@@ -102,7 +160,6 @@ class EndDrawerMenu extends ConsumerWidget {
               title: 'Chats',
               onTap: () {
                 Navigator.pushNamed(context, RouteNames.chatListScreen);
-
                 Scaffold.of(context).closeEndDrawer();
               },
             ),

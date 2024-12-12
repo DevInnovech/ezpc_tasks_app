@@ -49,28 +49,28 @@ class TimeSlotModel extends Equatable {
 class ProviderModel extends Equatable {
   final int id;
   final String name;
-  final String email;
-  final String phone;
-  final String image;
-  final String createdAt;
-  final String userName;
+  final String? email; // Opcional
+  final String? phone; // Opcional
+  final String? image; // Opcional
+  final String? createdAt; // Opcional
+  final String? userName; // Opcional
   final double rating;
   final int reviews;
-  final String profession;
-  final List<TimeSlotModel> timeSlots;
+  final String? profession; // Opcional
+  final List<TimeSlotModel>? timeSlots; // Opcional
 
   const ProviderModel({
     required this.id,
     required this.name,
-    required this.email,
-    required this.phone,
-    required this.image,
-    required this.createdAt,
-    required this.userName,
+    this.email, // Opcional
+    this.phone, // Opcional
+    this.image, // Opcional
+    this.createdAt, // Opcional
+    this.userName, // Opcional
     required this.rating,
     required this.reviews,
-    required this.profession,
-    required this.timeSlots,
+    this.profession, // Opcional
+    this.timeSlots, // Opcional
   });
 
   ProviderModel copyWith({
@@ -113,7 +113,7 @@ class ProviderModel extends Equatable {
       'rating': rating,
       'reviews': reviews,
       'profession': profession,
-      'timeSlots': timeSlots.map((timeSlot) => timeSlot.toMap()).toList(),
+      'timeSlots': timeSlots?.map((timeSlot) => timeSlot.toMap()).toList(),
     };
   }
 
@@ -121,16 +121,19 @@ class ProviderModel extends Equatable {
     return ProviderModel(
       id: map['id'] ?? 0,
       name: map['name'] ?? "",
-      email: map['email'] ?? "",
-      phone: map['phone'] ?? "",
-      image: map['image'] ?? "",
-      createdAt: map['createdAt'] ?? "",
-      userName: map['userName'] ?? "",
+      email: map['email'], // Opcional
+      phone: map['phone'], // Opcional
+      image: map['image'], // Opcional
+      createdAt: map['createdAt'], // Opcional
+      userName: map['userName'], // Opcional
       rating: map['rating']?.toDouble() ?? 0.0,
       reviews: map['reviews'] ?? 0,
-      profession: map['profession'] ?? "",
-      timeSlots: List<TimeSlotModel>.from(
-          map['timeSlots']?.map((x) => TimeSlotModel.fromMap(x)) ?? []),
+      profession: map['profession'], // Opcional
+      timeSlots: map['timeSlots'] != null
+          ? List<TimeSlotModel>.from(
+              map['timeSlots'].map((x) => TimeSlotModel.fromMap(x)),
+            )
+          : null, // Opcional
     );
   }
 
@@ -143,7 +146,7 @@ class ProviderModel extends Equatable {
   bool get stringify => true;
 
   @override
-  List<Object> get props {
+  List<Object?> get props {
     return [
       id,
       name,

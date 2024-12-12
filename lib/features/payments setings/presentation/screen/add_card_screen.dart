@@ -5,7 +5,7 @@ import '../../utils/stripe_service.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 
 class AddCardScreen extends ConsumerWidget {
-  const AddCardScreen({Key? key}) : super(key: key);
+  const AddCardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,22 +22,21 @@ class AddCardScreen extends ConsumerWidget {
       );
     }
 
-    final _formKey = GlobalKey<FormState>();
-    final _cardNumberController = TextEditingController();
-    final _expMonthController = TextEditingController();
-    final _expYearController = TextEditingController();
-    final _cvcController = TextEditingController();
-    final _zipCodeController = TextEditingController();
-    final _countryController =
-        TextEditingController(text: 'Dominican Republic');
+    final formKey = GlobalKey<FormState>();
+    final cardNumberController = TextEditingController();
+    final expMonthController = TextEditingController();
+    final expYearController = TextEditingController();
+    final cvcController = TextEditingController();
+    final zipCodeController = TextEditingController();
+    final countryController = TextEditingController(text: 'Dominican Republic');
 
-    Future<void> _addCard() async {
-      if (_formKey.currentState!.validate()) {
+    Future<void> addCard() async {
+      if (formKey.currentState!.validate()) {
         final result = await StripeService.instance.addCard(
-          cardNumber: _cardNumberController.text,
-          expMonth: _expMonthController.text,
-          expYear: _expYearController.text,
-          cvc: _cvcController.text,
+          cardNumber: cardNumberController.text,
+          expMonth: expMonthController.text,
+          expYear: expYearController.text,
+          cvc: cvcController.text,
         );
 
         if (result['success']) {
@@ -76,13 +75,13 @@ class AddCardScreen extends ConsumerWidget {
             bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
           ),
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _cardNumberController,
+                  controller: cardNumberController,
                   decoration: InputDecoration(
                     labelText: 'Card Number',
                     prefixIcon:
@@ -103,7 +102,7 @@ class AddCardScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _expMonthController,
+                        controller: expMonthController,
                         decoration: InputDecoration(
                           labelText: 'Expiration',
                           hintText: 'MM',
@@ -122,7 +121,7 @@ class AddCardScreen extends ConsumerWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: TextFormField(
-                        controller: _cvcController,
+                        controller: cvcController,
                         decoration: InputDecoration(
                           labelText: 'CVV',
                           border: OutlineInputBorder(
@@ -140,7 +139,7 @@ class AddCardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _zipCodeController,
+                  controller: zipCodeController,
                   decoration: InputDecoration(
                     labelText: 'ZIP Code',
                     border: OutlineInputBorder(
@@ -156,7 +155,7 @@ class AddCardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _countryController,
+                  controller: countryController,
                   decoration: InputDecoration(
                     labelText: 'Country/Region',
                     border: OutlineInputBorder(
@@ -169,7 +168,7 @@ class AddCardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _addCard,
+                  onPressed: addCard,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(

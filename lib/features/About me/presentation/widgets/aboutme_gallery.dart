@@ -4,7 +4,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 class AboutMeGallery extends StatelessWidget {
   final List<String> images;
 
-  const AboutMeGallery({Key? key, required this.images}) : super(key: key);
+  const AboutMeGallery({super.key, required this.images});
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +80,7 @@ class AboutMeGallery extends StatelessWidget {
 class FullGalleryScreen extends StatelessWidget {
   final List<String> images;
 
-  const FullGalleryScreen({Key? key, required this.images}) : super(key: key);
+  const FullGalleryScreen({super.key, required this.images});
 
   @override
   Widget build(BuildContext context) {

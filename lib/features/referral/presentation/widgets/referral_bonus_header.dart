@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 class ReferralBonusHeader extends StatelessWidget {
   final double totalBonus;
 
-  const ReferralBonusHeader({Key? key, required this.totalBonus})
-      : super(key: key);
+  const ReferralBonusHeader({super.key, required this.totalBonus});
 
   @override
   Widget build(BuildContext context) {

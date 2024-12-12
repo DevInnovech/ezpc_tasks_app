@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/employee_list.dart';
 
 class EmployeeScreen extends ConsumerWidget {
-  const EmployeeScreen({Key? key}) : super(key: key);
+  const EmployeeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,15 +42,15 @@ class EmployeeScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       // Search bar with onChanged listener
-                      EmployeeSearchBar(),
+                      const EmployeeSearchBar(),
                       EmployeeBonusHeader(
                         totalEarnings: 500,
                         totalTasks: 210,
                         totalEmployees: filteredEmployeeList.length,
                       ),
-                      Expanded(
+                      const Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
                           child: EmployeeList(),
                         ),
                       ),

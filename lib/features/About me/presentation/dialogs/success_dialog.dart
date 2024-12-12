@@ -5,10 +5,10 @@ class SuccessDialog extends StatelessWidget {
   final String message;
 
   const SuccessDialog({
-    Key? key,
+    super.key,
     this.title = 'Success',
     this.message = 'Your operation was successful!',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,25 +21,25 @@ class SuccessDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 50),
-            SizedBox(height: 10),
+            const Icon(Icons.check_circle, color: Colors.green, size: 50),
+            const SizedBox(height: 10),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 22.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16.0),
+              style: const TextStyle(fontSize: 16.0),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Got it'),
+              child: const Text('Got it'),
             ),
           ],
         ),

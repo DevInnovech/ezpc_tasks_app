@@ -8,21 +8,21 @@ class EmployeeRepository {
   // In a real app, this would interact with a database or API.
   Future<List<EmployeeModel>> getEmployees() async {
     return [
-      EmployeeModel(
+      const EmployeeModel(
           name: 'Jose Florez',
           tasksCompleted: 10,
           earnings: 5.0,
           date: '06/02/2024',
           isActive: true,
           imageUrl: KImages.pp),
-      EmployeeModel(
+      const EmployeeModel(
           imageUrl: KImages.pp,
           name: 'Tiffany Plures',
           tasksCompleted: 8,
           earnings: 5.0,
           date: '06/02/2024',
           isActive: true),
-      EmployeeModel(
+      const EmployeeModel(
           imageUrl: KImages.pp,
           name: 'Mary Torrez',
           tasksCompleted: 5,

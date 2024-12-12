@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -53,38 +54,89 @@ class TaskNotifier extends StateNotifier<TaskState> {
     _loadTasks();
   }
 
-  void initializeNewTask() {
-    final emptyTask = TaskModel.Task(
-      id: const Uuid().v4(),
-      name: '',
-      category: '',
-      subCategory: '',
-      price: 0.0,
-      imageUrl: '',
-      requiresLicense: false,
-      licenseType: '',
-      licenseNumber: '',
-      licenseExpirationDate: '',
-      workingDays: [],
-      workingHours: {},
-      specialDays: [],
-      documentUrl: '',
-      phone: '',
-      service: '',
-      issueDate: DateTime.now().toIso8601String(),
-      additionalOption: '', // Inicializamos el campo additionalOption vacío
-    );
+  Future<void> initializeNewTask(String providerId) async {
+    try {
+      // Obtener los datos del proveedor desde Firebase
+      final providerDoc = await FirebaseFirestore.instance
+          .collection(
+              'providers') // Asegúrate de usar el nombre correcto de la colección
+          .doc(providerId)
+          .get();
 
-    state = state.copyWith(currentTask: emptyTask);
+      if (!providerDoc.exists) {
+        throw Exception('Proveedor no encontrado.');
+      }
+
+      final providerData = providerDoc.data()!;
+      final firstName = providerData['name'] ?? '';
+      final lastName = providerData['lastName'] ?? '';
+      final userID = providerData['userId'] ?? providerId;
+
+      // Crear una tarea inicializada con los datos del proveedor
+      final emptyTask = TaskModel.Task(
+        id: const Uuid().v4(),
+        taskId: '',
+        taskName: '',
+        firstName: firstName,
+        lastName: lastName,
+        slug: '',
+        categoryId: '',
+        category: '',
+        subCategory: '',
+        subCategoryprice: 0.0,
+        price: 0.0,
+        type: '',
+        imageUrl: '',
+        requiresLicense: false,
+        licenseType: '',
+        licenseNumber: '',
+        licenseExpirationDate: '',
+        workingDays: [],
+        workingHours: {},
+        specialDays: [],
+        documentUrl: '',
+        phone: '',
+        service: '',
+        issueDate: DateTime.now().toIso8601String(),
+        additionalOption: '',
+        makeFeatured: 0,
+        isBanned: 0,
+        status: 1,
+        createdAt: DateTime.now().toIso8601String(),
+        approveByAdmin: 0,
+        averageRating: '0.0',
+        totalReview: 0,
+        totalOrder: 0,
+        providerId: userID, // Asignar el ID del proveedor
+        provider: null,
+        details: '', duration: '', description: '', clientName: '',
+        clientLastName: '',
+      );
+
+      state = state.copyWith(currentTask: emptyTask);
+      debugPrint('Tarea inicializada correctamente con el proveedor.');
+    } catch (e) {
+      debugPrint('Error al inicializar la tarea: $e');
+      state = state.copyWith(error: e.toString());
+    }
   }
 
   Future<void> _loadTasks() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      List<TaskModel.Task> tasks = await _repository.getTasks();
+
+      // Obtener las tareas desde Firestore
+      final snapshot =
+          await FirebaseFirestore.instance.collection('tasks').get();
+      final tasks = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return TaskModel.Task.fromMap(data);
+      }).toList();
+
       state = state.copyWith(tasks: tasks, isLoading: false);
     } catch (e) {
       state = state.copyWith(tasks: [], isLoading: false, error: e.toString());
+      debugPrint('Error al cargar las tareas: $e');
     }
   }
 
@@ -182,12 +234,27 @@ class TaskNotifier extends StateNotifier<TaskState> {
 
   Future<void> saveTask(TaskModel.Task task) async {
     try {
+      // Automatically generate a taskId if not provided
+      final taskId = task.taskId.isNotEmpty ? task.taskId : const Uuid().v4();
+
+      // Determine the taskName based on subCategory and category
+      final taskName =
+          (task.subCategory.isNotEmpty) ? task.subCategory : task.category;
+
+      // Create a new instance of the task with updated values
       final newTask = TaskModel.Task(
         id: task.id.isNotEmpty ? task.id : const Uuid().v4(),
-        name: task.name,
+        taskId: taskId, // Assign the generated or existing taskId
+        taskName: taskName, // Assign taskName based on conditional logic
+        firstName: task.firstName,
+        lastName: task.lastName,
+        slug: task.slug,
+        categoryId: task.categoryId,
         category: task.category,
         subCategory: task.subCategory,
         price: task.price,
+        subCategoryprice: task.subCategoryprice,
+        type: task.type,
         imageUrl: task.imageUrl,
         requiresLicense: task.requiresLicense,
         licenseType: task.licenseType,
@@ -195,38 +262,64 @@ class TaskNotifier extends StateNotifier<TaskState> {
         licenseExpirationDate: task.licenseExpirationDate,
         workingDays: List<String>.from(task.workingDays),
         workingHours: task.workingHours.map(
-            (key, value) => MapEntry(key, Map<String, String>.from(value))),
+          (key, value) => MapEntry(
+            key,
+            Map<String, String>.from(value),
+          ),
+        ),
         specialDays: List<Map<String, String>>.from(task.specialDays),
         documentUrl: task.documentUrl,
         phone: task.phone,
         service: task.service,
         issueDate: task.issueDate,
         additionalOption: task.additionalOption,
-        questionResponses:
-            task.questionResponses, // Añadir questionResponses aquí
+        makeFeatured: task.makeFeatured,
+        isBanned: task.isBanned,
+        status: task.status,
+        createdAt: task.createdAt,
+        approveByAdmin: task.approveByAdmin,
+        averageRating: task.averageRating,
+        totalReview: task.totalReview,
+        totalOrder: task.totalOrder,
+        providerId: task.providerId,
+        provider: task.provider,
+        details: task.details,
+        questionResponses: task.questionResponses,
+        duration: task.duration,
+        description: task.description,
+        clientName: task.clientName,
+        clientLastName: task.clientLastName,
       );
 
-      // Guardar la tarea en el repositorio
+      // Save the task in the repository
       await _repository.saveTask(newTask);
 
-      // Actualizar el estado de la tarea
+      // Update the state with the new or updated task
+      final existingTasks = state.tasks.where((t) => t.id != task.id).toList();
       state = state.copyWith(
-        tasks: [...state.tasks, newTask],
+        tasks: [...existingTasks, newTask],
         currentTask: newTask,
       );
 
-      debugPrint('Tarea guardada correctamente.');
+      debugPrint('Task successfully saved with taskId: $taskId');
     } catch (e) {
+      // Capture errors and update the state with the error message
       state = state.copyWith(error: e.toString());
-      debugPrint('Error al guardar la tarea: $e');
+      debugPrint('Error saving task: $e');
     }
   }
 
   void updateTask({
-    String? name,
+    String? taskName,
+    String? taskId,
+    String? firstName,
+    String? lastName,
+    String? slug,
+    String? categoryId,
     String? category,
     String? subCategory,
     double? price,
+    double? subCategoryprice,
     String? imageUrl,
     bool? requiresLicense,
     String? licenseType,
@@ -240,40 +333,61 @@ class TaskNotifier extends StateNotifier<TaskState> {
     String? service,
     String? issueDate,
     String? additionalOption,
-    Map<String, String>? questionResponses, // Añadir campo aquí
+    int? makeFeatured,
+    int? isBanned,
+    int? status,
+    String? createdAt,
+    int? approveByAdmin,
+    String? averageRating,
+    int? totalReview,
+    int? totalOrder,
+    String? providerId,
+    dynamic provider,
+    String? details,
+    Map<String, String>? questionResponses,
   }) {
     if (state.currentTask == null) return;
 
-    final updatedTask = TaskModel.Task(
-      id: state.currentTask!.id,
-      name: name ?? state.currentTask!.name,
-      category: category ?? state.currentTask!.category,
-      subCategory: subCategory ?? state.currentTask!.subCategory,
-      price: price ?? state.currentTask!.price,
-      imageUrl: imageUrl ?? state.currentTask!.imageUrl,
-      requiresLicense: requiresLicense ?? state.currentTask!.requiresLicense,
-      licenseType: licenseType ?? state.currentTask!.licenseType,
-      licenseNumber: licenseNumber ?? state.currentTask!.licenseNumber,
-      licenseExpirationDate:
-          licenseExpirationDate ?? state.currentTask!.licenseExpirationDate,
-      workingDays:
-          workingDays ?? List<String>.from(state.currentTask!.workingDays),
-      workingHours: workingHours ??
-          state.currentTask!.workingHours.map(
-            (key, value) => MapEntry(key, Map<String, String>.from(value)),
-          ),
-      specialDays: specialDays ??
-          List<Map<String, String>>.from(state.currentTask!.specialDays),
-      documentUrl: documentUrl ?? state.currentTask!.documentUrl,
-      phone: phone ?? state.currentTask!.phone,
-      service: service ?? state.currentTask!.service,
-      issueDate: issueDate ?? state.currentTask!.issueDate,
-      additionalOption: additionalOption ?? state.currentTask!.additionalOption,
-      questionResponses: questionResponses ??
-          state.currentTask!.questionResponses, // Actualizar aquí
+    final updatedTask = state.currentTask!.copyWith(
+      taskName: taskName,
+      firstName: firstName,
+      lastName: lastName,
+      slug: slug,
+      categoryId: categoryId,
+      category: category,
+      subCategory: subCategory,
+      price: price,
+      subCategoryprice: subCategoryprice,
+      imageUrl: imageUrl,
+      requiresLicense: requiresLicense,
+      licenseType: licenseType,
+      licenseNumber: licenseNumber,
+      licenseExpirationDate: licenseExpirationDate,
+      workingDays: workingDays ?? state.currentTask!.workingDays,
+      workingHours: workingHours ?? state.currentTask!.workingHours,
+      specialDays: specialDays ?? state.currentTask!.specialDays,
+      documentUrl: documentUrl,
+      phone: phone,
+      service: service,
+      issueDate: issueDate,
+      additionalOption: additionalOption,
+      makeFeatured: makeFeatured,
+      isBanned: isBanned,
+      status: status,
+      createdAt: createdAt,
+      approveByAdmin: approveByAdmin,
+      averageRating: averageRating,
+      totalReview: totalReview,
+      totalOrder: totalOrder,
+      providerId: providerId,
+      provider: provider,
+      details: details,
+      questionResponses: questionResponses,
     );
 
     state = state.copyWith(currentTask: updatedTask);
+    debugPrint(
+        'Task updated: ${updatedTask.workingDays}, ${updatedTask.workingHours}');
   }
 
   Future<void> deleteTask(TaskModel.Task task) async {

@@ -18,7 +18,7 @@ class WorkingHoursSelector extends ConsumerStatefulWidget {
 
 class _WorkingHoursSelectorState extends ConsumerState<WorkingHoursSelector> {
   // Mapa para mantener el estado de las horas de trabajo en tiempo real
-  Map<String, Map<String, String>> _workingHours = {};
+  final Map<String, Map<String, String>> _workingHours = {};
 
   // Valor por defecto para las horas de trabajo
   final String _defaultStartHour = '8:00 AM';

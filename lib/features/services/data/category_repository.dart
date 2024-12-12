@@ -124,6 +124,8 @@ class CategoryRepository {
             ],
           ),
         ],
+        pathImage: null,
+        categoryId: '',
       ),
       Category(
         id: '2',
@@ -159,6 +161,8 @@ class CategoryRepository {
             ],
           ),
         ],
+        pathImage: null,
+        categoryId: '',
       ),
       Category(
         id: '3',
@@ -189,6 +193,8 @@ class CategoryRepository {
             ],
           ),
         ],
+        pathImage: null,
+        categoryId: '',
       ),
       Category(
         id: '4',
@@ -226,6 +232,8 @@ class CategoryRepository {
           SubCategory(id: '4.5', name: 'Minor Repairs'),
           SubCategory(id: '4.6', name: 'Home Maintenance Tasks'),
         ],
+        pathImage: null,
+        categoryId: '',
       ),
       Category(
         id: '5',
@@ -234,6 +242,8 @@ class CategoryRepository {
           SubCategory(id: '5.1', name: 'Need a Car?'),
           SubCategory(id: '5.2', name: 'Need a Truck?'),
         ],
+        pathImage: null,
+        categoryId: '',
       ),
     ];
 

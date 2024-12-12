@@ -1,5 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_provider.dart';
-import 'package:ezpc_tasks_app/features/home/models/userdash_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -15,6 +16,28 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class ClientAppDrawer extends ConsumerWidget {
   const ClientAppDrawer({super.key});
+
+  Future<Map<String, dynamic>> _fetchUserData() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        throw Exception('No user logged in');
+      }
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (!doc.exists) {
+        throw Exception('User not found');
+      }
+
+      return doc.data()!;
+    } catch (e) {
+      throw Exception('Error fetching user data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,106 +55,141 @@ class ClientAppDrawer extends ConsumerWidget {
             top: false,
             child: SizedBox(
               height: 140.h,
-              child: DrawerHeader(
-                margin: EdgeInsets.zero,
-                child: dashboardProfileAsyncValue.when(
-                  data: (UserDashBoardModel userDashboardModel) {
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: ShapeDecoration(
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(
-                                  width: 0.50, color: Color(0xFFEAF4FF)),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                              /*   Navigator.pushNamed(
-                                  context, RouteNames.editProfile);*/
-                            },
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: const CustomImage(
-                                path: KImages.appLayer,
-                                //    usar para firebase esa funcion
-                                /*  RemoteUrls.imageUrl(
-                                    userDashboardModel.user.image!),*/
-
-                                fit: BoxFit.cover, url: null,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                userDashboardModel.user.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontFamily: 'Work Sans',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                userDashboardModel.user.email,
-                                style: const TextStyle(
-                                  color: Color(0xFFEAF4FF),
-                                  fontSize: 14,
-                                  fontFamily: 'Work Sans',
-                                  fontWeight: FontWeight.w400,
-                                  height: 1.57,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _fetchUserData(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(child: Text('Error: $error')),
-                ),
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No user data available',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  final userData = snapshot.data!;
+                  final profileImageUrl =
+                      userData['profileImageUrl'] as String?;
+                  final name = userData['name'] as String? ?? 'Unknown';
+                  final lastName = userData['lastName'] as String? ?? 'Unknown';
+                  final email = userData['email'] as String? ?? 'No email';
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: ShapeDecoration(
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(
+                                width: 0.50, color: Color(0xFFEAF4FF)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            /* Navigator.pushNamed(
+                                context, RouteNames.editProfileScreen); */
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: profileImageUrl != null &&
+                                    profileImageUrl.isNotEmpty
+                                ? Image.network(
+                                    profileImageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(Icons.error,
+                                          color: Colors.red);
+                                    },
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) {
+                                        return child;
+                                      }
+                                      return const Center(
+                                          child: CircularProgressIndicator());
+                                    },
+                                  )
+                                : Image.asset(
+                                    KImages.pp, // Imagen predeterminada
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$name $lastName',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontFamily: 'Work Sans',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              email,
+                              style: const TextStyle(
+                                color: Color(0xFFEAF4FF),
+                                fontSize: 14,
+                                fontFamily: 'Work Sans',
+                                fontWeight: FontWeight.w400,
+                                height: 1.57,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
           const Divider(color: whiteColor),
           Expanded(
-              child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            separatorBuilder: (context, index) => const Divider(
-              color: whiteColor,
-            ),
-            itemCount: drawerItems.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                onTap: () {
-                  navigatePage(context, index);
-                },
-                leading: SvgPicture.asset(drawerItems[index]['icon']!),
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  drawerItems[index]['name']!,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontFamily: 'Work Sans',
-                    fontWeight: FontWeight.w500,
-                    height: 1.50,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              separatorBuilder: (context, index) => const Divider(
+                color: whiteColor,
+              ),
+              itemCount: drawerItems.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  onTap: () {
+                    navigatePage(context, index);
+                  },
+                  leading: SvgPicture.asset(drawerItems[index]['icon']!),
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    drawerItems[index]['name']!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: 'Work Sans',
+                      fontWeight: FontWeight.w500,
+                      height: 1.50,
+                    ),
                   ),
-                ),
-              );
-            },
-          )),
+                );
+              },
+            ),
+          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ListTile(
@@ -196,16 +254,13 @@ class ClientAppDrawer extends ConsumerWidget {
                                         actions: [
                                           TextButton(
                                             onPressed: () {
-                                              // Cierra el cuadro de diálogo sin hacer nada
                                               Navigator.of(context).pop();
                                             },
                                             child: const Text('Cancel'),
                                           ),
                                           TextButton(
                                             onPressed: () {
-                                              // Llamada a la función de logout
                                               Utils.logoutFunction(context);
-                                              // Cierra el cuadro de diálogo
                                               Navigator.of(context).pop();
                                             },
                                             child: const Text('Logout'),
@@ -252,28 +307,13 @@ class ClientAppDrawer extends ConsumerWidget {
   void navigatePage(BuildContext context, int index) {
     switch (index) {
       case 0:
-        Navigator.popAndPushNamed(context, RouteNames.learningScreen);
+        Navigator.popAndPushNamed(context, RouteNames.clientCategoryScreen);
         break;
       case 1:
         Navigator.popAndPushNamed(context, RouteNames.senttingsScreen);
         break;
       case 2:
-        //  Navigator.popAndPushNamed(context, RouteNames.changePassword);
-        break;
-      case 3:
-        //  Navigator.popAndPushNamed(context, RouteNames.supportTicketScreen);
-        break;
-      case 4:
-        //  Navigator.popAndPushNamed(context, RouteNames.allReview);
-        break;
-      case 5:
-        //  Navigator.popAndPushNamed(context, RouteNames.privacyPolicy);
-        break;
-      case 6:
-        //  Navigator.popAndPushNamed(context, RouteNames.faq);
-        break;
-      case 7:
-        //    Navigator.popAndPushNamed(context, RouteNames.aboutUs);
+        Navigator.popAndPushNamed(context, RouteNames.learningScreen);
         break;
       default:
         break;
@@ -283,16 +323,16 @@ class ClientAppDrawer extends ConsumerWidget {
 
 List<Map<String, String>> drawerItems = [
   {
-    "name": "Learning",
-    "icon": KImages.booking,
+    "name": "All Category",
+    "icon": KImages.drawerCategory,
   },
   {
     "name": "Edit Profile",
     "icon": KImages.editProfile,
   },
   {
-    "name": "Password Change",
-    "icon": KImages.lock,
+    "name": "Learning",
+    "icon": KImages.booking,
   },
   {
     "name": "Ticket Support",

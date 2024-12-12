@@ -113,7 +113,7 @@ class OrderCard extends ConsumerWidget {
                               alignment: Alignment.center,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 3),
-                              child: Text(
+                              child: const Text(
                                 "Track",
                                 style: TextStyle(
                                     fontSize: 15,

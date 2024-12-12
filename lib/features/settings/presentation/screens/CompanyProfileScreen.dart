@@ -2,14 +2,12 @@ import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
-import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 
 class CompanyProfileScreen extends StatelessWidget {
   final Company company;
 
-  const CompanyProfileScreen({Key? key, required this.company})
-      : super(key: key);
+  const CompanyProfileScreen({super.key, required this.company});
 
   @override
   Widget build(BuildContext context) {

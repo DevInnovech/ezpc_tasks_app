@@ -3,6 +3,8 @@ import 'package:ezpc_tasks_app/features/checkr/data/moc_data/moc_check_service.d
 import 'package:flutter/material.dart';
 
 class CreateCandidateScreen extends StatefulWidget {
+  const CreateCandidateScreen({super.key});
+
   @override
   _CreateCandidateScreenState createState() => _CreateCandidateScreenState();
 }
@@ -26,10 +28,10 @@ class _CreateCandidateScreenState extends State<CreateCandidateScreen> {
       if (result != null) {
         print('Candidato creado: $result');
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Candidato creado con éxito')));
+            const SnackBar(content: Text('Candidato creado con éxito')));
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error al crear candidato')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error al crear candidato')));
       }
     }
   }
@@ -37,7 +39,7 @@ class _CreateCandidateScreenState extends State<CreateCandidateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Crear Candidato')),
+      appBar: AppBar(title: const Text('Crear Candidato')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -45,34 +47,35 @@ class _CreateCandidateScreenState extends State<CreateCandidateScreen> {
           child: Column(
             children: [
               TextFormField(
-                decoration: InputDecoration(labelText: 'Nombre'),
+                decoration: const InputDecoration(labelText: 'Nombre'),
                 onSaved: (value) => _candidate.firstName = value ?? '',
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Apellido'),
+                decoration: const InputDecoration(labelText: 'Apellido'),
                 onSaved: (value) => _candidate.lastName = value ?? '',
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Correo Electrónico'),
+                decoration:
+                    const InputDecoration(labelText: 'Correo Electrónico'),
                 onSaved: (value) => _candidate.email = value ?? '',
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Teléfono'),
+                decoration: const InputDecoration(labelText: 'Teléfono'),
                 onSaved: (value) => _candidate.phone = value ?? '',
               ),
               TextFormField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                     labelText: 'Fecha de Nacimiento (YYYY-MM-DD)'),
                 onSaved: (value) => _candidate.dob = value ?? '',
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'SSN (Mock)'),
+                decoration: const InputDecoration(labelText: 'SSN (Mock)'),
                 onSaved: (value) => _candidate.ssn = value ?? '',
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _submitForm,
-                child: Text('Crear Candidato'),
+                child: const Text('Crear Candidato'),
               ),
             ],
           ),

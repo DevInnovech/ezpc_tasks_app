@@ -105,6 +105,8 @@ class AuthService {
           'email': email,
           'status': 'Pending', // Estado inicial
           'userID': uniqueCode,
+          'name': name,
+          'lastName': lastName,
         });
 
         // Guardar información en la colección correspondiente (`clients` o `providers`)

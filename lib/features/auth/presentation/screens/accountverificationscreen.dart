@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/login_screen.dart';
-import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:flutter/material.dart';
 
 class AccountVerificationScreen extends StatelessWidget {

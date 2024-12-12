@@ -74,8 +74,11 @@ dependencies:
   flutter_map: ^7.0.2
   flutter_stripe: ^11.2.0
   flutter_slidable: ^3.1.1
-  share_plus: ^10.1.2
+  google_places_flutter: ^2.0.9
+  text_scroll: ^0.2.0
+  google_maps_flutter: ^2.10.0
   webview_flutter: ^4.8.0
+  share_plus: ^10.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -100,6 +103,7 @@ flutter:
      - assets/
      - assets/icons/
      - assets/images/
+
 
 flutter_launcher_icons:
   android: "launcher_icon"

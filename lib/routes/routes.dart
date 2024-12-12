@@ -63,6 +63,7 @@ import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/two_
 import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/verification_screen.dart';
 import 'package:flutter/material.dart';
 
+//ultima union
 class RouteNames {
   static const String splashScreen = '/splashScreen';
   static const String onBoardingScreen = '/onBoardingScreen';
@@ -210,7 +211,7 @@ class RouteNames {
 
       case RouteNames.createCandidateScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => CreateCandidateScreen());
+            settings: settings, builder: (_) => const CreateCandidateScreen());
 
       case RouteNames.accountTypeSelectionScreen:
         return MaterialPageRoute(
@@ -292,6 +293,7 @@ class RouteNames {
           builder: (_) => PremierServiceScreen(
             selectedService: service,
             availableCategories: categories,
+            taskId: '',
           ),
         );
 
@@ -364,13 +366,7 @@ class RouteNames {
             as Map<String, dynamic>; // Cast the arguments to the expected type
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => BookingStepScreen(
-            selectedService: args['selectedService'],
-            selectedSize: args['selectedSize'],
-            hours: args['hours'],
-            quantity: args['quantity'],
-            time: args['time'],
-          ),
+          builder: (_) => const BookingStepScreen(),
         );
 
       case RouteNames.bookingDetailsScreen:
@@ -384,7 +380,7 @@ class RouteNames {
             builder: (_) => BookingTrackingScreen(bookingId: id));
       case RouteNames.bookingScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const BookingScreen());
+            settings: settings, builder: (_) => const ProviderOrdersScreen());
 
       case RouteNames.senttingsScreen:
         return MaterialPageRoute(
@@ -425,7 +421,7 @@ class RouteNames {
       case RouteNames.referralScreen:
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => ReferralScreen(),
+          builder: (_) => const ReferralScreen(),
         );
       case RouteNames.employeeScreen:
         return MaterialPageRoute(
@@ -442,7 +438,7 @@ class RouteNames {
       case RouteNames.twoFactorSetupScreen:
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => TwoFactorSetupScreen(),
+          builder: (_) => const TwoFactorSetupScreen(),
         );
 
       case RouteNames.verificationScreen:
@@ -454,18 +450,18 @@ class RouteNames {
           ),
         );
       case RouteNames.provideraboutScreen:
-        return MaterialPageRoute(builder: (_) => AboutMeScreen());
+        return MaterialPageRoute(builder: (_) => const AboutMeScreen());
       case RouteNames.providereditaboutScreen:
-        return MaterialPageRoute(builder: (_) => EditAboutMeScreen());
+        return MaterialPageRoute(builder: (_) => const EditAboutMeScreen());
       case RouteNames.previewScreen:
-        return MaterialPageRoute(builder: (_) => PreviewAboutMeScreen());
+        return MaterialPageRoute(builder: (_) => const PreviewAboutMeScreen());
 
       case RouteNames.paymentssettings:
-        return MaterialPageRoute(builder: (_) => PaymentSettingsScreen());
+        return MaterialPageRoute(builder: (_) => const PaymentSettingsScreen());
       case RouteNames.paymentssettingsadd_car:
-        return MaterialPageRoute(builder: (_) => AddCardScreen());
+        return MaterialPageRoute(builder: (_) => const AddCardScreen());
       case RouteNames.paymentssettingsadd_bank:
-        return MaterialPageRoute(builder: (_) => AddBankAccountScreen());
+        return MaterialPageRoute(builder: (_) => const AddBankAccountScreen());
       case RouteNames.paymentssettingsedit_car:
         final card = settings.arguments as CardModel;
         return MaterialPageRoute(

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class ReferralCard extends StatelessWidget {
   final ReferralModel referral;
 
-  const ReferralCard({Key? key, required this.referral}) : super(key: key);
+  const ReferralCard({super.key, required this.referral});
 
   @override
   Widget build(BuildContext context) {
