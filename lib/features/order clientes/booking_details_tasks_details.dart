@@ -161,7 +161,7 @@ class LoadedWidget extends StatelessWidget {
                 text: "Tracking",
                 onPressed: () {
                   Navigator.pushNamed(context, RouteNames.providerTracking,
-                      arguments: data.orderId);
+                      arguments: data);
                 },
               ),
               Utils.verticalSpace(10),
