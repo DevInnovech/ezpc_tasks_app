@@ -1,5 +1,5 @@
-import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/booking_details_tasks_details.dart';
+import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
+import 'package:ezpc_tasks_app/features/Client_Booking/booking_details_tasks_details.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -75,8 +75,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             .toList();
       } else if (index == 1) {
         filteredBookings = bookings
-            .where(
-                (booking) => booking['status']?.toLowerCase() == 'in progress')
+            .where((booking) =>
+                booking['status']?.toLowerCase() == 'in progress' ||
+                booking['status']?.toLowerCase() == 'started')
             .toList();
       } else if (index == 2) {
         filteredBookings = bookings
@@ -137,21 +138,22 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         onTap: () {
                           // Convertir datos de booking a OrderDetailsDto
                           final orderDetails = OrderDetailsDto(
-                            orderId: booking['id'] ?? 'N/A',
-                            taskName: booking['taskName'] ?? 'N/A',
+                            orderId: booking['bookingId'] ?? 'N/A',
+                            taskName: booking['selectedTaskName'] ?? 'N/AAA',
                             providerName: booking['providerName'] ?? 'N/A',
                             providerImageUrl: booking['providerImageUrl'] ?? '',
                             date: booking['date'] ?? 'N/A',
-                            time: booking['time'] ?? 'N/A',
-                            price: booking['price']?.toDouble() ?? 0.0,
+                            time: booking['timeSlot'] ?? 'N/A',
+                            price: booking['taskPrice']?.toDouble() ?? 0.0,
                             discount: booking['discount']?.toDouble() ?? 0.0,
                             tax: booking['tax']?.toDouble() ?? 0.0,
-                            total: booking['total']?.toDouble() ?? 0.0,
+                            total: booking['totalPrice']?.toDouble() ?? 0.0,
                             status: booking['status'] ?? 'N/A',
-                            address: booking['address'] ?? 'N/A',
+                            address: booking['clientAddress'] ?? 'N/A',
                             providerEmail: booking['providerEmail'] ?? 'N/A',
                             providerPhone: booking['providerPhone'] ?? 'N/A',
                             rating: booking['rating']?.toDouble() ?? 0.0,
+                            paymentStatus: booking['paymentStatus'] ?? 'N/A',
                           );
 
                           Navigator.push(
@@ -241,7 +243,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           Row(
                             children: [
                               Text(
-                                '\$${booking['price']?.toStringAsFixed(2) ?? '0.00'}',
+                                '\$${booking['taskPrice']?.toStringAsFixed(2) ?? '0.00'}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -265,7 +267,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Text(
-                          booking['taskName'] ?? 'Task Name',
+                          booking['selectedTaskName'] ?? 'Task Name',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -314,7 +316,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       ),
                       Expanded(
                         child: TextScroll(
-                          booking['address'] ?? 'N/A',
+                          booking['clientAddress'] ?? 'N/A',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -344,7 +346,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         ),
                       ),
                       Text(
-                        '${booking['date'] ?? 'N/A'} at ${booking['time'] ?? 'N/A'}',
+                        '${booking['date'] ?? 'N/A'} at ${booking['timeSlot'] ?? 'N/A'}',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,

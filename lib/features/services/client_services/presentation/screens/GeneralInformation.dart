@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'ConfirmationScreen.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,6 +13,10 @@ class GeneralInformationScreen extends StatefulWidget {
   final Map<String, int> serviceSizes;
   final double totalPrice;
   final String userId;
+  final String selectedTaskName;
+  final double categoryPrice;
+  final double taskPrice;
+  final String providerId;
 
   const GeneralInformationScreen({
     super.key,
@@ -23,6 +28,10 @@ class GeneralInformationScreen extends StatefulWidget {
     required this.serviceSizes,
     required this.totalPrice,
     required this.userId,
+    required this.selectedTaskName,
+    required this.categoryPrice,
+    required this.taskPrice,
+    required this.providerId,
   });
 
   @override
@@ -42,11 +51,19 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
   String? errorMessage;
   bool applyForAnotherPerson = false;
 
+  // Información del proveedor
+  String providerName = "";
+  String providerEmail = "";
+  String providerPhone = "";
+  String providerId = "";
+
   @override
   void initState() {
     super.initState();
     selectedDate = widget.date;
+    providerId = widget.providerId; // Inicializamos el providerId
     fetchClientData();
+    fetchProviderData(); // Obtener información del proveedor
   }
 
   Future<void> fetchClientData() async {
@@ -78,6 +95,80 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> fetchProviderData() async {
+    try {
+      final providerDoc = await FirebaseFirestore.instance
+          .collection('providers')
+          .doc(widget.providerId)
+          .get();
+
+      if (providerDoc.exists) {
+        final providerData = providerDoc.data()!;
+        setState(() {
+          providerName =
+              "${providerData['name'] ?? ''} ${providerData['lastName'] ?? ''}";
+          providerEmail = providerData['email'] ?? '';
+          providerPhone = providerData['phoneNumber'] ?? '';
+        });
+      } else {
+        debugPrint(
+            "No provider information found for ID: ${widget.providerId}");
+      }
+    } catch (e) {
+      debugPrint('Error fetching provider data: $e');
+    }
+  }
+
+  Widget _buildProviderInfoCard() {
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 4,
+      margin: const EdgeInsets.only(top: 16.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Provider Details",
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Divider(),
+            _buildInfoRow("Provider ID", providerId),
+            _buildInfoRow("Name", providerName),
+            _buildInfoRow("Email", providerEmail),
+            _buildInfoRow("Phone", providerPhone),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "$label: ",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : "Not available",
+              style: const TextStyle(color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildProgressIndicator() {
@@ -280,7 +371,11 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
 
                 // Client Information Card
                 _buildClientInfoCard(),
-                const SizedBox(height: 8.0),
+                const SizedBox(height: 16.0),
+
+                // Provider Information Card
+                _buildProviderInfoCard(),
+                const SizedBox(height: 16.0),
 
                 // Apply for Another Person Checkbox
                 _buildApplyForAnotherPersonCheckbox(),
@@ -311,7 +406,8 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
                       bookingData: {
                         'taskId': widget.taskId,
                         'timeSlot': widget.timeSlot,
-                        'date': widget.date,
+                        'date': DateFormat('yyyy-MM-dd')
+                            .format(widget.date), // Solo la fecha
                         'selectedCategory': widget.selectedCategory,
                         'selectedSubCategories': widget.selectedSubCategories,
                         'serviceSizes': widget.serviceSizes,
@@ -321,6 +417,14 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
                         'clientEmail': emailController.text,
                         'clientAddress': addressController.text,
                         'shortNotes': notesController.text,
+                        'selectedTaskName': widget.selectedTaskName,
+                        'categoryPrice': widget.categoryPrice,
+                        'taskPrice': widget.taskPrice,
+                        'providerId': providerId,
+                        'providerName': providerName,
+                        'providerEmail': providerEmail,
+                        'providerPhone': providerPhone,
+                        'createdAt': DateTime.now().toIso8601String(),
                       },
                     ),
                   ),

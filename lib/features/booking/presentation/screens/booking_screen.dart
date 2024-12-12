@@ -270,7 +270,7 @@ class ProviderOrdersScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    order['taskName'] ?? 'Task Name',
+                                    order['selectedTaskName'] ?? 'Task Name',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -334,7 +334,7 @@ class ProviderOrdersScreen extends StatelessWidget {
     return Row(
       children: [
         Text(
-          '\$${order['price']?.toStringAsFixed(2) ?? '0.00'}',
+          '\$${order['totalPrice']?.toStringAsFixed(2) ?? '0.00'}',
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -367,12 +367,12 @@ class ProviderOrdersScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDetailRow('Address', order['address'] ?? 'N/A'),
+          _buildDetailRow('Address', order['clientAddress'] ?? 'N/A'),
           const Divider(color: Colors.grey),
           _buildDetailRow('Date & Time',
-              '${order['date'] ?? 'N/A'} At ${order['time'] ?? 'N/A'}'),
+              '${order['date'] ?? 'N/A'} At ${order['timeSlot'] ?? 'N/A'}'),
           const Divider(color: Colors.grey),
-          _buildDetailRow('Customer', order['customerName'] ?? 'N/A'),
+          _buildDetailRow('Customer', order['clientName'] ?? 'N/A'),
         ],
       ),
     );

@@ -42,8 +42,8 @@ class BookingDetailsDto extends Equatable {
   factory BookingDetailsDto.fromMap(Map<String, dynamic> map) {
     return BookingDetailsDto(
       orders: BookingDataDto.fromMap(map['order'] as Map<String, dynamic>),
-      bookingAddress: BookingAddress.fromMap(
-          map['booking_address'] as Map<String, dynamic>),
+      bookingAddress:
+          BookingAddress.fromMap(map['clientAddress'] as Map<String, dynamic>),
       packageFeatures:
           List<String>.from(map['package_features'] as List<dynamic>),
       additionalServices: List<AdditionalServices>.from(

@@ -17,6 +17,7 @@ class OrderDetailsDto {
   final String providerEmail;
   final String providerPhone;
   final double rating; // Nuevo campo para la calificación del proveedor
+  final String paymentStatus;
 
   OrderDetailsDto({
     required this.orderId,
@@ -34,6 +35,7 @@ class OrderDetailsDto {
     required this.providerEmail,
     required this.providerPhone,
     required this.rating, // Inicialización del nuevo campo
+    required this.paymentStatus,
   });
 
   // Método para convertir un Map a una instancia de OrderDetailsDto
@@ -48,12 +50,13 @@ class OrderDetailsDto {
       price: map['price']?.toDouble() ?? 0.0,
       discount: map['discount']?.toDouble() ?? 0.0,
       tax: map['tax']?.toDouble() ?? 0.0,
-      total: map['total']?.toDouble() ?? 0.0,
+      total: map['totalPrice']?.toDouble() ?? 0.0,
       status: map['status'] ?? '',
       address: map['address'] ?? '',
       providerEmail: map['providerEmail'] ?? '',
       providerPhone: map['providerPhone'] ?? '',
       rating: map['rating']?.toDouble() ?? 0.0, // Conversión del nuevo campo
+      paymentStatus: map['paymentStatus'] ?? '',
     );
   }
 
@@ -75,6 +78,7 @@ class OrderDetailsDto {
       'providerEmail': providerEmail,
       'providerPhone': providerPhone,
       'rating': rating, // Conversión del nuevo campo al mapa
+      'paymentStatus': paymentStatus,
     };
   }
 }

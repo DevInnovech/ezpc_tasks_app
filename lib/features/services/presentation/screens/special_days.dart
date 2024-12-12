@@ -249,7 +249,7 @@ class SpecialDaysStep extends ConsumerWidget {
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2101),
               );
-              controller.text = "${pickedDate?.toLocal()}".split(' ')[0];
+              controller.text = "${pickedDate!.toLocal()}".split(' ')[0];
             },
           );
   }

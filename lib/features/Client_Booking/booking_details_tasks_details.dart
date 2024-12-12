@@ -1,14 +1,14 @@
+import 'package:ezpc_tasks_app/shared/widgets/purchase_info_text.dart';
+import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
+import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
-import 'package:ezpc_tasks_app/shared/widgets/purchase_info_text.dart';
-import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import "package:flutter_svg/flutter_svg.dart";
 
@@ -17,22 +17,73 @@ class OrderDetails extends StatelessWidget {
 
   final OrderDetailsDto order;
 
+  Future<void> _cancelOrder(BuildContext context, String orderId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(orderId)
+          .update({'status': 'cancelled'});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order has been cancelled.')),
+      );
+
+      Navigator.pop(context); // Cierra la pantalla actual después de cancelar
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to cancel order: $e')),
+      );
+    }
+  }
+
+  void _showCancelConfirmation(BuildContext context, String orderId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Order'),
+        content: const Text('Are you sure you want to cancel this order?'),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context), // Cierra el cuadro de diálogo
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Cierra el cuadro de diálogo
+              _cancelOrder(context, orderId); // Cancela la orden
+            },
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(title: "Order Details"),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: LoadedWidget(data: order),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: LoadedWidget(
+          data: order,
+          onCancel: _showCancelConfirmation,
+        ),
       ),
     );
   }
 }
 
 class LoadedWidget extends StatelessWidget {
-  const LoadedWidget({super.key, required this.data});
+  const LoadedWidget({
+    super.key,
+    required this.data,
+    required this.onCancel,
+  });
 
   final OrderDetailsDto data;
+  final Function(BuildContext, String) onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +109,7 @@ class LoadedWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Detalles del Servicio',
+                'Task Details',
                 style: TextStyle(
                   color: Color(0xFF051533),
                   fontSize: 18,
@@ -91,48 +142,44 @@ class LoadedWidget extends StatelessWidget {
                   const Divider(),
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
-                    text: 'Tarifa del Paquete',
+                    text: 'Task Rate',
                     trailText: data.price.toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
-                    text: 'Descuento',
+                    text: 'Discount',
                     trailText: data.discount.toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
-                  Divider(
-                    color: blackColor.withOpacity(0.1),
-                  ),
+                  Divider(color: Colors.grey[300]),
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
-                    text: 'Sub Total',
+                    text: 'Subtotal',
                     trailText: (data.price - data.discount).toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
-                    text: 'Impuestos',
+                    text: 'Tax',
                     trailText: data.tax.toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
-                  Divider(
-                    color: blackColor.withOpacity(0.1),
-                  ),
+                  Divider(color: Colors.grey[300]),
                   PurchaseInfoText(
                     text: 'Total',
                     trailText: data.total.toStringAsFixed(2),
-                    textColor: textColor,
+                    textColor: Colors.black,
                     fontWeight: FontWeight.w700,
                   ),
                   Utils.verticalSpace(16),
                   PurchaseInfoStatus(
-                    text: 'Estado de Pago',
-                    trailText: data.status,
+                    text: 'Payment Status',
+                    trailText: data.paymentStatus,
                   ),
                 ]),
               ),
               Utils.verticalSpace(20),
               const Text(
-                'Estado de la Orden',
+                'Task Status',
                 style: TextStyle(
                   color: Color(0xFF051533),
                   fontSize: 18,
@@ -151,27 +198,37 @@ class LoadedWidget extends StatelessWidget {
                   ),
                 ),
                 child: PurchaseInfoStatus(
-                  text: 'Estado de la Orden',
+                  text: 'Task Status',
                   trailText: data.status,
                 ),
               ),
               Utils.verticalSpace(20),
-              // Botón de Seguimiento
+              // Tracking Button
               PrimaryButton(
-                text: "Tracking",
-                onPressed: () {
-                  Navigator.pushNamed(context, RouteNames.providerTracking,
-                      arguments: data);
-                },
+                text: "Track Provider",
+                onPressed: data.status.toLowerCase() == "started"
+                    ? () {
+                        Navigator.pushNamed(
+                          context,
+                          RouteNames.providerTracking,
+                          arguments: data,
+                        );
+                      }
+                    : null, // Disabled if status is not "started"
+                bgColor: data.status.toLowerCase() == "started"
+                    ? const Color(0xFF404C8C)
+                    : Colors.grey, // Gray if disabled
               ),
               Utils.verticalSpace(10),
-              // Botón para Cancelar la Orden
+              // Cancel Button
               PrimaryButton(
-                text: "Cancelar",
-                onPressed: () {
-                  Utils.showSnackBar(context, 'La orden ha sido cancelada');
-                },
-                bgColor: Colors.red,
+                text: "Cancel Order",
+                onPressed: data.status.toLowerCase() == "started"
+                    ? null // Disabled if status is "started"
+                    : () => onCancel(context, data.orderId),
+                bgColor: data.status.toLowerCase() == "started"
+                    ? Colors.grey // Gray if disabled
+                    : Colors.red, // Active if not "started"
               ),
             ],
           )
@@ -195,7 +252,7 @@ class ProviderInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Detalles del Vendedor',
+          'Provider Details',
           style: TextStyle(
             color: Color(0xFF051533),
             fontSize: 18,
@@ -248,10 +305,7 @@ class ProviderInfo extends StatelessWidget {
                 Utils.verticalSpace(8),
                 Row(
                   children: [
-                    //phone
-
                     SvgPicture.asset(KImages.call),
-
                     Utils.horizontalSpace(4),
                     Text(
                       provider.phone ?? '',
@@ -260,8 +314,6 @@ class ProviderInfo extends StatelessWidget {
                         fontSize: 12,
                         fontFamily: 'Work Sans',
                         fontWeight: FontWeight.w400,
-                        height: 1.33,
-                        letterSpacing: -0.50,
                       ),
                     ),
                   ],
@@ -269,10 +321,7 @@ class ProviderInfo extends StatelessWidget {
                 Utils.verticalSpace(8),
                 Row(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: SvgPicture.asset(KImages.booking),
-                    ),
+                    SvgPicture.asset(KImages.booking),
                     Utils.horizontalSpace(4),
                     Text(
                       provider.email ?? '',
@@ -281,8 +330,6 @@ class ProviderInfo extends StatelessWidget {
                         fontSize: 12,
                         fontFamily: 'Work Sans',
                         fontWeight: FontWeight.w400,
-                        height: 1.33,
-                        letterSpacing: -0.50,
                       ),
                     ),
                   ],

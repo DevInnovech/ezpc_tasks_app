@@ -19,6 +19,7 @@ class _BookingScreenState extends State<BookingScreen> {
   double subCategoryPrice = 0.0;
   double baseTaskPrice = 0.0;
   double totalPrice = 0.0;
+  String? providerId; // Variable para almacenar el providerId
 
   Map<String, dynamic> taskData = {};
   bool isLoading = true;
@@ -48,6 +49,7 @@ class _BookingScreenState extends State<BookingScreen> {
           selectedTaskName = taskData['taskName'] as String?;
           subCategoryPrice = (taskData['subCategoryprice'] ?? 0.0).toDouble();
           baseTaskPrice = (taskData['price'] ?? 0.0).toDouble();
+          providerId = taskData['providerId'] as String?; // Obtener providerId
           isLoading = false;
           calculateTotalPrice();
         });
@@ -161,7 +163,9 @@ class _BookingScreenState extends State<BookingScreen> {
             onPressed: () {
               if (selectedCategory != null &&
                   selectedSubCategory != null &&
-                  selectedTaskName != null) {
+                  selectedTaskName != null &&
+                  providerId != null) {
+                // Validar providerId
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -171,6 +175,10 @@ class _BookingScreenState extends State<BookingScreen> {
                       selectedSubCategories: [selectedSubCategory!],
                       serviceSizes: {'Hours': hours},
                       totalPrice: totalPrice,
+                      selectedTaskName: selectedTaskName!,
+                      categoryPrice: baseTaskPrice,
+                      taskPrice: subCategoryPrice * hours,
+                      providerId: providerId!, // Pasar providerId
                     ),
                   ),
                 );

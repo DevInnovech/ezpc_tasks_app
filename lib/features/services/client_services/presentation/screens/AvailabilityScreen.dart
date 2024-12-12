@@ -10,6 +10,10 @@ class AvailabilityScreen extends StatefulWidget {
   final List<String> selectedSubCategories;
   final Map<String, int> serviceSizes;
   final double totalPrice;
+  final String selectedTaskName;
+  final double categoryPrice;
+  final double taskPrice;
+  final String providerId;
 
   const AvailabilityScreen({
     super.key,
@@ -18,6 +22,10 @@ class AvailabilityScreen extends StatefulWidget {
     required this.selectedSubCategories,
     required this.serviceSizes,
     required this.totalPrice,
+    required this.selectedTaskName,
+    required this.categoryPrice,
+    required this.taskPrice,
+    required this.providerId,
   });
 
   @override
@@ -29,6 +37,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   Map<String, dynamic>? selectedTask;
   String? selectedTimeSlot;
   DateTime selectedDate = DateTime.now();
+  String? providerId;
 
   @override
   void initState() {
@@ -38,6 +47,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
   Future<void> fetchTaskAndRelatedTasks() async {
     try {
+      // Obtener el documento específico de la tarea seleccionada
       final taskDoc = await FirebaseFirestore.instance
           .collection('tasks')
           .doc(widget.taskId)
@@ -46,7 +56,10 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       if (taskDoc.exists) {
         final taskData = taskDoc.data()!;
         final category = taskData['category'] as String;
+        final provider =
+            taskData['providerId'] as String?; // Obtener providerId
 
+        // Obtener tareas relacionadas por categoría
         final relatedTasksSnapshot = await FirebaseFirestore.instance
             .collection('tasks')
             .where('category', isEqualTo: category)
@@ -54,6 +67,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
         setState(() {
           selectedTask = taskData;
+          providerId = provider; // Asignar el providerId extraído
           relatedTasks = relatedTasksSnapshot.docs
               .map((doc) => {'id': doc.id, ...doc.data()})
               .toList();
@@ -69,7 +83,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     final workingDays = taskData['workingDays'] as List<dynamic>? ?? [];
     final workingHours = taskData['workingHours'] as Map<String, dynamic>?;
 
-    // Verificar si el día seleccionado está disponible
     final selectedDay =
         DateFormat('EEEE').format(selectedDate); // Ejemplo: "Monday"
     if (!workingDays.contains(selectedDay)) {
@@ -77,14 +90,12 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       return timeSlots;
     }
 
-    // Obtener horas de trabajo para el día seleccionado
     final hours = workingHours?[selectedDay];
     if (hours == null) {
       debugPrint("Working hours not found for $selectedDay.");
       return timeSlots;
     }
 
-    // Generar los slots de tiempo
     final start = _parseTime(hours['start']); // Ejemplo: "00:00"
     final end = _parseTime(hours['end']); // Ejemplo: "12:00"
     if (start == null || end == null) {
@@ -97,7 +108,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       final formattedTime = DateFormat('HH:mm').format(currentTime); // 24 horas
       timeSlots.add(formattedTime);
 
-      // Incrementar en 30 minutos
       currentTime = currentTime.add(const Duration(minutes: 30));
     }
 
@@ -172,7 +182,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Información principal de la tarea
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -233,8 +242,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
               ],
             ),
             const SizedBox(height: 16.0),
-
-            // Slots de Tiempo
             if (timeSlots.isNotEmpty)
               Wrap(
                 spacing: 8.0,
@@ -281,8 +288,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
   Widget _buildContinueButton() {
     return Padding(
-      padding:
-          const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0), // Espacio extra abajo
+      padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
@@ -294,7 +300,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 14.0),
           ),
-          onPressed: selectedTimeSlot != null
+          onPressed: selectedTimeSlot != null && providerId != null
               ? () {
                   Navigator.push(
                     context,
@@ -308,6 +314,10 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                         serviceSizes: widget.serviceSizes,
                         totalPrice: widget.totalPrice,
                         userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                        selectedTaskName: widget.selectedTaskName,
+                        categoryPrice: widget.categoryPrice,
+                        taskPrice: widget.taskPrice,
+                        providerId: providerId!,
                       ),
                     ),
                   );
@@ -343,7 +353,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Selector de Fecha
                 _buildDateSelector(),
                 Expanded(
                   child: SingleChildScrollView(
@@ -356,8 +365,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
-
-                // Botón de Continuar
                 _buildContinueButton(),
               ],
             ),

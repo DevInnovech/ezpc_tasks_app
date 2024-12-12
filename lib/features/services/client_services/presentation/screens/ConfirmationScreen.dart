@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ConfirmationScreen extends StatefulWidget {
   final Map<String, dynamic> bookingData;
@@ -22,14 +23,32 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     });
 
     try {
+      // Obtener el ID del cliente autenticado
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception("No authenticated user found.");
+      }
+
+      final bookingId =
+          FirebaseFirestore.instance.collection('bookings').doc().id;
+
+      final bookingData = {
+        ...widget.bookingData,
+        'bookingId': bookingId,
+        'customerId': user.uid, // ID del cliente autenticado
+        'status': 'pending', // Estado inicial
+      };
+
       await FirebaseFirestore.instance
           .collection('bookings')
-          .add(widget.bookingData);
+          .doc(bookingId) // Guardar usando el bookingId generado
+          .set(bookingData);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Booking saved successfully!')),
       );
 
-      // Navega a la pantalla de pago
+      // Navegar a la pantalla de pago
       Navigator.pushNamed(context, '/payment');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,8 +124,33 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     );
   }
 
+  Widget _buildProviderInfoCard() {
+    return Card(
+      color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Provider Information",
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            Text("Provider ID: ${widget.bookingData['providerId']}"),
+            Text("Name: ${widget.bookingData['providerName']}"),
+            Text("Email: ${widget.bookingData['providerEmail']}"),
+            Text("Phone: ${widget.bookingData['providerPhone']}"),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTaskInfoCard() {
-    final subCategories = widget.bookingData['subCategories'];
+    final subCategories = widget.bookingData['selectedSubCategories'];
     final subCategoriesText = (subCategories != null && subCategories is List)
         ? subCategories.join(', ')
         : 'No details available';
@@ -125,7 +169,8 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
               style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
             const Divider(),
-            Text("Service: ${widget.bookingData['category']}"),
+            Text("Category: ${widget.bookingData['selectedCategory']}"),
+            Text("Task Name: ${widget.bookingData['selectedTaskName']}"),
             Text("Date: ${widget.bookingData['date']}"),
             Text("Time: ${widget.bookingData['timeSlot']}"),
             Text("Service Details: $subCategoriesText"),
@@ -138,7 +183,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
   Widget _buildPaymentInfoCard() {
     final categoryPrice = widget.bookingData['categoryPrice'] ?? 0.0;
     final taskPrice = widget.bookingData['taskPrice'] ?? 0.0;
-    final taxes = widget.bookingData['taxes'] ?? 0.0;
+    final taxes = (categoryPrice + taskPrice) * 0.1; // 10% de impuestos
     final totalPrice = widget.bookingData['totalPrice'] ?? 0.0;
 
     return Card(
@@ -238,20 +283,14 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16.0),
-
-              // Progress Indicator
               _buildProgressIndicator(),
               const SizedBox(height: 24.0),
-
-              // Client Information Card
               _buildClientInfoCard(),
               const SizedBox(height: 16.0),
-
-              // Task Information Card
+              _buildProviderInfoCard(), // Tarjeta de información del proveedor
+              const SizedBox(height: 16.0),
               _buildTaskInfoCard(),
               const SizedBox(height: 16.0),
-
-              // Payment Information Card
               _buildPaymentInfoCard(),
               const SizedBox(height: 16.0),
             ],

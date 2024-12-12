@@ -31,9 +31,9 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.da
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
 import 'package:ezpc_tasks_app/features/leaning/presentations/screnn/video_screen.dart';
 import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employee_screen.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/booking_details_tasks_details.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/provider_tracking.dart';
+import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
+import 'package:ezpc_tasks_app/features/Client_Booking/booking_details_tasks_details.dart';
+import 'package:ezpc_tasks_app/features/Client_Booking/provider_tracking.dart';
 import 'package:ezpc_tasks_app/features/payments%20setings/models/bank_account_model.dart';
 import 'package:ezpc_tasks_app/features/payments%20setings/models/card_model.dart';
 import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/add_bank_account_screen.dart';

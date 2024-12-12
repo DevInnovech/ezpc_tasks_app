@@ -226,8 +226,12 @@ class Utils {
     switch (orderStatus) {
       case 'awaiting':
         return 'Pending';
+      case 'started':
+        return 'Started';
       case 'success':
         return 'Success';
+      case 'paid':
+        return 'Paid';
       case 'pending':
         return 'Pending';
       case 'complete':
@@ -257,6 +261,8 @@ class Utils {
         return const Color(0xffFEEEEE);
       case "Active":
         return const Color(0xFFB3CAFF).withOpacity(1);
+      case "started":
+        return const Color(0xFFB3CAFF).withOpacity(1);
       case "active":
         return const Color(0xff00BF8C).withOpacity(0.2);
       case "approved":
@@ -271,6 +277,8 @@ class Utils {
         return const Color(0xff378FFF).withOpacity(0.2);
       case "cancelled":
         return Colors.transparent;
+      case "paid":
+        return const Color(0xff00BF8C).withOpacity(0.1);
       default:
         return const Color(0xffFEEEEE);
     }
@@ -284,6 +292,8 @@ class Utils {
         return redColor;
       case "active":
         return greenColor;
+      case "started":
+        return const Color.fromARGB(255, 17, 47, 218);
       case "approved":
         return greenColor;
       case "success":
@@ -296,8 +306,10 @@ class Utils {
         return Colors.red;
       case "1":
         return greenColor;
-      case "decliened":
+      case "declined":
         return Colors.red;
+      case "paid":
+        return greenColor;
       default:
         return primaryColor;
     }
