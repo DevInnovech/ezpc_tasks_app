@@ -45,7 +45,8 @@ class TwoFactorSetupScreen extends ConsumerWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const VerificationScreen(authMethod: 'SMS'),
+                          builder: (_) =>
+                              const VerificationScreen(authMethod: 'SMS'),
                         ),
                       );
                     } else {
@@ -79,7 +80,8 @@ class TwoFactorSetupScreen extends ConsumerWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const VerificationScreen(authMethod: 'App'),
+                          builder: (_) =>
+                              const VerificationScreen(authMethod: 'App'),
                         ),
                       );
                     } else {

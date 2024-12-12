@@ -6,7 +6,8 @@ import '../models/referral_model.dart';
 
 class ReferralRepository {
   Future<List<ReferralModel>> fetchReferrals() async {
-    await Future.delayed(const Duration(seconds: 1)); // Simulando retraso de red
+    await Future.delayed(
+        const Duration(seconds: 1)); // Simulando retraso de red
 
     return [
       ReferralModel(

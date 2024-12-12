@@ -8,7 +8,8 @@ class TwoFactorRepository {
 
   // Simulación de verificación de código
   Future<bool> verifyCode(String code) async {
-    await Future.delayed(const Duration(seconds: 1)); // Simulación de verificación
+    await Future.delayed(
+        const Duration(seconds: 1)); // Simulación de verificación
     return code == "123456"; // Simula éxito si el código es 123456
   }
 }

@@ -29,6 +29,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_sc
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
+import 'package:ezpc_tasks_app/features/leaning/presentations/screnn/video_screen.dart';
 import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employee_screen.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
@@ -62,10 +63,13 @@ import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/two_
 import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/verification_screen.dart';
 import 'package:flutter/material.dart';
 
+//ultima union
 class RouteNames {
   static const String splashScreen = '/splashScreen';
   static const String onBoardingScreen = '/onBoardingScreen';
   static const String authenticationScreen = '/authenticationScreen';
+//learnig
+  static const String learningScreen = '/learning'; // Nueva ruta para Learning
   static const String accountVerificationScreen = '/accountverificationscreen';
   static const String createCandidateScreen = '/createCandidateScreen';
 
@@ -368,10 +372,7 @@ class RouteNames {
       case RouteNames.bookingDetailsScreen:
         final id = settings.arguments as String;
         return MaterialPageRoute(
-            settings: settings,
-            builder: (_) => BookingDetailsScreen(
-                  id: id,
-                ));
+            settings: settings, builder: (_) => BookingDetailsScreen(id: id));
       case RouteNames.bookingTrackingScreen:
         final id = settings.arguments as String;
         return MaterialPageRoute(
@@ -473,6 +474,9 @@ class RouteNames {
             builder: (_) => EditBankAccountScreen(
                   account: bank,
                 ));
+
+      case RouteNames.learningScreen:
+        return MaterialPageRoute(builder: (_) => LearningScreen());
 
       /*  
       case RouteNames.registerProviderScreen:

@@ -3,6 +3,8 @@ import 'package:ezpc_tasks_app/features/services/client_services/data/booking_pr
 import 'package:ezpc_tasks_app/features/services/client_services/model/service_model.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/componets/PaymentBottomSheet.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/componets/PaymentSuccessDialog.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/presentation/componets/information.dart';
+import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

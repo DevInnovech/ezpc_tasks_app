@@ -1,7 +1,24 @@
 import 'dart:io';
+/*import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
+import 'package:ezpc_tasks_app/features/services/data/category_state.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/choose_category_widget.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/choose_subcategory_widget.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/license_document_widget.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/rate_input_widget.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/service_image.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import '../../data/task_provider.dart';
+
+class CategoryPricingStep extends ConsumerStatefulWidget {
+  final GlobalKey<FormState> formKey; // Añadimos el formKey para validar*/
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/license_document_widget.dart';
@@ -88,6 +105,114 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /*    ServiceImage(
+              onImageSelected: (String imageUrl) {
+                if (currentTask != null) {
+                  ref.read(taskProvider.notifier).updateTask(
+                        imageUrl: imageUrl,
+                      );
+                }
+              },
+            ),
+            if (currentTask?.imageUrl.isEmpty ?? true)
+              const Text(
+                'Please select an image.',
+                style: TextStyle(color: Colors.red),
+              ),
+            CategorySelector(
+              onCategorySelected: (String category) {
+                if (currentTask != null) {
+                  ref.read(taskProvider.notifier).updateTask(
+                        category: category,
+                        subCategory: '',
+                      );
+                }
+              },
+            ),
+            if (selectedCategory != null) ...[
+              RateInputWidget(
+                onRateChanged: (double price) {
+                  if (currentTask != null) {
+                    ref.read(taskProvider.notifier).updateTask(
+                          price: price,
+                        );
+                  }
+                },
+              ),
+              CustomCheckboxListTile(
+                title: 'Apply to all sub-category',
+                value: isRateAppliedToSubcategories,
+                onChanged: (bool? value) {
+                  ref
+                      .read(isRateAppliedToSubcategoriesProvider.notifier)
+                      .state = value ?? false;
+                },
+                activeColor: primaryColor,
+                checkColor: Colors.white,
+              ),
+              SubCategorySelector(
+                onSubCategorySelected: (String subCategory) {
+                  if (currentTask != null) {
+                    ref.read(taskProvider.notifier).updateTask(
+                          subCategory: subCategory,
+                        );
+                  }
+                },
+              ),
+              if (selectedSubCategory != null && !isRateAppliedToSubcategories)
+                RateInputWidget(
+                  onRateChanged: (double price) {
+                    if (currentTask != null) {
+                      ref.read(taskProvider.notifier).updateTask(
+                            price: price,
+                          );
+                    }
+                  },
+                ),
+              if (selectedSubCategory != null &&
+                  selectedSubCategory.additionalOptions != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Additional Options:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8.0),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          value: _selectedAdditionalOption,
+                          hint: const Text('Select an additional option'),
+                          items: selectedSubCategory.additionalOptions!
+                              .map((option) => DropdownMenuItem(
+                                    value: option,
+                                    child: Text(option),
+                                  ))
+                              .toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedAdditionalOption = newValue;
+                            });
+
+                            if (currentTask != null) {
+                              ref.read(taskProvider.notifier).updateTask(
+                                    service: newValue!,
+                                  );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],*/
             _buildSectionTitle(context, 'Upload Service Image'),
             const SizedBox(height: 8),
             ServiceImage(
@@ -232,7 +357,8 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                       requiresLicense: value ?? false,
                     );
               },
-              activeColor: Colors.blue,
+              activeColor: primaryColor,
+              checkColor: Colors.white,
             ),
             AbsorbPointer(
               absorbing: !isLicenseRequired,

@@ -1,4 +1,6 @@
 import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/schedule_selection_days_widget.dart';
+import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/schedule_selection_hours_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
@@ -14,36 +16,13 @@ class ScheduleStep extends ConsumerStatefulWidget {
 }
 
 class _ScheduleStepState extends ConsumerState<ScheduleStep> {
-  final Map<String, Map<String, String>> _workingHours = {};
-  final List<String> _selectedDays = [];
-
-  @override
-  void initState() {
-    super.initState();
-    final currentTask = ref.read(taskProvider).currentTask;
-
-    if (currentTask != null) {
-      // Inicializar los días y horas del estado actual
-      setState(() {
-        _selectedDays.addAll(currentTask.workingDays ?? []);
-        _workingHours.addAll(currentTask.workingHours ?? {});
-      });
-    }
-  }
+  final String _defaultStartHour = '8:00 AM';
+  final String _defaultEndHour = '8:00 PM';
 
   @override
   Widget build(BuildContext context) {
+    final selectedDays = ref.watch(selectedDaysProvider);
     final specialDaysEnabled = ref.watch(specialDaysEnabledProvider);
-
-    final List<String> daysOfWeek = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday"
-    ];
 
     return Form(
       key: widget.formKey,
@@ -52,170 +31,147 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Working Days & Hours",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-
-            // Selección de días y horas
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: daysOfWeek.length,
-              itemBuilder: (context, index) {
-                final day = daysOfWeek[index];
-                final hours = _workingHours[day] ?? {"start": "", "end": ""};
-
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(day, style: const TextStyle(fontSize: 16)),
-                            Switch(
-                              value: _selectedDays.contains(day),
-                              onChanged: (bool value) {
-                                setState(() {
-                                  if (value) {
-                                    _selectedDays.add(day);
-                                    _workingHours[day] = {
-                                      "start": "",
-                                      "end": ""
-                                    };
-                                  } else {
-                                    _selectedDays.remove(day);
-                                    _workingHours.remove(day);
-                                  }
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                        if (_selectedDays.contains(day))
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    final TimeOfDay? pickedTime =
-                                        await showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay.now(),
-                                    );
-                                    if (pickedTime != null) {
-                                      setState(() {
-                                        _workingHours[day]!["start"] =
-                                            pickedTime.format(context);
-                                      });
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12, horizontal: 16),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      _workingHours[day]!["start"]!.isEmpty
-                                          ? "Start Time"
-                                          : _workingHours[day]!["start"]!,
-                                      style: const TextStyle(
-                                          color: Colors.black54),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    final TimeOfDay? pickedTime =
-                                        await showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay.now(),
-                                    );
-                                    if (pickedTime != null) {
-                                      setState(() {
-                                        _workingHours[day]!["end"] =
-                                            pickedTime.format(context);
-                                      });
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12, horizontal: 16),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      _workingHours[day]!["end"]!.isEmpty
-                                          ? "End Time"
-                                          : _workingHours[day]!["end"]!,
-                                      style: const TextStyle(
-                                          color: Colors.black54),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                );
+            // Selector de días
+            DaysSelector(
+              initialSelection: selectedDays,
+              onDaysSelected: (selectedDays) {
+                ref.read(selectedDaysProvider.notifier).state = selectedDays;
+                _initializeDefaultWorkingHours(selectedDays);
               },
             ),
             const SizedBox(height: 16),
 
-            // Habilitar días especiales
+            // Selector de horas
+            if (selectedDays.isNotEmpty)
+              WorkingHoursSelector(
+                selectedDays: selectedDays,
+                onHoursSelected: (workingHours) {
+                  if (_validateWorkingHours(workingHours)) {
+                    ref.read(taskProvider.notifier).updateTask(
+                          workingDays: selectedDays,
+                          workingHours: workingHours,
+                        );
+                  } else {
+                    _showSnackBar(context,
+                        "Invalid hours! Start time must be before end time.");
+                  }
+                },
+              ),
+            const SizedBox(height: 16),
+
+            // Checkbox para habilitar días especiales
             CustomCheckboxListTile(
               title: 'Enable Special Days',
               value: specialDaysEnabled,
-              onChanged: (bool? value) {
+              onChanged: (value) {
                 ref.read(specialDaysEnabledProvider.notifier).state =
                     value ?? false;
               },
+              activeColor: Colors.blue,
             ),
-
             const SizedBox(height: 16),
 
-            // Botón guardar
+            // Botón de guardar
             ElevatedButton(
               onPressed: () {
-                if (_selectedDays.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Please select at least one working day."),
-                    ),
-                  );
+                if (selectedDays.isEmpty) {
+                  _showSnackBar(
+                      context, "Please select at least one working day.");
                   return;
                 }
 
-                // Actualizar estado del taskProvider
+                final workingHours = _getWorkingHoursFromProvider(selectedDays);
+
+                if (!_validateWorkingHours(workingHours)) {
+                  _showSnackBar(context,
+                      "Invalid hours! Start time must be before end time.");
+                  return;
+                }
+
                 ref.read(taskProvider.notifier).updateTask(
-                      workingDays: _selectedDays,
-                      workingHours: _workingHours,
+                      workingDays: selectedDays,
+                      workingHours: workingHours,
                     );
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Working hours updated successfully!"),
-                  ),
-                );
+                _showSnackBar(context, "Working hours updated successfully!",
+                    isError: false);
               },
               child: const Text("Save"),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _initializeDefaultWorkingHours(List<String> selectedDays) {
+    final currentTask = ref.read(taskProvider).currentTask;
+
+    final Map<String, Map<String, String>> workingHours =
+        currentTask?.workingHours ?? {};
+    for (var day in selectedDays) {
+      workingHours[day] ??= {
+        'start': _defaultStartHour,
+        'end': _defaultEndHour,
+      };
+    }
+
+    ref.read(taskProvider.notifier).updateTask(workingHours: workingHours);
+  }
+
+  Map<String, Map<String, String>> _getWorkingHoursFromProvider(
+      List<String> selectedDays) {
+    final currentTask = ref.read(taskProvider).currentTask;
+
+    if (currentTask == null) {
+      return {};
+    }
+
+    final workingHours = currentTask.workingHours;
+
+    // Filtrar el mapa utilizando `entries` y convertir de nuevo a un mapa
+    return Map.fromEntries(
+      workingHours.entries.where((entry) => selectedDays.contains(entry.key)),
+    );
+  }
+
+  bool _validateWorkingHours(Map<String, Map<String, String>> workingHours) {
+    for (var entry in workingHours.entries) {
+      final startTime = entry.value['start'] ?? '';
+      final endTime = entry.value['end'] ?? '';
+      if (!_isValidTimeRange(startTime, endTime)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _isValidTimeRange(String startTime, String endTime) {
+    final start = _parseTime(startTime);
+    final end = _parseTime(endTime);
+    return start != null && end != null && start.isBefore(end);
+  }
+
+  DateTime? _parseTime(String time) {
+    try {
+      final format = TimeOfDay(
+        hour: int.parse(time.split(':')[0]),
+        minute: int.parse(time.split(':')[1].split(' ')[0]),
+      );
+      return DateTime(0, 0, 0, format.hour, format.minute);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message,
+      {bool isError = true}) {
+    final color = isError ? Colors.red : Colors.green;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

@@ -28,8 +28,7 @@ class AddCardScreen extends ConsumerWidget {
     final expYearController = TextEditingController();
     final cvcController = TextEditingController();
     final zipCodeController = TextEditingController();
-    final countryController =
-        TextEditingController(text: 'Dominican Republic');
+    final countryController = TextEditingController(text: 'Dominican Republic');
 
     Future<void> addCard() async {
       if (formKey.currentState!.validate()) {

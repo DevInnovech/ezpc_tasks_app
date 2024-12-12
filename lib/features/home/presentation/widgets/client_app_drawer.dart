@@ -6,6 +6,7 @@ import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_curve_shape.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -311,6 +312,9 @@ class ClientAppDrawer extends ConsumerWidget {
       case 1:
         Navigator.popAndPushNamed(context, RouteNames.senttingsScreen);
         break;
+      case 2:
+        Navigator.popAndPushNamed(context, RouteNames.learningScreen);
+        break;
       default:
         break;
     }
@@ -327,8 +331,8 @@ List<Map<String, String>> drawerItems = [
     "icon": KImages.editProfile,
   },
   {
-    "name": "Password Change",
-    "icon": KImages.lock,
+    "name": "Learning",
+    "icon": KImages.booking,
   },
   {
     "name": "Ticket Support",

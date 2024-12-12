@@ -4,8 +4,10 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path/path.dart';
 
 class ProviderTrackingScreen extends ConsumerWidget {
   final String orderId;
@@ -155,7 +157,8 @@ class ProviderTrackingScreen extends ConsumerWidget {
               child: FlutterMap(
                 mapController: _mapController, // Attach controller
                 options: MapOptions(
-                  initialCenter: trackingData.providerLocation ?? const LatLng(0, 0),
+                  initialCenter:
+                      trackingData.providerLocation ?? const LatLng(0, 0),
                   initialZoom: 15.0,
                 ),
                 children: [

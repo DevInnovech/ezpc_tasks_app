@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 
 class TaskDetailsScreen extends ConsumerWidget {
   final Task task;
@@ -48,6 +50,29 @@ class TaskDetailsScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  /*   CustomText(
+                    text: task.subCategory,
+                    fontSize: 22.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF404C8C), // Color modificado
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Text(
+                      '\$${task.price}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),*/
                   Text(
                     task.subCategory,
                     style: const TextStyle(
@@ -91,8 +116,6 @@ class TaskDetailsScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16.0),
-
-              // Sección de descripción
               _buildSectionTitle('Description'),
               Text(
                 task.description,
