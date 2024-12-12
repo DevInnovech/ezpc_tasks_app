@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/provider_tracking_provider.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/expandable_status.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -10,14 +11,14 @@ import 'package:latlong2/latlong.dart';
 import 'package:path/path.dart';
 
 class ProviderTrackingScreen extends ConsumerWidget {
-  final String orderId;
+  final OrderDetailsDto order;
   final MapController _mapController = MapController(); // Add MapController
 
-  ProviderTrackingScreen({super.key, required this.orderId});
+  ProviderTrackingScreen({super.key, required this.order});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trackingState = ref.watch(providerTrackingProvider(orderId));
+    final trackingState = ref.watch(providerTrackingProvider(order.orderId));
 
     return Scaffold(
       appBar: AppBar(title: const Text("Seguimiento del Proveedor")),

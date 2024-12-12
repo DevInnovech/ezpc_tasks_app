@@ -1,5 +1,4 @@
 import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/invoice_provider.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
@@ -10,32 +9,29 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:ezpc_tasks_app/shared/widgets/purchase_info_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import "package:flutter_svg/flutter_svg.dart";
 
-class OrderDetails extends ConsumerWidget {
+class OrderDetails extends StatelessWidget {
   const OrderDetails({super.key, required this.order});
 
   final OrderDetailsDto order;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
-        appBar: const CustomAppBar(title: "Order Details"),
-        body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 0.0.w),
-          child: ref.watch(invoiceProvider(order.order.orderId)).when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text(error.toString())),
-                data: (data) => LoadedWidget(data: data),
-              ),
-        ));
+      appBar: const CustomAppBar(title: "Order Details"),
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w),
+        child: LoadedWidget(data: order),
+      ),
+    );
   }
 }
 
 class LoadedWidget extends StatelessWidget {
   const LoadedWidget({super.key, required this.data});
+
   final OrderDetailsDto data;
 
   @override
@@ -45,28 +41,18 @@ class LoadedWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /* Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: () {
-                if (data.order.orderStatus == 'complete') {
-                  // Navegar a la pantalla de reseñas
-                } else {
-                  Utils.showSnackBar(context,
-                      'No puedes hacer una reseña antes de completar el servicio');
-                }
-              },
-              child: const Text(
-                "Escribir una reseña",
-                style: TextStyle(
-                    color: primaryColor,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline),
-              ),
-            ),
-          ),*/
           Utils.verticalSpace(6),
-          ProviderInfo(provider: data.provider),
+          ProviderInfo(
+            provider: ProviderModel(
+              name: data.providerName,
+              email: data.providerEmail,
+              phone: data.providerPhone,
+              image: data.providerImageUrl,
+              id: 0,
+              rating: data.rating,
+              reviews: 0,
+            ),
+          ),
           Utils.verticalSpace(20),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +78,7 @@ class LoadedWidget extends StatelessWidget {
                 ),
                 child: Column(children: [
                   Text(
-                    data.order.serviceName,
+                    data.taskName,
                     style: const TextStyle(
                       color: Color(0xFF535769),
                       fontSize: 18,
@@ -106,12 +92,12 @@ class LoadedWidget extends StatelessWidget {
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
                     text: 'Tarifa del Paquete',
-                    trailText: data.packageAmount.toString(),
+                    trailText: data.price.toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
-                    text: 'Servicio Extra',
-                    trailText: data.additionalAmount.toString(),
+                    text: 'Descuento',
+                    trailText: data.discount.toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
                   Divider(
@@ -120,12 +106,12 @@ class LoadedWidget extends StatelessWidget {
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
                     text: 'Sub Total',
-                    trailText: data.totalAmount.toString(),
+                    trailText: (data.price - data.discount).toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
                   PurchaseInfoText(
-                    text: 'Descuento de Voucher',
-                    trailText: data.couponDiscount.toString(),
+                    text: 'Impuestos',
+                    trailText: data.tax.toStringAsFixed(2),
                   ),
                   Utils.verticalSpace(8),
                   Divider(
@@ -133,14 +119,14 @@ class LoadedWidget extends StatelessWidget {
                   ),
                   PurchaseInfoText(
                     text: 'Total',
-                    trailText: data.totalAmount.toString(),
+                    trailText: data.total.toStringAsFixed(2),
                     textColor: textColor,
                     fontWeight: FontWeight.w700,
                   ),
                   Utils.verticalSpace(16),
                   PurchaseInfoStatus(
                     text: 'Estado de Pago',
-                    trailText: data.paymentStatus,
+                    trailText: data.status,
                   ),
                 ]),
               ),
@@ -166,7 +152,7 @@ class LoadedWidget extends StatelessWidget {
                 ),
                 child: PurchaseInfoStatus(
                   text: 'Estado de la Orden',
-                  trailText: data.order.orderStatus,
+                  trailText: data.status,
                 ),
               ),
               Utils.verticalSpace(20),
@@ -175,7 +161,7 @@ class LoadedWidget extends StatelessWidget {
                 text: "Tracking",
                 onPressed: () {
                   Navigator.pushNamed(context, RouteNames.providerTracking,
-                      arguments: data.order.id.toString());
+                      arguments: data.orderId);
                 },
               ),
               Utils.verticalSpace(10),
@@ -228,14 +214,23 @@ class ProviderInfo extends StatelessWidget {
             ),
           ),
           child: Row(children: [
-            SizedBox(
-                height: 94.h,
-                width: 94.w,
-                child: CustomImage(
-                  path: provider.image,
-                  fit: BoxFit.cover,
-                  url: null,
-                )),
+            provider.image != null &&
+                    provider.image != 'N/A' &&
+                    provider.image != ''
+                ? SizedBox(
+                    height: 94.h,
+                    width: 94.w,
+                    child: CustomImage(
+                      path: provider.image,
+                      fit: BoxFit.cover,
+                      url: null,
+                    ))
+                : Container(
+                    width: 80,
+                    height: 80,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.image, color: Colors.grey),
+                  ),
             Utils.horizontalSpace(10),
             Expanded(
                 child: Column(
@@ -254,10 +249,12 @@ class ProviderInfo extends StatelessWidget {
                 Row(
                   children: [
                     //phone
+
                     SvgPicture.asset(KImages.call),
+
                     Utils.horizontalSpace(4),
                     Text(
-                      provider.phone!,
+                      provider.phone ?? '',
                       style: const TextStyle(
                         color: Color(0xFF535769),
                         fontSize: 12,
@@ -274,12 +271,11 @@ class ProviderInfo extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
-                      //mail
                       child: SvgPicture.asset(KImages.booking),
                     ),
                     Utils.horizontalSpace(4),
                     Text(
-                      provider.email!,
+                      provider.email ?? '',
                       style: const TextStyle(
                         color: Color(0xFF535769),
                         fontSize: 12,

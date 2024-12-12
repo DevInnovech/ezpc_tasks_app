@@ -3,7 +3,7 @@ import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order
 import 'package:ezpc_tasks_app/features/order/models/order_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+/*
 // Proveedor falso para los detalles de la factura de una orden
 final invoiceProvider =
     FutureProvider.family<OrderDetailsDto, String>((ref, orderId) async {
@@ -45,3 +45,4 @@ final invoiceProvider =
     paymentStatus: 'Paid',
   );
 });
+*/

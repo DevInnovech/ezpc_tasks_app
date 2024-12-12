@@ -32,7 +32,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_categor
 import 'package:ezpc_tasks_app/features/leaning/presentations/screnn/video_screen.dart';
 import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employee_screen.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/data%20&%20models/order_details_model.dart';
-import 'package:ezpc_tasks_app/features/order%20clientes/order_details.dart';
+import 'package:ezpc_tasks_app/features/order%20clientes/booking_details_tasks_details.dart';
 import 'package:ezpc_tasks_app/features/order%20clientes/provider_tracking.dart';
 import 'package:ezpc_tasks_app/features/payments%20setings/models/bank_account_model.dart';
 import 'package:ezpc_tasks_app/features/payments%20setings/models/card_model.dart';
@@ -413,10 +413,10 @@ class RouteNames {
         );
 
       case RouteNames.providerTracking:
-        final orderId = settings.arguments as String;
+        final order = settings.arguments as OrderDetailsDto;
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => ProviderTrackingScreen(orderId: orderId),
+          builder: (_) => ProviderTrackingScreen(order: order),
         );
       case RouteNames.referralScreen:
         return MaterialPageRoute(
