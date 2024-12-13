@@ -39,15 +39,66 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _loadUserData();
   }
 
+  Future<void> _addReferralPartnerToCurrentUser() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      // Obtener el documento del usuario actual
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception("User document not found");
+      }
+
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final String referralCode = userData['referralCode'] ?? '';
+
+      if (referralCode.isEmpty) {
+        throw Exception("No referral code found for the current user.");
+      }
+
+      // Actualizar el usuario con su propio código de referencia como referralPartner
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .update({'referralPartner': referralCode});
+
+      debugPrint("Referral partner set to the current user's referral code.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Referral partner set successfully!")),
+      );
+    } catch (e) {
+      debugPrint("Error setting referral partner: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to set referral partner.")),
+      );
+    }
+  }
+
   Future<void> _loadUserData() async {
     User? currentUser = _auth.currentUser;
+
     if (currentUser != null) {
+      debugPrint("Usuario autenticado: ${currentUser.uid}");
+
       try {
+        // Obtener el documento del usuario
         DocumentSnapshot userDoc =
             await _firestore.collection('users').doc(currentUser.uid).get();
+        debugPrint("Intentando cargar datos del documento del usuario...");
 
         if (userDoc.exists) {
+          debugPrint("Documento del usuario encontrado: ${userDoc.id}");
           Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+          debugPrint("Datos obtenidos: $data");
+
+          // Extraer datos y actualizar controladores de texto
           String name = data['name'] ?? '';
           String lastName = data['lastName'] ?? '';
 
@@ -61,15 +112,70 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _countryController.text = data['country'] ?? '';
             _stateController.text = data['state'] ?? '';
             _addressController.text = data['address'] ?? '';
-            _profileImageUrl = data['profileImageUrl'] ?? ''; // Set image URL
+            _profileImageUrl = data['profileImageUrl'] ?? '';
           });
+
+          // Validar y asignar el referralPartner basado en referralCode
+          final String referralCode = data['referralCode'] ?? '';
+          debugPrint("ReferralCode encontrado: $referralCode");
+
+          if (referralCode.isNotEmpty) {
+            final String? referralPartner = data['referralPartner'];
+            debugPrint("Estado actual de ReferralPartner: $referralPartner");
+
+            if (referralPartner == null || referralPartner.isEmpty) {
+              debugPrint(
+                  "ReferralPartner no existe. Creando ReferralPartner con código: $referralCode");
+
+              // Crear y actualizar el campo referralPartner
+              try {
+                await _firestore
+                    .collection('users')
+                    .doc(currentUser.uid)
+                    .update({'referralPartner': referralCode});
+                debugPrint(
+                    "ReferralPartner creado exitosamente: $referralCode");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        "ReferralPartner creado exitosamente con: $referralCode"),
+                  ),
+                );
+              } catch (updateError) {
+                debugPrint(
+                    "Error al actualizar el ReferralPartner en Firestore: $updateError");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text("Failed to set referral partner")),
+                );
+              }
+            } else {
+              debugPrint(
+                  "ReferralPartner ya existe y no necesita ser actualizado: $referralPartner");
+            }
+          } else {
+            debugPrint("El campo ReferralCode está vacío o no existe.");
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("User has no referral code")),
+            );
+          }
+        } else {
+          debugPrint("El documento del usuario no existe en Firestore.");
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("User document not found")),
+          );
         }
       } catch (e) {
-        print('Error al cargar los datos del usuario: $e');
+        debugPrint('Error al intentar cargar los datos del usuario: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to load user data')),
         );
       }
+    } else {
+      debugPrint("El usuario no está autenticado.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not authenticated")),
+      );
     }
   }
 

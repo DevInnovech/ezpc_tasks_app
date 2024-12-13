@@ -64,4 +64,6 @@ class EmployeeScreen extends ConsumerWidget {
       ),
     );
   }
+
+  buildCustomAppBar(BuildContext context, String s) {}
 }

@@ -1,4 +1,3 @@
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
 class ReferralBonusHeader extends StatelessWidget {
@@ -8,40 +7,27 @@ class ReferralBonusHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 2.0),
-      margin: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(0.0),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            "My Referrals Bonuses",
-            style: TextStyle(
-              color: primaryColor,
-              fontSize: 24.0,
-              fontWeight: FontWeight.w800,
-            ),
+            'My Referral Bonuses',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          CircleAvatar(
-            backgroundColor: primaryColor,
-            radius:
-                30, // Incrementa el tamaño del avatar para acomodar el texto
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  "\$$totalBonus",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '\$${totalBonus.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
           ),
