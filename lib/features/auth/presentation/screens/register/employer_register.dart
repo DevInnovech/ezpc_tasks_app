@@ -8,6 +8,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_socialbutton.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
 
 class SignUpWithBusinessCodeScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
@@ -18,6 +19,8 @@ class SignUpWithBusinessCodeScreen extends StatelessWidget {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController birthDateController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+
+  final TextEditingController addressController = TextEditingController();
 
   SignUpWithBusinessCodeScreen({super.key});
 
@@ -128,7 +131,25 @@ class SignUpWithBusinessCodeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8.0),
+              GooglePlaceAutoCompleteTextField(
+                useModernStyle: true,
+                textEditingController: addressController,
+                googleAPIKey:
+                    "AIzaSyDwxlmeFfLFPceI3B4J35xq7UqHan7iA6s", // Reemplaza con tu API Key
+
+                debounceTime: 800,
+                isLatLngRequired: true,
+                getPlaceDetailWithLatLng: (prediction) {
+                  debugPrint("Place Details: $prediction");
+                },
+                itemClick: (prediction) {
+                  addressController.text = prediction.description!;
+                  addressController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: prediction.description!.length));
+                },
+              ),
+              const SizedBox(height: 16.0),
               PrimaryButton(
                 text: 'Continue',
                 onPressed: () async {
@@ -140,6 +161,7 @@ class SignUpWithBusinessCodeScreen extends StatelessWidget {
                     String lastName = lastNameController.text;
                     //              DateTime dob = DateTime.parse(dobController.text); // Asegúrate de que este formato sea correcto
                     String phoneNumber = phoneController.text;
+                    String address = addressController.text;
 
                     // Proceed to next page
                     Navigator.pushNamed(
@@ -151,6 +173,7 @@ class SignUpWithBusinessCodeScreen extends StatelessWidget {
                         'lastName': lastName,
                         //     'dob': dob,
                         'phoneNumber': phoneNumber,
+                        'address': address,
                       },
                     );
                   }

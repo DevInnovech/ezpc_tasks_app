@@ -36,6 +36,8 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
     //  DateTime dob = args['dob'];
     String phoneNumber = args['phoneNumber'];
 
+    String address = args['address'];
+
     return Scaffold(
       appBar: AppBar(title: const Text('Create Account')),
       body: Padding(
@@ -124,6 +126,7 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                         phoneNumber: phoneNumber,
                         username: username,
                         password: password,
+                        address: address,
                         role: accountType == AccountType.client
                             ? 'Client'
                             : accountType == AccountType.corporateProvider
@@ -135,7 +138,6 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                                         ? 'Employee Provider'
                                         : '',
                         description: '',
-                        address: '',
                         communicationPreference: '',
                         experienceYears: 0,
                         languages: '',

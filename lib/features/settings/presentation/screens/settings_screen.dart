@@ -120,44 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           appBar: AppBar(
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios),
-              onPressed: () async {
-                try {
-                  User? currentUser = _auth.currentUser;
-                  if (currentUser != null) {
-                    // Obtener documento del usuario desde Firestore
-                    DocumentSnapshot userDoc = await _firestore
-                        .collection('users')
-                        .doc(currentUser.uid)
-                        .get();
-
-                    if (userDoc.exists) {
-                      final userData = userDoc.data() as Map<String, dynamic>;
-                      final String currentRole = userData['currentRole'] ??
-                          userData['role'] ??
-                          'Client';
-
-                      // Determinar la pantalla a la que se debe regresar
-                      final routeName = (currentRole == 'Independent Provider')
-                          ? RouteNames.mainScreen
-                          : RouteNames.ClientmainScreen;
-
-                      // Navegar a la pantalla correspondiente
-                      Navigator.pushReplacementNamed(context, routeName);
-                    } else {
-                      // Manejo de error si no se encuentra el documento del usuario
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('User document not found.')),
-                      );
-                    }
-                  }
-                } catch (e) {
-                  debugPrint('Error navigating back: $e');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to navigate back.')),
-                  );
-                }
-              },
+              onPressed: () => Navigator.pop(context),
             ),
             title: const Text('Settings'),
             centerTitle: true,
@@ -474,7 +437,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Future<void> _navigateToSwitchRole(BuildContext context,
+  Future<void> _navigateToSwitchRole(BuildContext context1,
       AccountType? accountType, AccountTypeNotifier accountset) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -502,10 +465,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       // Intercambiar valores de `role` y `secondaryRole`
       if (secondaryRole.isEmpty || secondaryRole == '') {
         // cosas de become
-        print("trate");
+
+        Navigator.pushNamed(
+          context1,
+          RouteNames.backgroundCheckScreen,
+        );
+        /*print("trate");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Switched to trate view.')),
-        );
+        );*/
       } else {
         await FirebaseFirestore.instance
             .collection('users')
@@ -527,15 +495,18 @@ class _SettingsScreenState extends State<SettingsScreen>
             break;
           default:
         }
-        // Navegar al dashboard correspondiente
-        Navigator.pushReplacementNamed(context, routeName);
-        ScaffoldMessenger.of(context).showSnackBar(
+
+        // Navegar al dashboard correspondiente y reiniciar el árbol
+        Navigator.pushNamedAndRemoveUntil(
+            context1, routeName, (route) => false);
+        // Navigator.pushReplacementNamed(context1, routeName);
+        ScaffoldMessenger.of(context1).showSnackBar(
           SnackBar(content: Text('Switched to $secondaryRole view.')),
         );
       }
     } catch (e) {
       debugPrint('Error switching role: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context1).showSnackBar(
         const SnackBar(content: Text('Failed to switch role.')),
       );
     }
