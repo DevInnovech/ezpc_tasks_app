@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart'; // Importa el paquete carousel_slider
+import 'package:ezpc_tasks_app/features/services/client_services/data/PaymentKeys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,9 +8,14 @@ import 'package:ezpc_tasks_app/firebase_options.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_theme.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_string.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey = PublishableKey;
+  await Stripe.instance.applySettings();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

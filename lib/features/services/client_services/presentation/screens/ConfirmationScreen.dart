@@ -1,6 +1,12 @@
+import 'dart:convert';
+import 'package:ezpc_tasks_app/features/services/client_services/data/PaymentKeys.dart';
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:http/http.dart' as http;
 
 class ConfirmationScreen extends StatefulWidget {
   final Map<String, dynamic> bookingData;
@@ -243,12 +249,214 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     );
   }
 
+  Map<String, dynamic>? intentPaymentData;
+
+  makeIntentForPayment(String amountToBeCharged, String currency) async {
+    try {
+      // Convertir el monto a centavos
+      final int amountInCents = (double.parse(amountToBeCharged) * 100).toInt();
+
+      // Crear los datos de la intención de pago
+      Map<String, dynamic> paymentInfo = {
+        "amount": amountInCents.toString(), // Cantidad en centavos
+        "currency": currency, // Moneda
+        "payment_method_types[]":
+            "card", // Este debe enviarse como un parámetro con `[]`
+      };
+
+      // Realizar la solicitud a Stripe
+      var responseFromStripeAPI = await http.post(
+        Uri.parse("https://api.stripe.com/v1/payment_intents"),
+        body: paymentInfo,
+        headers: {
+          "Authorization": "Bearer $SecretKey",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      );
+
+      if (responseFromStripeAPI.statusCode == 200) {
+        // Parsear la respuesta
+        return jsonDecode(responseFromStripeAPI.body);
+      } else {
+        throw Exception(
+            "Error from Stripe: ${responseFromStripeAPI.statusCode} - ${responseFromStripeAPI.body}");
+      }
+    } catch (errorMsg) {
+      if (kDebugMode) {
+        print(errorMsg);
+      }
+      throw Exception("Failed to create payment intent: $errorMsg");
+    }
+  }
+
+  paymentSheetInitialization(double amountToBeCharged, String currency) async {
+    try {
+      // Convertir el monto a String y llamar al Intent
+      intentPaymentData =
+          await makeIntentForPayment(amountToBeCharged.toString(), currency);
+
+      // Verificar si el intent contiene el client_secret
+      if (intentPaymentData?["client_secret"] == null) {
+        throw Exception("Client secret not found in payment intent");
+      }
+
+      // Inicializar el Payment Sheet
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
+          allowsDelayedPaymentMethods: true,
+          paymentIntentClientSecret: intentPaymentData!["client_secret"],
+          style: ThemeMode.dark,
+          merchantDisplayName: "Ezpc Tasks",
+        ),
+      );
+
+      // Mostrar el Payment Sheet
+      await showPaymentSheet();
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error initializing payment sheet: $error');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Payment failed: $error")),
+      );
+    }
+  }
+
+  /// Guardar el estado del pago en Firebase
+  Future<void> savePaymentStatus(String status) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception("No authenticated user found.");
+      }
+
+      final bookingId = widget.bookingData['bookingId'];
+      if (bookingId == null || bookingId.isEmpty) {
+        throw Exception("Booking ID is missing.");
+      }
+
+      // Actualizar el estado del pago en Firestore
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .update({'paymentStatus': status});
+
+      if (kDebugMode) {
+        print("Payment status updated to $status for booking $bookingId");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Failed to update payment status: $e");
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update payment status: $e')),
+      );
+    }
+  }
+
+  showPaymentSheet() async {
+    try {
+      await stripe.Stripe.instance.presentPaymentSheet();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Payment successful!")),
+      );
+
+      // Guardar en Firestore con `paymentStatus` como "Paid"
+      await savePaymentStatus("Paid");
+
+      // Mostrar tarjeta de éxito
+      showDialog(
+        context: context,
+        builder: (_) => _buildSuccessDialog(),
+      );
+
+      setState(() {
+        intentPaymentData = null; // Reiniciar el intent después del éxito
+      });
+    } on stripe.StripeException catch (error) {
+      if (kDebugMode) {
+        print("StripeException: $error");
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Payment cancelled.")),
+      );
+    } catch (error) {
+      if (kDebugMode) {
+        print("Error showing payment sheet: $error");
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Payment failed: $error")),
+      );
+    }
+  }
+
+  /// Tarjeta de éxito del pago
+  Widget _buildSuccessDialog() {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircleAvatar(
+            radius: 30,
+            backgroundColor: Color(0xFF404C8C),
+            child: Icon(
+              Icons.check,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "Great",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF404C8C),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Payment Success",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Payment for service successfully done",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey),
+          ),
+          const Divider(height: 24),
+          const Text(
+            "Total Payment",
+            style: TextStyle(fontSize: 14),
+          ),
+          Text(
+            "\$${widget.bookingData['totalPrice']?.toStringAsFixed(2) ?? '0.00'}",
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF404C8C),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProceedButton() {
     return ElevatedButton(
       onPressed: isLoading
           ? null
           : () async {
-              await saveBookingToFirestore();
+              final double totalPrice = widget.bookingData['totalPrice'] ??
+                  0.0; // Extraer el totalPrice
+              await paymentSheetInitialization(
+                  totalPrice, "USD"); // Llamar la función con totalPrice
             },
       style: ElevatedButton.styleFrom(
         minimumSize: const Size.fromHeight(50),
@@ -259,9 +467,9 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       ),
       child: isLoading
           ? const CircularProgressIndicator(color: Colors.white)
-          : const Text(
-              "Proceed to Payment",
-              style: TextStyle(fontSize: 16.0, color: Colors.white),
+          : Text(
+              "Pay Now (\$${widget.bookingData['totalPrice']?.toStringAsFixed(2) ?? '0.00'})",
+              style: const TextStyle(fontSize: 16.0, color: Colors.white),
             ),
     );
   }
