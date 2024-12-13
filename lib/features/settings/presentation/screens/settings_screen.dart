@@ -112,7 +112,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Consumer(
       builder: (context, ref, _) {
         final accountType = ref.watch(accountTypeProvider);
-
+        final accountTypeset = ref.read(accountTypeProvider.notifier);
+        print(accountType);
         int esclient = 0;
 
         return Scaffold(
@@ -174,13 +175,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                 ),
                 if (accountType == AccountType.client)
-                  esclient == 0
-                      ? _buildActionButton(context, 'Become a Provider')
-                      : _buildActionButton(context, 'Switch to Provider')
+                  _buildActionButton(
+                      context, 'Provider', accountType, accountTypeset)
                 else
-                  esclient == 0
-                      ? _buildActionButton(context, 'Become a Client')
-                      : _buildActionButton(context, 'Switch to Client'),
+                  _buildActionButton(
+                      context, 'Client', accountType, accountTypeset),
                 _buildDeleteAccount(context),
               ],
             ),
@@ -259,36 +258,6 @@ class _SettingsScreenState extends State<SettingsScreen>
         final referralCode = userData['referralCode'] ?? '';
 
         List<Widget> options = [
-          if (currentRole == 'Independent Provider' && referralCode.isNotEmpty)
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: TextEditingController(text: referralCode),
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        labelText: 'Your Referral Code',
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.copy),
-                          onPressed: () {
-                            Clipboard.setData(
-                                ClipboardData(text: referralCode));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Referral code copied!'),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           _buildOption(
             context,
             Icons.person,
@@ -327,7 +296,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           _buildOption(context, Icons.history, 'View transaction history'),
         ];
 
-        if (accountType != AccountType.client ||
+        if (accountType != AccountType.client &&
             accountType != AccountType.employeeProvider) {
           options.insert(
             1,
@@ -341,7 +310,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           );
         }
 
-        if (accountType != AccountType.corporateProvider) {
+        if (accountType == AccountType.corporateProvider) {
           options.insert(
             4,
             _buildOption(
@@ -352,7 +321,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   Navigator.pushNamed(context, RouteNames.employeeScreen),
             ),
           );
-        } else if (accountType != AccountType.employeeProvider) {
+        } else if (accountType == AccountType.employeeProvider) {
           options.insert(
             4,
             _buildOption(
@@ -385,10 +354,12 @@ class _SettingsScreenState extends State<SettingsScreen>
             ontap: () => _showLogoutDialog(context),
           ),
           if (accountType == AccountType.client ||
-              accountType == AccountType.independentProvider)
-            _buildCopyReferral(context, '4897165120185'),
-          if (accountType == AccountType.corporateProvider)
-            _buildCopyReferral(context, 'BSC76823'),
+              accountType == AccountType.independentProvider &&
+                  referralCode.isNotEmpty)
+            _buildCopyReferral(context, referralCode),
+          if (accountType == AccountType.corporateProvider &&
+              referralCode.isNotEmpty)
+            _buildCopyReferral(context, referralCode),
         ]);
 
         return Column(
@@ -417,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               controller: TextEditingController(text: referralCode),
               readOnly: true,
               decoration: InputDecoration(
-                labelText: 'Referral Number',
+                labelText: 'Referral Code',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.copy),
                   onPressed: () {
@@ -465,8 +436,13 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  void _showConfirmationDialog(BuildContext context, String actionText,
-      String currentRole, String secondaryRole) {
+  void _showConfirmationDialog(
+      BuildContext context,
+      String actionText,
+      String currentRole,
+      String secondaryRole,
+      AccountType? accountType,
+      AccountTypeNotifier accountset) {
     // Determinar el nuevo rol (el rol secundario)
     final targetRole = secondaryRole;
 
@@ -487,8 +463,8 @@ class _SettingsScreenState extends State<SettingsScreen>
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                await _navigateToSwitchRole(
-                    context); // Llamar al método actualizado
+                await _navigateToSwitchRole(context, accountType,
+                    accountset); // Llamar al método actualizado
               },
               child: const Text('Confirm'),
             ),
@@ -498,7 +474,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Future<void> _navigateToSwitchRole(BuildContext context) async {
+  Future<void> _navigateToSwitchRole(BuildContext context,
+      AccountType? accountType, AccountTypeNotifier accountset) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -518,29 +495,44 @@ class _SettingsScreenState extends State<SettingsScreen>
       final String role = userData['role'] ?? '';
       final String secondaryRole = userData['secondaryRole'] ?? '';
 
-      if (role.isEmpty || secondaryRole.isEmpty) {
+      if (role.isEmpty) {
         throw Exception("Role or Secondary Role is not defined in Firestore.");
       }
-
+      var routeName;
       // Intercambiar valores de `role` y `secondaryRole`
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'role': secondaryRole, 'secondaryRole': role});
-      debugPrint(
-          'Roles intercambiados: Nuevo role=$secondaryRole, Nuevo secondaryRole=$role');
+      if (secondaryRole.isEmpty || secondaryRole == '') {
+        // cosas de become
+        print("trate");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Switched to trate view.')),
+        );
+      } else {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'role': secondaryRole, 'secondaryRole': role});
+        debugPrint(
+            'Roles intercambiados: Nuevo role=$secondaryRole, Nuevo secondaryRole=$role');
 
-      // Determinar la ruta basada en el nuevo rol principal
-      final routeName = (secondaryRole == 'Client')
-          ? RouteNames.ClientmainScreen
-          : RouteNames.mainScreen;
+        // Determinar la ruta basada en el nuevo rol principal
 
-      // Navegar al dashboard correspondiente
-      Navigator.pushReplacementNamed(context, routeName);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Switched to $secondaryRole view.')),
-      );
+        switch (secondaryRole) {
+          case 'Client':
+            routeName = RouteNames.ClientmainScreen;
+            accountset.selectAccountType(AccountType.client);
+            break;
+          case 'Independent Provider':
+            routeName = RouteNames.mainScreen;
+            accountset.selectAccountType(AccountType.independentProvider);
+            break;
+          default:
+        }
+        // Navegar al dashboard correspondiente
+        Navigator.pushReplacementNamed(context, routeName);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Switched to $secondaryRole view.')),
+        );
+      }
     } catch (e) {
       debugPrint('Error switching role: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -549,7 +541,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
-  Widget _buildActionButton(BuildContext context, String defaultButtonText) {
+  Widget _buildActionButton(BuildContext context, String defaultButtonText,
+      AccountType? accountType, AccountTypeNotifier accountset) {
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance
           .collection('users')
@@ -563,17 +556,23 @@ class _SettingsScreenState extends State<SettingsScreen>
         if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
           return const Text("Error loading role data");
         }
-
+        var buttonText = '';
+        final psecondaryrole =
+            defaultButtonText == 'Client' ? "Provider" : "Client";
         final userData = snapshot.data!.data() as Map<String, dynamic>;
         final String role = userData['role'] ?? '';
         final String secondaryRole = userData['secondaryRole'] ?? '';
-
-        final buttonText = "Switch to $secondaryRole";
+        if (secondaryRole.isEmpty || secondaryRole == '') {
+          buttonText = "Become to $psecondaryrole";
+        } else {
+          buttonText = "Switch to $secondaryRole";
+        }
 
         return Padding(
           padding: const EdgeInsets.all(5.0),
           child: ElevatedButton(
-            onPressed: () => _navigateToSwitchRole(context),
+            onPressed: () =>
+                _navigateToSwitchRole(context, accountType, accountset),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
