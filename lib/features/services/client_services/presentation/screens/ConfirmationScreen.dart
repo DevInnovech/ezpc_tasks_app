@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:ezpc_tasks_app/features/services/client_services/data/PaymentKeys.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -56,7 +57,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       );
 
       // Navegar a la pantalla de éxito o cerrar el flujo actual
-      Navigator.pushNamed(context, '/success');
+      Navigator.pushNamed(context, RouteNames.ClientmainScreen);
     } catch (e) {
       if (kDebugMode) {
         print("Failed to save booking: $e");

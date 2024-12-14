@@ -380,7 +380,7 @@ class RouteNames {
             builder: (_) => BookingTrackingScreen(bookingId: id));
       case RouteNames.bookingScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const ProviderOrdersScreen());
+            settings: settings, builder: (_) => ProviderOrdersScreen());
 
       case RouteNames.senttingsScreen:
         return MaterialPageRoute(

@@ -1,10 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/widgets/scrolling_taggle_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ProviderOrdersScreen extends StatelessWidget {
+class ProviderOrdersScreen extends StatefulWidget {
   const ProviderOrdersScreen({super.key});
+
+  @override
+  State<ProviderOrdersScreen> createState() => _ProviderOrdersScreenState();
+}
+
+class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
+  int _currentIndex = 0;
+  List<Map<String, dynamic>> allOrders = [];
+  List<Map<String, dynamic>> filteredOrders = [];
 
   // Función para obtener las órdenes desde Firebase
   Future<List<Map<String, dynamic>>> fetchProviderOrders() async {
@@ -57,11 +68,42 @@ class ProviderOrdersScreen extends StatelessWidget {
     }
   }
 
+  final list = ['Pending', 'In Progress', 'Completed', 'Cancelled'];
+
+  // Filtrado "al vuelo" según _currentIndex
+  List<Map<String, dynamic>> _filterOrders(
+      List<Map<String, dynamic>> orders, int index) {
+    if (index == 0) {
+      return orders.where((order) {
+        final status = order['status']?.toLowerCase() ?? '';
+        return status == 'pending' || status == 'accepted';
+      }).toList();
+    } else if (index == 1) {
+      return orders.where((order) {
+        final status = order['status']?.toLowerCase() ?? '';
+        return status == 'in progress' || status == 'started';
+      }).toList();
+    } else if (index == 2) {
+      return orders.where((order) {
+        final status = order['status']?.toLowerCase() ?? '';
+        return status == 'completed';
+      }).toList();
+    } else {
+      return orders.where((order) {
+        final status = order['status']?.toLowerCase() ?? '';
+        return status == 'cancelled';
+      }).toList();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Bookings'),
+        title: const Text(
+          'My Bookings',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF404C8C),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -76,34 +118,55 @@ class ProviderOrdersScreen extends StatelessWidget {
           }
 
           final orders = snapshot.data!;
+          final filteredOrders = _filterOrders(orders, _currentIndex);
 
           return Column(
-            // Wrap the ListView in a Column
             children: [
-              const SizedBox(height: 10), // Optional padding
-              Expanded(
-                // Use Expanded here
-                child: ListView.separated(
-                  padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
-                  itemCount: orders.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                OrderDetailsScreen(order: order),
-                          ),
-                        );
-                      },
-                      child: _buildOrderCard(context, order),
-                    );
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                decoration: ShapeDecoration(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(width: 0.50, color: primaryColor),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: ToggleButtonScrollComponent(
+                  textList: list,
+                  initialLabelIndex: _currentIndex,
+                  onChange: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
                   },
                 ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: filteredOrders.isEmpty
+                    ? const Center(child: Text('No orders found.'))
+                    : ListView.separated(
+                        padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
+                        itemCount: filteredOrders.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final order = filteredOrders[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      OrderDetailsScreen(order: order),
+                                ),
+                              );
+                            },
+                            child: _buildOrderCard(context, order),
+                          );
+                        },
+                      ),
               ),
             ],
           );
@@ -167,19 +230,42 @@ class ProviderOrdersScreen extends StatelessWidget {
 
   // Construcción de la imagen
   Widget _buildTaskImage(Map<String, dynamic> order) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8.0),
-      child: order['imageUrl'] != null && order['imageUrl'].isNotEmpty
-          ? Image.network(
-              order['imageUrl'],
-              height: 80,
-              width: 80,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return _buildPlaceholderImage();
-              },
-            )
-          : _buildPlaceholderImage(),
+    final String taskId = order['taskId'] ?? '';
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('tasks').doc(taskId).get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            height: 80,
+            width: 80,
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+          return _buildPlaceholderImage();
+        }
+
+        final taskData = snapshot.data!.data() as Map<String, dynamic>?;
+        final taskImageUrl = taskData?['imageUrl'] ?? '';
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: (taskImageUrl.isNotEmpty)
+              ? Image.network(
+                  taskImageUrl,
+                  height: 80,
+                  width: 80,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildPlaceholderImage();
+                  },
+                )
+              : _buildPlaceholderImage(),
+        );
+      },
     );
   }
 

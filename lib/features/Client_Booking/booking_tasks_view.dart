@@ -103,7 +103,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bookings'),
+        title: const Text(
+          'Bookings',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF404C8C),
       ),
       body: Column(
@@ -215,215 +218,243 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _buildBookingCard(Map<String, dynamic> booking) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: const Color(0xFFC0C1C7),
-          width: 1.0,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row: Task Image, Name, Price, and Status
-            Row(
-              children: [
-                // Task Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: booking['imageUrl'] != null &&
-                          booking['imageUrl'].isNotEmpty
-                      ? Image.network(
-                          booking['imageUrl'],
-                          height: 80,
-                          width: 80,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          height: 80,
-                          width: 80,
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.image,
-                            size: 40,
-                            color: Colors.grey,
-                          ),
-                        ),
-                ),
-                const SizedBox(width: 12.0),
-                // Task Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: getStatusColor(booking['status']),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              booking['status']?.toUpperCase() ?? 'N/A',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                '\$${booking['taskPrice']?.toStringAsFixed(2) ?? '0.00'}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF404C8C),
-                                ),
-                              ),
-                              if (booking['discount'] != null)
-                                Text(
-                                  ' (${booking['discount']}% Off)',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
+    final String taskId = booking['taskId'] ?? '';
+    return FutureBuilder<DocumentSnapshot>(
+        future:
+            FirebaseFirestore.instance.collection('tasks').doc(taskId).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              height: 100,
+              alignment: Alignment.center,
+              child: const CircularProgressIndicator(),
+            );
+          }
 
-                      // Task Name
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Text(
-                          booking['selectedTaskName'] ?? 'Task Name',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '#${booking['id'] ?? ''}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.blueGrey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      // Price and Discount
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                // Status and Booking ID
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Encapsulation for Address, Date & Time, and Provider
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF6F7F9),
-                borderRadius: BorderRadius.circular(8),
+          if (snapshot.hasError ||
+              !snapshot.hasData ||
+              !snapshot.data!.exists) {
+            // Si hay un error o la tarea no existe, muestra un contenedor vacío o un placeholder
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.all(16.0),
+              child: const Text("No task data found."),
+            );
+          }
+
+          final taskData = snapshot.data!.data() as Map<String, dynamic>;
+          final taskImageUrl = taskData['imageUrl'] ?? '';
+
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(
+                color: const Color(0xFFC0C1C7),
+                width: 1.0,
               ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Address
+                  // Header Row: Task Image, Name, Price, and Status
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Your Address:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54,
-                        ),
+                      // Task Image
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: (taskImageUrl.isNotEmpty)
+                            ? Image.network(
+                                taskImageUrl,
+                                height: 80,
+                                width: 80,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                height: 80,
+                                width: 80,
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.image,
+                                  size: 40,
+                                  color: Colors.grey,
+                                ),
+                              ),
                       ),
+                      const SizedBox(width: 12.0),
+                      // Task Details
                       Expanded(
-                        child: TextScroll(
-                          booking['clientAddress'] ?? 'N/A',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                          mode: TextScrollMode.bouncing,
-                          velocity:
-                              const Velocity(pixelsPerSecond: Offset(30, 0)),
-                          pauseBetween: const Duration(seconds: 1),
-                          textAlign: TextAlign.right,
-                          selectable: true,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: getStatusColor(booking['status']),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    booking['status']?.toUpperCase() ?? 'N/A',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '\$${booking['taskPrice']?.toStringAsFixed(2) ?? '0.00'}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF404C8C),
+                                      ),
+                                    ),
+                                    if (booking['discount'] != null)
+                                      Text(
+                                        ' (${booking['discount']}% Off)',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            // Task Name
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Text(
+                                booking['selectedTaskName'] ?? 'Task Name',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '#${booking['id'] ?? ''}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            // Price and Discount
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 8.0),
+                      // Status and Booking ID
                     ],
                   ),
-                  const Divider(color: Colors.grey),
-                  // Date & Time
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Date & Time:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54,
+                  const SizedBox(height: 12),
+                  // Encapsulation for Address, Date & Time, and Provider
+                  Container(
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6F7F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Address
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Your Address:',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Expanded(
+                              child: TextScroll(
+                                booking['clientAddress'] ?? 'N/A',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                                mode: TextScrollMode.bouncing,
+                                velocity: const Velocity(
+                                    pixelsPerSecond: Offset(30, 0)),
+                                pauseBetween: const Duration(seconds: 1),
+                                textAlign: TextAlign.right,
+                                selectable: true,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        '${booking['date'] ?? 'N/A'} at ${booking['timeSlot'] ?? 'N/A'}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                        const Divider(color: Colors.grey),
+                        // Date & Time
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Date & Time:',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Text(
+                              '${booking['date'] ?? 'N/A'} at ${booking['timeSlot'] ?? 'N/A'}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const Divider(color: Colors.grey),
-                  // Provider
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Provider:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54,
+                        const Divider(color: Colors.grey),
+                        // Provider
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Provider:',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Text(
+                              booking['providerName'] ?? 'N/A',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        booking['providerName'] ?? 'N/A',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 }

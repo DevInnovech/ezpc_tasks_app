@@ -1,4 +1,5 @@
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/GeneralInformation.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -185,15 +186,22 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.network(
-                    taskData['imageUrl'] ?? '',
-                    height: 60,
-                    width: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.image, size: 60, color: Colors.grey),
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    RouteNames.provideraboutScreen,
+                    arguments: {'userId': taskData['providerId']},
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Image.network(
+                      taskData['imageUrl'] ?? '',
+                      height: 60,
+                      width: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.image, size: 60, color: Colors.grey),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12.0),
