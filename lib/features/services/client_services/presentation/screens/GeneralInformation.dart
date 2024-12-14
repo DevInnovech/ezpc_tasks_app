@@ -239,7 +239,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
       // Si applyForAnotherPerson es true, añade el textField, si no, añade el Text
       if (!applyForAnotherPerson)
         _buildTextField(
-          label: "Email",
+          label: "Address",
           controller: addressController,
           keyboardType: TextInputType.streetAddress,
           isEnabled: applyForAnotherPerson,
