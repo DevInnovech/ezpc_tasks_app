@@ -286,8 +286,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               ),
             ],
           );
-        } else if (taskStatus == "accepted" && providerStatus == "on_the_way") {
-          // Botón para navegar a la tarea
+        } else if (taskStatus == "accepted" && providerStatus != "arrived") {
+          // Botón para navegar a la tarea (Drive to Task)
           return ElevatedButton(
             onPressed: () async {
               final String address =
@@ -334,8 +334,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           );
-        } else if (taskStatus == "accepted" && providerStatus == "arrived") {
-          // Botón para iniciar la tarea
+        } else if (providerStatus == "arrived" && taskStatus == "accepted") {
+          // Botón para iniciar la tarea (Start Task)
           return ElevatedButton(
             onPressed: () async {
               await _updateTaskStatus("in progress");
@@ -362,7 +362,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ),
           );
         } else if (taskStatus == "in progress") {
-          // Botón para completar la tarea
+          // Botón para completar la tarea (Complete Task)
           return ElevatedButton(
             onPressed: () async {
               await _updateTaskStatus("completed");
