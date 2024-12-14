@@ -27,7 +27,7 @@ class _QuestionsStepState extends ConsumerState<QuestionsStep> {
     final taskState = ref.read(taskProvider);
     final Task? currentTask = taskState.currentTask;
 
-    if (currentTask == null || currentTask.categoryId == null) {
+    if (currentTask == null) {
       setState(() {
         isLoading = false;
       });

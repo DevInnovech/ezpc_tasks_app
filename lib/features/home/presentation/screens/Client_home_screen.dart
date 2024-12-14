@@ -4,7 +4,6 @@ import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_single_category_view.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_slider_section.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';

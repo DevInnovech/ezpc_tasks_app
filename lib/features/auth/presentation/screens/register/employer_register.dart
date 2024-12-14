@@ -133,7 +133,7 @@ class SignUpWithBusinessCodeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8.0),
               GooglePlaceAutoCompleteTextField(
-                useModernStyle: true,
+                //             useModernStyle: true,
                 textEditingController: addressController,
                 googleAPIKey:
                     "AIzaSyDwxlmeFfLFPceI3B4J35xq7UqHan7iA6s", // Reemplaza con tu API Key

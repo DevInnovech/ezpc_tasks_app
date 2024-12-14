@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'referral_card.dart';
 import 'referral_bonus_header.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Si es necesario
+// Si es necesario
 
 class ReferralList extends ConsumerWidget {
   const ReferralList({super.key});

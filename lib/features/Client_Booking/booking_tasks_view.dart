@@ -1,6 +1,5 @@
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/booking_details_tasks_details.dart';
-import 'package:ezpc_tasks_app/features/Client_Booking/provider_tracking.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -193,7 +192,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    ProviderTrackingScreen(order: orderDetails),
+                                    OrderDetails(order: orderDetails),
                               ),
                             );
                           } catch (e) {

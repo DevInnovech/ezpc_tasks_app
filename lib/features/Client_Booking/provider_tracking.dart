@@ -9,10 +9,8 @@ import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:path/path.dart';
 
 class ProviderTrackingScreen extends ConsumerWidget {
   final OrderDetailsDto order;
@@ -25,7 +23,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
     final trackingState = ref.watch(providerTrackingProvider(order.orderId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Seguimiento del Proveedor")),
+      appBar: AppBar(title: const Text("Tracking Provider")),
       body: trackingState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
@@ -35,7 +33,8 @@ class ProviderTrackingScreen extends ConsumerWidget {
               children: [
                 _buildHeader(trackingData, context),
                 _buildOrderInfo(trackingData),
-                _buildMap(trackingData, context),
+                // Usar `order.providerId` directamente aquí
+                _buildMap(order.providerId, context),
                 _buildProcessIndicator(trackingData.status),
                 ExpandableStatusDescription(status: trackingData.status),
                 Padding(
@@ -46,7 +45,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
                     onPressed: () {},
                     bgColor: Colors.red,
                   ),
-                )
+                ),
               ],
             ),
           );
@@ -113,7 +112,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
     try {
       // Consulta la orden en Firebase para obtener el providerId
       final orderSnapshot = await FirebaseFirestore.instance
-          .collection('orders') // Cambia por la colección correspondiente
+          .collection('bookings') // Cambia por la colección correspondiente
           .doc(order.orderId) // Usa orderId para buscar la orden
           .get();
 
@@ -209,80 +208,75 @@ class ProviderTrackingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMap(trackingData, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Container(
-        height:
-            MediaQuery.of(context).size.height * 0.35, // 35% of screen height
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            ClipRRect(
+  Widget _buildMap(String providerId, BuildContext context) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('providers') // Cambia si la colección es diferente
+          .doc(providerId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+          return const Center(child: Text("Error loading live location"));
+        }
+
+        final providerData = snapshot.data!.data() as Map<String, dynamic>;
+        final LatLng providerLocation = LatLng(
+          providerData['latitude'] ?? 0.0,
+          providerData['longitude'] ?? 0.0,
+        );
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.35,
+            decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              child: FlutterMap(
-                mapController: _mapController, // Attach controller
-                options: MapOptions(
-                  initialCenter:
-                      trackingData.providerLocation ?? const LatLng(0, 0),
-                  initialZoom: 15.0,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    subdomains: const ['a', 'b', 'c'],
-                  ),
-                  if (trackingData.providerLocation != null)
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          width: 80.0,
-                          height: 80.0,
-                          point: trackingData.providerLocation!,
-                          child: const Icon(
-                            Icons.location_on,
-                            color: Colors.blue,
-                            size: 40,
-                          ),
-                        ),
-                      ],
+              ],
+            ),
+            child: FlutterMap(
+              mapController: _mapController, // Usa el MapController
+              options: MapOptions(
+                initialCenter:
+                    providerLocation, // Cambia 'center' por 'initialCenter'
+                initialZoom: 15.0, // Nivel inicial de zoom
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: const ['a', 'b', 'c'],
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      width: 80.0,
+                      height: 80.0,
+                      point:
+                          providerLocation, // Asegúrate que providerLocation sea LatLng válido
+                      child: const Icon(
+                        Icons.location_on,
+                        color: Colors.blue,
+                        size: 40,
+                      ),
                     ),
-                ],
-              ),
-            ),
-            Positioned(
-              top: 10,
-              right: 10,
-              child: FloatingActionButton(
-                mini: true,
-                backgroundColor: Colors.white,
-                onPressed: () {
-                  // Logic to center the map on the provider's location
-                  if (trackingData.providerLocation != null) {
-                    _mapController.move(trackingData.providerLocation!, 15.0);
-                  }
-                },
-                child: const Icon(
-                  Icons.my_location,
-                  color: Colors.blue,
-                  size: 20,
+                  ],
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ReferralDialog extends StatefulWidget {
-  const ReferralDialog({Key? key}) : super(key: key);
+  const ReferralDialog({super.key});
 
   @override
   State<ReferralDialog> createState() => _ReferralDialogState();

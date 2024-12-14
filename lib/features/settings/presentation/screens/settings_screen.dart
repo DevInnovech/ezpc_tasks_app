@@ -452,21 +452,20 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (role.isEmpty) {
         throw Exception("Role or Secondary Role is not defined in Firestore.");
       }
-      var routeName;
-      // Intercambiar valores de `role` y `secondaryRole`
+
+      // Definimos la variable `routeName`
+      String? routeName;
+
       if (secondaryRole.isEmpty || secondaryRole == '') {
-        // cosas de become
+        // Si no hay `secondaryRole`, manejamos el flujo de "become"
         accountType == AccountType.client
             ? Navigator.pushNamed(
                 context1,
                 RouteNames.backgroundCheckScreen,
               )
             : _showConfirmationbecomeDialog(context1, userData, user.uid);
-        /*print("trate");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Switched to trate view.')),
-        );*/
       } else {
+        // Intercambiamos valores de `role` y `secondaryRole`
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -475,7 +474,6 @@ class _SettingsScreenState extends State<SettingsScreen>
             'Roles intercambiados: Nuevo role=$secondaryRole, Nuevo secondaryRole=$role');
 
         // Determinar la ruta basada en el nuevo rol principal
-
         switch (secondaryRole) {
           case 'Client':
             routeName = RouteNames.ClientmainScreen;
@@ -486,15 +484,20 @@ class _SettingsScreenState extends State<SettingsScreen>
             accountset.selectAccountType(AccountType.independentProvider);
             break;
           default:
+            //        routeName = RouteNames.defaultScreen; // Ruta por defecto
+            break;
         }
 
         // Navegar al dashboard correspondiente y reiniciar el árbol
-        Navigator.pushNamedAndRemoveUntil(
-            context1, routeName, (route) => false);
-        // Navigator.pushReplacementNamed(context1, routeName);
-        ScaffoldMessenger.of(context1).showSnackBar(
-          SnackBar(content: Text('Switched to $secondaryRole view.')),
-        );
+        if (routeName != null) {
+          Navigator.pushNamedAndRemoveUntil(
+              context1, routeName, (route) => false);
+          ScaffoldMessenger.of(context1).showSnackBar(
+            SnackBar(content: Text('Switched to $secondaryRole view.')),
+          );
+        } else {
+          throw Exception("Route name could not be determined.");
+        }
       }
     } catch (e) {
       debugPrint('Error switching role: $e');
@@ -510,14 +513,14 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmación'),
-          content: Text('¿Deseas convertirte en cliente?'),
+          title: const Text('Confirmación'),
+          content: const Text('¿Deseas convertirte en cliente?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Cierra el diálogo sin hacer nada
               },
-              child: Text('No'),
+              child: const Text('No'),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -536,10 +539,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                 // Aquí puedes agregar lógica para manejar el "Sí"
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('¡Bienvenido como cliente!')),
+                  const SnackBar(content: Text('¡Bienvenido como cliente!')),
                 );
               },
-              child: Text('Sí'),
+              child: const Text('Sí'),
             ),
           ],
         );

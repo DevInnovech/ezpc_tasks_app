@@ -204,6 +204,7 @@ class LoadedWidget extends StatelessWidget {
               ),
               Utils.verticalSpace(20),
               // Tracking Button
+              // Track Provider Button
               PrimaryButton(
                 text: "Track Provider",
                 onPressed: data.status.toLowerCase() == "started"
@@ -214,21 +215,27 @@ class LoadedWidget extends StatelessWidget {
                           arguments: data,
                         );
                       }
-                    : null, // Disabled if status is not "started"
+                    : null, // Disabled if not "started"
                 bgColor: data.status.toLowerCase() == "started"
-                    ? const Color(0xFF404C8C)
+                    ? const Color(0xFF404C8C) // Active color
                     : Colors.grey, // Gray if disabled
               ),
               Utils.verticalSpace(10),
-              // Cancel Button
+
+// Cancel Order Button
               PrimaryButton(
                 text: "Cancel Order",
-                onPressed: data.status.toLowerCase() == "started"
-                    ? null // Disabled if status is "started"
-                    : () => onCancel(context, data.orderId),
-                bgColor: data.status.toLowerCase() == "started"
+                onPressed: (data.status.toLowerCase() == "started" ||
+                        data.status.toLowerCase() == "completed" ||
+                        data.status.toLowerCase() == "cancelled")
+                    ? null // Disabled if "started", "completed", or "cancelled"
+                    : () => onCancel(
+                        context, data.orderId), // Only active for other states
+                bgColor: (data.status.toLowerCase() == "started" ||
+                        data.status.toLowerCase() == "completed" ||
+                        data.status.toLowerCase() == "cancelled")
                     ? Colors.grey // Gray if disabled
-                    : Colors.red, // Active if not "started"
+                    : Colors.red, // Active color
               ),
             ],
           )

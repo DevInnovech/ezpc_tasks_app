@@ -207,8 +207,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   Future<void> _loadChatData() async {
     for (var chat in _chats) {
-      if (chat == null) continue;
-
       String? chatRoomId = chat['chatRoomId'] as String?;
       if (chatRoomId == null) continue;
 

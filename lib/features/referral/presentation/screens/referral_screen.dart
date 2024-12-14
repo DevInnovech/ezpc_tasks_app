@@ -1,4 +1,3 @@
-import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referral_bonus_header.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referral_list.dart';
 import 'package:flutter/material.dart';
 

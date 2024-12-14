@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 
 class ReferralHeader extends StatelessWidget {
   final String referralPartnerCode;
-  const ReferralHeader({Key? key, required this.referralPartnerCode})
-      : super(key: key);
+  const ReferralHeader({super.key, required this.referralPartnerCode});
 
   Future<String> _getReferrerName() async {
     if (referralPartnerCode.isEmpty || referralPartnerCode == 'no_referral') {

@@ -11,12 +11,12 @@ class MapScreen extends StatefulWidget {
   final String providerId; // Unique ID for the provider
 
   const MapScreen({
-    Key? key,
+    super.key,
     required this.latitude,
     required this.longitude,
     required this.address,
     required this.providerId,
-  }) : super(key: key);
+  });
 
   @override
   _MapScreenState createState() => _MapScreenState();

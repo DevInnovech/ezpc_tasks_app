@@ -1,7 +1,6 @@
 import 'package:ezpc_tasks_app/features/my%20employe/data/employee_provider.dart';
 import 'package:ezpc_tasks_app/features/my%20employe/presentation/widgets/employee_bonus_header.dart';
 import 'package:ezpc_tasks_app/features/my%20employe/presentation/widgets/employee_search_bar.dart';
-import 'package:ezpc_tasks_app/features/referral/presentation/screens/referral_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
