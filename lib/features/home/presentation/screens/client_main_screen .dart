@@ -31,7 +31,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
     super.initState();
     screenList = [
       const ClientHomeScreen(),
-      const AllCategoryScreen(),
+      const ClientCategoryScreen(),
       const ProviderOrdersScreen(),
       const ClientHomeScreen(),
     ];
@@ -143,7 +143,7 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       case 1:
         return const MyBookingsScreen();
       case 2:
-        return const AllCategoryScreen();
+        return const ClientCategoryScreen();
 
       default:
         return const SizedBox();

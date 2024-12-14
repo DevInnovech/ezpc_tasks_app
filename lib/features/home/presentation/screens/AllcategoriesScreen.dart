@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByCategory.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
+import 'package:ezpc_tasks_app/features/services/models/subcategory_model.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,11 +19,13 @@ final categoryProvider = FutureProvider<List<Category>>((ref) async {
       return Category(
         id: doc.id,
         name: doc['name'] ?? '',
-        pathimage: doc['pathimage'],
-        subCategories: [],
+        pathimage: doc['imageUrl'] ?? '',
+        subCategories: (doc['subcategories'] as List<dynamic>?)
+                ?.map((sub) => SubCategory.fromMap(sub as Map<String, dynamic>))
+                .toList() ??
+            [],
+        categoryId: doc['id'] ?? '',
         pathImage: null,
-        categoryId:
-            doc['categoryId'] ?? '', // Maneja imágenes si están en Firestore
       );
     }).toList();
   } catch (e) {
@@ -27,31 +33,15 @@ final categoryProvider = FutureProvider<List<Category>>((ref) async {
   }
 });
 
-class AllCategoryScreen extends ConsumerWidget {
-  const AllCategoryScreen({super.key});
+class ClientCategoryScreen extends ConsumerWidget {
+  const ClientCategoryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncCategoryState = ref.watch(categoryProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "All Categories",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blueAccent,
-        elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(16),
-          ),
-        ),
-      ),
+      appBar: const CustomAppBar(title: "All Categories"),
       body: asyncCategoryState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
@@ -59,32 +49,23 @@ class AllCategoryScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Failed to load categories:\n$error",
-                textAlign: TextAlign.center,
+                error.toString(),
                 style: const TextStyle(color: Colors.red),
               ),
               const SizedBox(height: 10),
-              ElevatedButton.icon(
+              IconButton(
                 onPressed: () {
+                  // Refrescamos los datos
                   ref.refresh(categoryProvider);
                 },
                 icon: const Icon(Icons.refresh_outlined),
-                label: const Text("Try Again"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                ),
               ),
             ],
           ),
         ),
         data: (categories) {
           if (categories.isEmpty) {
-            return const Center(
-              child: Text(
-                "No categories found.",
-                style: TextStyle(fontSize: 16),
-              ),
-            );
+            return const Center(child: Text("No categories found."));
           }
           return _buildCategoryGrid(categories);
         },
@@ -94,12 +75,11 @@ class AllCategoryScreen extends ConsumerWidget {
 
   Widget _buildCategoryGrid(List<Category> categories) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // Cambiamos a 3 por fila
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.9, // Ajustamos la proporción
+        crossAxisCount: 3,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) {
@@ -126,43 +106,72 @@ class ClientCategoryItem extends StatelessWidget {
         );
       },
       child: Container(
-        decoration: BoxDecoration(
+        width: 102.w,
+        height: 120.h,
+        alignment: Alignment.center,
+        decoration: ShapeDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          shadows: const [
             BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 10,
-              offset: Offset(0, 4),
+              color: Color(0x0A000000),
+              blurRadius: 20,
+              offset: Offset(0, 2),
+              spreadRadius: 0,
             ),
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 50.w,
-              height: 50.h,
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Color(0xFFEAF4FF),
-                shape: BoxShape.circle,
-              ),
-              child: CustomImage(
-                path: item.pathimage ?? KImages.booking,
-                url: null,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ServicesByCategoryScreen(category: item),
+                  ),
+                );
+              },
+              child: Container(
+                width: 38.w,
+                height: 38.h,
+                padding: const EdgeInsets.all(7),
+                decoration: const ShapeDecoration(
+                  color: Color(0xFFEAF4FF),
+                  shape: OvalBorder(),
+                ),
+                child: CustomImage(
+                  path: null,
+                  url: item.pathimage ??
+                      KImages.booking, // Usamos el valor por defecto si es null
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              item.name,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            Utils.verticalSpace(8),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ServicesByCategoryScreen(category: item),
+                  ),
+                );
+              },
+              child: Text(
+                item.name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: textColor,
+                  fontSize: 12,
+                  fontFamily: 'Work Sans',
+                  fontWeight: FontWeight.w500,
+                  height: 1.33,
+                ),
               ),
             ),
           ],

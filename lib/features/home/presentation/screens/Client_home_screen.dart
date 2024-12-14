@@ -294,20 +294,47 @@ class ClientCategoryItem extends StatelessWidget {
         // Navegar a la pantalla de detalles de la categoría
         Navigator.pushNamed(
           context,
-          RouteNames
-              .clientCategoryScreen, // Asegúrate de que esta ruta esté definida en RouteNames
+          RouteNames.clientCategoryScreen,
           arguments: {
-            'category':
-                item, // Pasa la información de la categoría a la siguiente pantalla
+            'category': item, // Pasa la información de la categoría
           },
         );
       },
-      child: // ... tu código actual para mostrar la categoría ...
+      child: Column(
+        children: [
           Container(
-        width: 100,
-        height: 100,
-        color: Colors.blue,
-      ), // Reemplaza con tu código para mostrar la categoría
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              image: DecorationImage(
+                image: item.pathimage != null
+                    ? NetworkImage(item.pathimage!)
+                    : const AssetImage(
+                        'assets/images/default_category.jpg', // Imagen por defecto
+                      ) as ImageProvider,
+                fit: BoxFit.cover,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: const Offset(2, 2),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            item.name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
