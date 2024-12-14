@@ -27,7 +27,7 @@ class Task {
   final Map<String, String>? questionResponses;
   final int makeFeatured; // Nuevo campo
   final int isBanned; // Nuevo campo
-  final int status; // Nuevo campo
+  late final int status; // Nuevo campo
   final String createdAt; // Nuevo campo
   final int approveByAdmin; // Nuevo campo
   final String averageRating; // Nuevo campo

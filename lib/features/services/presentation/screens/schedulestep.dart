@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ScheduleStep extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -34,9 +35,9 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
             // Selector de días
             DaysSelector(
               initialSelection: selectedDays,
-              onDaysSelected: (selectedDays) {
-                ref.read(selectedDaysProvider.notifier).state = selectedDays;
-                _initializeDefaultWorkingHours(selectedDays);
+              onDaysSelected: (updatedDays) {
+                ref.read(selectedDaysProvider.notifier).state = updatedDays;
+                _initializeDefaultWorkingHours(updatedDays);
               },
             ),
             const SizedBox(height: 16),
@@ -73,7 +74,7 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
 
             // Botón de guardar
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (selectedDays.isEmpty) {
                   _showSnackBar(
                       context, "Please select at least one working day.");
@@ -88,10 +89,9 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
                   return;
                 }
 
-                ref.read(taskProvider.notifier).updateTask(
-                      workingDays: selectedDays,
-                      workingHours: workingHours,
-                    );
+                // Guardar datos en Firebase
+                await _saveScheduleToFirebase(
+                    selectedDays: selectedDays, workingHours: workingHours);
 
                 _showSnackBar(context, "Working hours updated successfully!",
                     isError: false);
@@ -154,13 +154,41 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
 
   DateTime? _parseTime(String time) {
     try {
-      final format = TimeOfDay(
+      final timeOfDay = TimeOfDay(
         hour: int.parse(time.split(':')[0]),
         minute: int.parse(time.split(':')[1].split(' ')[0]),
       );
-      return DateTime(0, 0, 0, format.hour, format.minute);
+      return DateTime(0, 0, 0, timeOfDay.hour, timeOfDay.minute);
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<void> _saveScheduleToFirebase({
+    required List<String> selectedDays,
+    required Map<String, Map<String, String>> workingHours,
+  }) async {
+    try {
+      final taskProviderData = ref.read(taskProvider).currentTask;
+
+      if (taskProviderData == null) {
+        _showSnackBar(context, "No task found for updating schedule!");
+        return;
+      }
+
+      // Actualizar en Firebase
+      await FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(taskProviderData.taskId)
+          .update({
+        'workingDays': selectedDays,
+        'workingHours': workingHours,
+      });
+
+      _showSnackBar(context, "Schedule saved to Firebase successfully!",
+          isError: false);
+    } catch (e) {
+      _showSnackBar(context, "Failed to save schedule to Firebase.");
     }
   }
 
