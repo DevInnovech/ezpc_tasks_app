@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,7 +9,8 @@ class MapScreen extends StatefulWidget {
   final double latitude;
   final double longitude;
   final String address;
-  final String providerId; // Unique ID for the provider
+  final String providerId;
+  final String bookingId; // Booking document ID
 
   const MapScreen({
     super.key,
@@ -16,6 +18,7 @@ class MapScreen extends StatefulWidget {
     required this.longitude,
     required this.address,
     required this.providerId,
+    required this.bookingId,
   });
 
   @override
@@ -23,96 +26,138 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  bool _isTracking = false;
-  Stream<Position>? _positionStream;
+  bool _isLoading = false;
+  String _currentStatus = "pending"; // Local state for ProviderStatus
+  late Stream<DocumentSnapshot> _providerStatusStream;
 
-  Future<void> _startDriving() async {
-    final googleMapsUrl =
-        'google.navigation:q=${widget.latitude},${widget.longitude}&mode=d';
-    final appleMapsUrl =
-        'http://maps.apple.com/?daddr=${widget.latitude},${widget.longitude}&dirflg=d';
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the ProviderStatus stream
+    _providerStatusStream = FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(widget.bookingId)
+        .snapshots();
+
+    // Initialize the ProviderStatus field if it doesn't exist
+    _initializeProviderStatus();
+  }
+
+  Future<void> _initializeProviderStatus() async {
+    final bookingDoc =
+        FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId);
 
     try {
+      final snapshot = await bookingDoc.get();
+      if (!snapshot.exists || !snapshot.data()!.containsKey('ProviderStatus')) {
+        // Set a default ProviderStatus if it doesn't exist
+        await bookingDoc.update({
+          'ProviderStatus': 'pending',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      setState(() {
+        _currentStatus = snapshot.data()?['ProviderStatus'] ?? 'pending';
+      });
+    } catch (e) {
+      debugPrint('Error initializing ProviderStatus: $e');
+    }
+  }
+
+  Future<void> _startDriving() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final googleMapsUrl =
+          'google.navigation:q=${widget.latitude},${widget.longitude}&mode=d';
+      final appleMapsUrl =
+          'http://maps.apple.com/?daddr=${widget.latitude},${widget.longitude}&dirflg=d';
+
       if (await canLaunch(googleMapsUrl)) {
-        await launch(googleMapsUrl); // Open Google Maps
+        await launch(googleMapsUrl);
       } else if (await canLaunch(appleMapsUrl)) {
-        await launch(appleMapsUrl); // Open Apple Maps for iOS
+        await launch(appleMapsUrl);
       } else {
         throw 'Could not launch maps';
       }
 
-      // Start live location tracking
-      _startLiveLocationTracking();
-    } catch (e) {
-      debugPrint('Error launching maps: $e');
-    }
-  }
-
-  Future<void> _startLiveLocationTracking() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Check if location services are enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    // Check for location permissions
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied.');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-
-    setState(() {
-      _isTracking = true;
-    });
-
-    // Start listening to location updates
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Update every 10 meters
-      ),
-    );
-
-    _positionStream!.listen((Position position) {
-      _updateProviderLocation(position);
-    });
-  }
-
-  Future<void> _updateProviderLocation(Position position) async {
-    try {
+      // Update Firestore with the new ProviderStatus
       await FirebaseFirestore.instance
-          .collection('providers')
-          .doc(widget.providerId)
+          .collection('bookings')
+          .doc(widget.bookingId)
           .update({
-        'latitude': position.latitude,
-        'longitude': position.longitude,
-        'lastUpdated': FieldValue.serverTimestamp(),
+        'ProviderStatus': 'on_the_way',
+        'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      debugPrint(
-          'Location updated: ${position.latitude}, ${position.longitude}');
+      // Update local state after successful Firestore write
+      setState(() {
+        _currentStatus = 'on_the_way';
+        _isLoading = false;
+      });
+
+      debugPrint('ProviderStatus updated to "on_the_way"');
     } catch (e) {
-      debugPrint('Error updating location: $e');
+      setState(() {
+        _isLoading = false;
+      });
+      debugPrint('Error starting driving: $e');
     }
   }
 
-  Future<void> _stopTracking() async {
+  Future<void> _markAsArrived() async {
     setState(() {
-      _isTracking = false;
+      _isLoading = true;
     });
 
-    debugPrint('Stopped live location tracking.');
+    try {
+      // Actualiza Firestore con el nuevo estado 'arrived'
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(widget.bookingId)
+          .update({
+        'ProviderStatus': 'arrived',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Carga toda la información del booking desde Firestore
+      final bookingSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(widget.bookingId)
+          .get();
+
+      if (!bookingSnapshot.exists) {
+        throw Exception("Booking document not found.");
+      }
+
+      final bookingData = bookingSnapshot.data()!;
+
+      // Actualiza el estado local y navega a la pantalla OrderDetailsScreen
+      setState(() {
+        _currentStatus = 'arrived';
+        _isLoading = false;
+      });
+
+      // Navegar a OrderDetailsScreen con toda la información del booking
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderDetailsScreen(
+            order: bookingData, // Pasar todos los datos del booking
+          ),
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      debugPrint('Error marking as arrived: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override
@@ -123,13 +168,6 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: const Text('Client Location'),
         backgroundColor: const Color(0xFF404C8C),
-        actions: [
-          if (_isTracking)
-            IconButton(
-              icon: const Icon(Icons.stop, color: Colors.red),
-              onPressed: _stopTracking,
-            ),
-        ],
       ),
       body: Stack(
         children: [
@@ -150,19 +188,50 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 20,
             left: 20,
             right: 20,
-            child: ElevatedButton(
-              onPressed: _startDriving,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                "Start Driving",
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
+            child: StreamBuilder<DocumentSnapshot>(
+              stream: _providerStatusStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data == null) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                final bookingData =
+                    snapshot.data!.data() as Map<String, dynamic>;
+                final currentStatus =
+                    bookingData['ProviderStatus'] ?? _currentStatus;
+
+                return ElevatedButton(
+                  onPressed: _isLoading
+                      ? null // Disable the button while processing
+                      : currentStatus == 'on_the_way'
+                          ? _markAsArrived
+                          : _startDriving,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isLoading
+                        ? Colors.grey
+                        : currentStatus == 'on_the_way'
+                            ? Colors.green
+                            : Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                      : Text(
+                          currentStatus == 'on_the_way'
+                              ? "I've Arrived"
+                              : "Start Driving",
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18),
+                        ),
+                );
+              },
             ),
           ),
         ],

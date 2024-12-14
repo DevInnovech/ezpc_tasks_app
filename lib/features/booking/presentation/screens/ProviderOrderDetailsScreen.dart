@@ -117,7 +117,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                                 )
                               : Text(
                                   '${index + 1}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -143,7 +143,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                             height: 2,
                             decoration: BoxDecoration(
                               gradient: index < currentStep
-                                  ? const LinearGradient(
+                                  ? LinearGradient(
                                       colors: [Colors.blue, Colors.blue],
                                       begin: Alignment.centerLeft,
                                       end: Alignment.centerRight,
@@ -244,108 +244,129 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   }
 
   Widget _buildConditionalButton(BuildContext context) {
-    if (taskStatus == "pending") {
-      return Row(
-        children: [
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _updateTaskStatus("accepted"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-              ),
-              child: const Text("Accept"),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _updateTaskStatus("declined"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              child: const Text("Decline"),
-            ),
-          ),
-        ],
-      );
-    } else if (taskStatus == "accepted") {
-      return ElevatedButton(
-        onPressed: () async {
-          final String address =
-              widget.order['clientAddress'] ?? 'Unknown Address';
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(widget.order['bookingId'])
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-          // Si no tienes latitud/longitud en el pedido, usa la API de Geocoding
-          double latitude = widget.order['latitude'] ?? 0.0;
-          double longitude = widget.order['longitude'] ?? 0.0;
+        final bookingData = snapshot.data!.data() as Map<String, dynamic>;
+        final providerStatus = bookingData['ProviderStatus'] ?? 'pending';
 
-          if (latitude == 0.0 && longitude == 0.0) {
-            // Llamar a la función para obtener las coordenadas desde la dirección
-            final coordinates = await getCoordinatesFromAddress(
-                address, 'AIzaSyAniwsNy7RlHjkeU8x_k44dPsw4isyK-d0');
-            if (coordinates != null) {
-              latitude = coordinates['latitude']!;
-              longitude = coordinates['longitude']!;
-            } else {
-              // Mostrar un mensaje si no se puede obtener la ubicación
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Failed to fetch location.')),
+        if (providerStatus == "pending") {
+          // Mostrar botones de "Accept" y "Decline"
+          return Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _updateTaskStatus("accepted"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  child: const Text("Accept"),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _updateTaskStatus("declined"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Decline"),
+                ),
+              ),
+            ],
+          );
+        } else if (providerStatus == "accepted") {
+          // Mostrar botón "Drive to Task"
+          return ElevatedButton(
+            onPressed: () async {
+              final String address =
+                  widget.order['clientAddress'] ?? 'Unknown Address';
+              final bookingId = widget.order['bookingId'];
+
+              // Si no tienes latitud/longitud en el booking, usa la API
+              double latitude = widget.order['latitude'] ?? 0.0;
+              double longitude = widget.order['longitude'] ?? 0.0;
+
+              if (latitude == 0.0 && longitude == 0.0) {
+                final coordinates = await getCoordinatesFromAddress(
+                    address, 'AIzaSyAniwsNy7RlHjkeU8x_k44dPsw4isyK-d0');
+                if (coordinates != null) {
+                  latitude = coordinates['latitude']!;
+                  longitude = coordinates['longitude']!;
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to fetch location.')),
+                  );
+                  return;
+                }
+              }
+
+              // Navegar a la pantalla de mapas y pasar bookingId
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(
+                    latitude: latitude,
+                    longitude: longitude,
+                    address: address,
+                    providerId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                    bookingId: bookingId,
+                  ),
+                ),
               );
-              return;
-            }
-          }
-
-          // Navegar a la pantalla del mapa
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MapScreen(
-                latitude: latitude,
-                longitude: longitude,
-                address: address,
-                providerId: FirebaseAuth.instance.currentUser?.uid ?? '',
-              ),
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              "Drive to Task",
+              style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          minimumSize: const Size.fromHeight(50),
-        ),
-        child: const Text(
-          "Drive to Task",
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-      );
-    } else if (taskStatus == "started") {
-      return ElevatedButton(
-        onPressed: () => _updateTaskStatus("in progress"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange,
-          minimumSize: const Size.fromHeight(50),
-        ),
-        child: const Text(
-          "Start Task",
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-      );
-    } else if (taskStatus == "in progress") {
-      return ElevatedButton(
-        onPressed: () async {
-          await _updateTaskStatus("completed");
-          _showCompletionReviewPopup(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          minimumSize: const Size.fromHeight(50),
-        ),
-        child: const Text(
-          "Complete Task",
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
+        } else if (providerStatus == "arrived") {
+          // Mostrar botón "Start Task"
+          return ElevatedButton(
+            onPressed: () => _updateTaskStatus("started"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              "Start Task",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          );
+        } else if (providerStatus == "started") {
+          // Mostrar botón "Complete Task"
+          return ElevatedButton(
+            onPressed: () async {
+              await _updateTaskStatus("completed");
+              _showCompletionReviewPopup(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              "Complete Task",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          );
+        } else {
+          return const SizedBox.shrink();
+        }
+      },
+    );
   }
 
   Widget _buildPriceRow(String label, String value,
