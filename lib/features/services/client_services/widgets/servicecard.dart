@@ -1,11 +1,15 @@
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/Booking_Screen.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/Booking_Screen.dart';
+import 'package:flutter/material.dart';
+import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 
 class ServiceCard extends StatelessWidget {
   final Task task;
+  final double imageHeight;
 
-  const ServiceCard({super.key, required this.task});
+  const ServiceCard({super.key, required this.task, required this.imageHeight});
 
   @override
   Widget build(BuildContext context) {
@@ -22,16 +26,17 @@ class ServiceCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween, // Para separar contenido y botón
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image Section
           ClipRRect(
             borderRadius:
                 const BorderRadius.vertical(top: Radius.circular(8.0)),
             child: task.imageUrl.isNotEmpty
                 ? Image.network(
                     task.imageUrl,
-                    height: 50,
+                    height: imageHeight, // Usamos imageHeight
                     width: double.infinity,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
@@ -52,8 +57,6 @@ class ServiceCard extends StatelessWidget {
                     fallbackWidth: double.infinity,
                   ),
           ),
-
-          // Content Section
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -107,8 +110,6 @@ class ServiceCard extends StatelessWidget {
               ],
             ),
           ),
-          const Spacer(),
-          // Book Now Button
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
@@ -120,17 +121,17 @@ class ServiceCard extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                // Action when Book Now is pressed
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BookingScreen(
-                      taskId: task.id,
-                    ), // Pasa el id dinámicamente
+                    builder: (context) => BookingScreen(taskId: task.id),
                   ),
                 );
               },
-              child: const Text('Book Now'),
+              child: const Text(
+                'Book Now',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ],

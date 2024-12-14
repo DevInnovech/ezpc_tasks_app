@@ -16,6 +16,7 @@ class ServicesByCategoryScreen extends StatefulWidget {
 
 class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
   late Future<List<Task>> _servicesFuture;
+  bool _isGrid = false; // Comenzamos con lista (false)
 
   @override
   void initState() {
@@ -26,9 +27,25 @@ class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double imageHeight;
+    if (_isGrid) {
+      imageHeight = 120.0; // Modo grid: imagen más pequeña
+    } else {
+      imageHeight = 160.0; // Modo lista: imagen más grande
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.category.name),
+        actions: [
+          IconButton(
+            icon: Icon(_isGrid ? Icons.view_agenda : Icons.grid_view),
+            onPressed: () {
+              setState(() {
+                _isGrid = !_isGrid;
+              });
+            },
+          )
+        ],
       ),
       body: FutureBuilder<List<Task>>(
         future: _servicesFuture,
@@ -47,16 +64,20 @@ class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
 
             return GridView.builder(
               padding: const EdgeInsets.all(16.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: _isGrid ? 2 : 1,
                 crossAxisSpacing: 16.0,
                 mainAxisSpacing: 16.0,
-                childAspectRatio: 0.8,
+                // Ajustar este aspecto para dar más espacio vertical
+                childAspectRatio: _isGrid ? 0.6 : 1,
               ),
               itemCount: services.length,
               itemBuilder: (context, index) {
                 final task = services[index];
-                return ServiceCard(task: task);
+                return ServiceCard(
+                  task: task,
+                  imageHeight: imageHeight,
+                );
               },
             );
           } else {
