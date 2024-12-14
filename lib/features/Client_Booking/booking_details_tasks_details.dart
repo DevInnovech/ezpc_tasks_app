@@ -103,6 +103,7 @@ class LoadedWidget extends StatelessWidget {
               rating: data.rating,
               reviews: 0,
             ),
+            providerUserId: data.providerId,
           ),
           Utils.verticalSpace(20),
           Column(
@@ -249,103 +250,157 @@ class ProviderInfo extends StatelessWidget {
   const ProviderInfo({
     super.key,
     required this.provider,
+    required this.providerUserId,
   });
 
   final ProviderModel provider;
+  final String providerUserId;
+
+  Future<Map<String, dynamic>?> _fetchProviderData() async {
+    if (providerUserId.isEmpty) return null;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(providerUserId)
+        .get();
+
+    return doc.exists ? doc.data() : null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Provider Details',
-          style: TextStyle(
-            color: Color(0xFF051533),
-            fontSize: 18,
-            fontFamily: 'Work Sans',
-            fontWeight: FontWeight.w600,
-            height: 1.67,
-          ),
-        ),
-        Utils.verticalSpace(8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: ShapeDecoration(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _fetchProviderData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Mostrar un indicador de carga mientras se obtienen los datos
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          // Si ocurre un error, mostrar un mensaje
+          return const Text("Error loading provider data");
+        }
+
+        final providerData = snapshot.data;
+        // Si no hay datos, mostrar algo por defecto
+        final providerName = providerData?['name'] ?? provider.name;
+        final providerLastName = providerData?['lastName'] ?? '';
+        final providerFullName = '$providerName $providerLastName'.trim();
+        final providerPhone = providerData?['phoneNumber'] ?? provider.phone;
+        final providerEmail = providerData?['email'] ?? provider.email;
+        final providerImage =
+            providerData?['profileImageUrl'] ?? provider.image;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Provider Details',
+              style: TextStyle(
+                color: Color(0xFF051533),
+                fontSize: 18,
+                fontFamily: 'Work Sans',
+                fontWeight: FontWeight.w600,
+                height: 1.67,
+              ),
             ),
-          ),
-          child: Row(children: [
-            provider.image != null &&
-                    provider.image != 'N/A' &&
-                    provider.image != ''
-                ? SizedBox(
-                    height: 94.h,
-                    width: 94.w,
-                    child: CustomImage(
-                      path: provider.image,
-                      fit: BoxFit.cover,
-                      url: null,
-                    ))
-                : Container(
-                    width: 80,
-                    height: 80,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.image, color: Colors.grey),
-                  ),
-            Utils.horizontalSpace(10),
-            Expanded(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  provider.name,
-                  style: const TextStyle(
-                    color: Color(0xFF051533),
-                    fontSize: 18,
-                    fontFamily: 'Work Sans',
-                    fontWeight: FontWeight.w600,
-                  ),
+            Utils.verticalSpace(8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: ShapeDecoration(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                Utils.verticalSpace(8),
-                Row(
-                  children: [
-                    SvgPicture.asset(KImages.call),
-                    Utils.horizontalSpace(4),
-                    Text(
-                      provider.phone ?? '',
-                      style: const TextStyle(
-                        color: Color(0xFF535769),
-                        fontSize: 12,
-                        fontFamily: 'Work Sans',
-                        fontWeight: FontWeight.w400,
+              ),
+              child: Row(children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      RouteNames.provideraboutScreen,
+                      arguments: {'userId': providerUserId},
+                    );
+                  },
+                  child: (providerImage != null &&
+                          providerImage != 'N/A' &&
+                          providerImage.isNotEmpty)
+                      ? Container(
+                          width: 94.w,
+                          height: 94.h,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey, width: 2),
+                          ),
+                          child: ClipOval(
+                            child: CustomImage(
+                              path: providerImage,
+                              fit: BoxFit.cover,
+                              url: null,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.image, color: Colors.grey),
+                        ),
+                ),
+                Utils.horizontalSpace(10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        providerFullName,
+                        style: const TextStyle(
+                          color: Color(0xFF051533),
+                          fontSize: 18,
+                          fontFamily: 'Work Sans',
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Utils.verticalSpace(8),
-                Row(
-                  children: [
-                    SvgPicture.asset(KImages.booking),
-                    Utils.horizontalSpace(4),
-                    Text(
-                      provider.email ?? '',
-                      style: const TextStyle(
-                        color: Color(0xFF535769),
-                        fontSize: 12,
-                        fontFamily: 'Work Sans',
-                        fontWeight: FontWeight.w400,
+                      Utils.verticalSpace(8),
+                      Row(
+                        children: [
+                          SvgPicture.asset(KImages.call),
+                          Utils.horizontalSpace(4),
+                          Text(
+                            providerPhone ?? '',
+                            style: const TextStyle(
+                              color: Color(0xFF535769),
+                              fontSize: 12,
+                              fontFamily: 'Work Sans',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ))
-          ]),
-        )
-      ],
+                      Utils.verticalSpace(8),
+                      Row(
+                        children: [
+                          SvgPicture.asset(KImages.booking),
+                          Utils.horizontalSpace(4),
+                          Text(
+                            providerEmail ?? '',
+                            style: const TextStyle(
+                              color: Color(0xFF535769),
+                              fontSize: 12,
+                              fontFamily: 'Work Sans',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
+              ]),
+            )
+          ],
+        );
+      },
     );
   }
 }

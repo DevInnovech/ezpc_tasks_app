@@ -24,19 +24,25 @@ class _AboutSectionState extends State<AboutSection> {
 
   @override
   Widget build(BuildContext context) {
+    // Determinar cuántos caracteres mostrar si no está expandido
+    const previewLength = 50;
+    final descriptionText = widget.descripcion;
+    final isLongDescription = descriptionText.length > previewLength;
+
     return Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text(
-            "About Tasks",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            isExpanded
-                ? widget.descripcion
-                : "${widget.descripcion.substring(0, 50)}...",
-            textAlign: TextAlign.left,
-          ),
+      padding: const EdgeInsets.all(2.0),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text(
+          "About Tasks",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          isExpanded || !isLongDescription
+              ? descriptionText
+              : "${descriptionText.substring(0, previewLength)}...",
+          textAlign: TextAlign.left,
+        ),
+        if (isLongDescription)
           TextButton(
             onPressed: () {
               setState(() {
@@ -45,68 +51,68 @@ class _AboutSectionState extends State<AboutSection> {
             },
             child: Text(isExpanded ? "Read less" : "Read more"),
           ),
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Imagen y detalles del proveedor
-                Row(
-                  children: [
-                    ClipOval(
-                      child: CustomImage(
-                        path: widget.imagePath,
-                        height: 60.0,
-                        width: 60.0,
-                        fit: BoxFit.cover,
-                        isFile: widget.imagePath.startsWith('http'),
-                        url: widget.imagePath,
+        Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Imagen y detalles del proveedor
+              Row(
+                children: [
+                  ClipOval(
+                    child: CustomImage(
+                      path: widget.imagePath,
+                      height: 60.0,
+                      width: 60.0,
+                      fit: BoxFit.cover,
+                      url: widget.imagePath,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.providerName,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.providerName,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                      Text(
+                        widget.providerTitle,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
                         ),
-                        Text(
-                          widget.providerTitle,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                // Íconos de acción
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.message, color: Colors.black),
-                      onPressed: () {
-                        // Lógica para el botón de mensaje
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.phone, color: Colors.black),
-                      onPressed: () {
-                        // Lógica para el botón de llamada
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          )
-        ]));
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // Íconos de acción
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.message, color: Colors.black),
+                    onPressed: () {
+                      // Lógica para el botón de mensaje
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.phone, color: Colors.black),
+                    onPressed: () {
+                      // Lógica para el botón de llamada
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        )
+      ]),
+    );
   }
 }
