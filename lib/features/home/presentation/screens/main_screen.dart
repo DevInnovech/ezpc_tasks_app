@@ -1,5 +1,6 @@
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/end_drawer_menu.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ezpc_tasks_app/shared/widgets/bottom_nav_bar.dart';
@@ -24,6 +25,8 @@ class MainScreen extends ConsumerStatefulWidget {
 class _MainScreenState extends ConsumerState<MainScreen> {
   final _homeController = MainController();
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   late List<Widget> screenList;
 
   @override
@@ -34,7 +37,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       const ProviderOrdersScreen(),
       const ServiceScreen(),
       const HomeScreen(),
-      const SettingsScreen(),
     ];
   }
 
@@ -46,6 +48,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         return true;
       },
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const EndDrawerMenu(),
         body: StreamBuilder<int>(
           initialData: 0,
           stream: _homeController.naveListener.stream,
@@ -54,7 +58,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             return screenList[item];
           },
         ),
-        bottomNavigationBar: const MyBottomNavigationBar(),
+        bottomNavigationBar: MyBottomNavigationBar(
+          scaffoldKey: _scaffoldKey,
+        ),
       ),
     );
   }

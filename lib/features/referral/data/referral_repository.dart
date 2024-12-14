@@ -1,32 +1,25 @@
-// lib/features/referral/data/referral_repository.dart
-
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/referral_model.dart';
 
 class ReferralRepository {
-  Future<List<ReferralModel>> fetchReferrals() async {
-    await Future.delayed(
-        const Duration(seconds: 1)); // Simulando retraso de red
+  Future<List<ReferralModel>> fetchReferrals(String referralCode) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('referralPartner', isEqualTo: referralCode)
+        .get();
 
-    return [
-      ReferralModel(
-        name: "Jose Florez",
-        jobTitle: "Trabajo X",
-        isActive: true,
-        date: "06/02/2024",
-        bonusAmount: 20.0,
-        imageUrl: KImages.pp,
-      ),
-      ReferralModel(
-        name: "Tifany Plures",
-        jobTitle: "Trabajo Y",
-        isActive: false,
-        date: "06/02/2024",
-        bonusAmount: 15.0,
-        imageUrl: KImages.pp,
-      ),
-      // Más datos de ejemplo
-    ];
+    return querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return ReferralModel(
+        name: '${data['name'] ?? ''} ${data['lastName'] ?? ''}',
+        jobTitle: data['role'] ?? '',
+        isActive: true, // Por ahora, asumimos que siempre están activos
+        date: data['date'] != null
+            ? (data['date'] as Timestamp).toDate().toString()
+            : DateTime.now().toString(),
+        bonusAmount: 0.0, // Inicialmente, 0 para pruebas
+        imageUrl: data['profileImageUrl'] ?? '', // Agrega una imagen válida
+      );
+    }).toList();
   }
 }

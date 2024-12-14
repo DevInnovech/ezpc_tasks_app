@@ -67,6 +67,7 @@ class ClientHomeHeader extends ConsumerWidget {
                   final String nombre = userData['name'] ?? 'N/A';
                   final String apellido = userData['lastName'] ?? 'N/A';
                   final String rol = userData['role'] ?? 'Client';
+                  final String? profileImageUrl = userData['profileImageUrl'];
                   final String greeting = getGreeting();
 
                   return Row(
@@ -89,11 +90,18 @@ class ClientHomeHeader extends ConsumerWidget {
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: const CustomImage(
-                              path: KImages.pp,
-                              fit: BoxFit.cover,
-                              url: null,
-                            ),
+                            child: profileImageUrl != null &&
+                                    profileImageUrl.isNotEmpty
+                                ? CustomImage(
+                                    path: profileImageUrl,
+                                    fit: BoxFit.cover,
+                                    url: null,
+                                  )
+                                : const CustomImage(
+                                    path: KImages.pp, // Imagen predeterminada
+                                    fit: BoxFit.cover,
+                                    url: null,
+                                  ),
                           ),
                         ),
                       ),

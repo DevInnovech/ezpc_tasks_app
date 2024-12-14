@@ -24,7 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _name = '';
   String _email = '';
   String _profileImageUrl = '';
-
+  int _roleSwitchCounter = 1;
   @override
   void initState() {
     super.initState();
@@ -45,24 +45,61 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
+  String _generateReferralCode(String uid) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final rawCode = '$uid$timestamp';
+    final hash = rawCode.hashCode.toRadixString(36).toUpperCase();
+
+    // Rellenar con caracteres adicionales si es necesario
+    return hash.padRight(8, 'X').substring(0, 8);
+  }
+
   Future<void> _loadUserData() async {
     User? currentUser = _auth.currentUser;
+
     if (currentUser != null) {
       try {
+        // Obtener documento del usuario
         DocumentSnapshot userDoc =
             await _firestore.collection('users').doc(currentUser.uid).get();
 
-        if (userDoc.exists) {
-          Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
-
-          setState(() {
-            _name = '${data['name'] ?? ''} ${data['lastName'] ?? ''}';
-            _email = data['email'] ?? '';
-            _profileImageUrl = data['profileImageUrl'] ?? '';
-          });
+        if (!userDoc.exists) {
+          throw Exception('User document not found in Firestore.');
         }
-      } catch (e) {
-        print('Error al cargar los datos del usuario: $e');
+
+        Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+
+        // Actualizar datos en el estado
+        setState(() {
+          _name = '${data['name'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+          _email = data['email'] ?? '';
+          _profileImageUrl = data['profileImageUrl'] ?? '';
+        });
+
+        // Inicializar el contador y sincronizar el currentRole con el rol principal
+        final String role = data['role'] ?? '';
+        final String secondaryRole = data['secondaryRole'] ?? '';
+        String currentRole = data['currentRole'] ?? '';
+
+        if (currentRole.isEmpty) {
+          // Si no hay currentRole, sincronizarlo con el rol principal
+          currentRole = role;
+          await _firestore.collection('users').doc(currentUser.uid).update({
+            'currentRole': currentRole,
+          });
+          debugPrint(
+              'Primera vez iniciando sesión. currentRole sincronizado con role: $role');
+        }
+
+        // Inicializar el contador en 1 (rol principal)
+        setState(() {
+          _roleSwitchCounter = 1;
+        });
+
+        debugPrint('Rol inicial: $currentRole');
+        debugPrint('Contador inicial: $_roleSwitchCounter');
+      } catch (e, stackTrace) {
+        debugPrint('Error al cargar los datos del usuario: $e\n$stackTrace');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to load user data')),
         );
@@ -75,7 +112,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Consumer(
       builder: (context, ref, _) {
         final accountType = ref.watch(accountTypeProvider);
-
+        final accountTypeset = ref.read(accountTypeProvider.notifier);
+        print(accountType);
         int esclient = 0;
 
         return Scaffold(
@@ -100,13 +138,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                 ),
                 if (accountType == AccountType.client)
-                  esclient == 0
-                      ? _buildActionButton(context, 'Become a Provider')
-                      : _buildActionButton(context, 'Switch to Provider')
+                  _buildActionButton(
+                      context, 'Provider', accountType, accountTypeset)
                 else
-                  esclient == 0
-                      ? _buildActionButton(context, 'Become a Client')
-                      : _buildActionButton(context, 'Switch to Client'),
+                  _buildActionButton(
+                      context, 'Client', accountType, accountTypeset),
                 _buildDeleteAccount(context),
               ],
             ),
@@ -166,105 +202,133 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildSettingsOptions(BuildContext context, AccountType? accountType) {
-    List<Widget> options = [
-      _buildOption(
-        context,
-        Icons.person,
-        'Edit Profile',
-        ontap: () => Navigator.pushNamed(context, RouteNames.editProfileScreen),
-      ),
-      _buildOption(
-        context,
-        Icons.lock,
-        'Change password',
-        ontap: () =>
-            Navigator.pushNamed(context, RouteNames.changePasswordScreen),
-      ),
-      _buildOption(
-        context,
-        Icons.settings,
-        'Configuration',
-        ontap: () =>
-            Navigator.pushNamed(context, RouteNames.configurationScreen),
-      ),
-      _buildOption(
-        context,
-        Icons.payment,
-        'Payment Settings',
-        ontap: () => Navigator.pushNamed(context, RouteNames.paymentssettings),
-      ),
-      _buildOption(
-        context,
-        Icons.share,
-        'Referrals',
-        ontap: () => Navigator.pushNamed(context, RouteNames.referralScreen),
-      ),
-      _buildOption(context, Icons.history, 'View transaction history'),
-    ];
-    if (accountType != AccountType.client ||
-        accountType != AccountType.employeeProvider) {
-      options.insert(
-        1,
-        _buildOption(
-          context,
-          Icons.group,
-          'About me',
-          ontap: () =>
-              Navigator.pushNamed(context, RouteNames.providereditaboutScreen),
-        ),
-      );
-    }
-    if (accountType != AccountType.corporateProvider) {
-      options.insert(
-        4,
-        _buildOption(
-          context,
-          Icons.group,
-          'Employees',
-          ontap: () => Navigator.pushNamed(context, RouteNames.employeeScreen),
-        ),
-      );
-    } else if (accountType != AccountType.employeeProvider) {
-      options.insert(
-        4,
-        _buildOption(
-          context,
-          Icons.apartment,
-          'My Company',
-          ontap: () => Navigator.pushNamed(
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+          return const Text("Error loading user data");
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final currentRole = userData['currentRole'] ?? userData['role'] ?? '';
+        final referralCode = userData['referralCode'] ?? '';
+
+        List<Widget> options = [
+          _buildOption(
             context,
-            RouteNames.companyProfileScreen,
-            arguments: Company(
-              image: KImages.d01,
-              name: "Tech Solutions",
-              fin: "12-3456789",
-              email: "info@techsolutions.com",
-              phone: "+1 123 456 7890",
-              address: "Dominican Republic",
-              description:
-                  "We provide cutting-edge software development and IT consultancy services to businesses worldwide.",
-            ),
+            Icons.person,
+            'Edit Profile',
+            ontap: () =>
+                Navigator.pushNamed(context, RouteNames.editProfileScreen),
           ),
-        ),
-      );
-    }
+          _buildOption(
+            context,
+            Icons.lock,
+            'Change password',
+            ontap: () =>
+                Navigator.pushNamed(context, RouteNames.changePasswordScreen),
+          ),
+          _buildOption(
+            context,
+            Icons.settings,
+            'Configuration',
+            ontap: () =>
+                Navigator.pushNamed(context, RouteNames.configurationScreen),
+          ),
+          _buildOption(
+            context,
+            Icons.payment,
+            'Payment Settings',
+            ontap: () =>
+                Navigator.pushNamed(context, RouteNames.paymentssettings),
+          ),
+          _buildOption(
+            context,
+            Icons.share,
+            'Referrals',
+            ontap: () =>
+                Navigator.pushNamed(context, RouteNames.referralScreen),
+          ),
+          _buildOption(context, Icons.history, 'View transaction history'),
+        ];
 
-    options.addAll([
-      _buildOption(
-        context,
-        Icons.logout,
-        'Logout',
-        ontap: () => _showLogoutDialog(context),
-      ),
-      if (accountType == AccountType.client ||
-          accountType == AccountType.independentProvider)
-        _buildCopyReferral(context, '4897165120185'),
-      if (accountType == AccountType.corporateProvider)
-        _buildCopyReferral(context, 'BSC76823'),
-    ]);
+        if (accountType != AccountType.client &&
+            accountType != AccountType.employeeProvider) {
+          options.insert(
+            1,
+            _buildOption(
+              context,
+              Icons.group,
+              'About me',
+              ontap: () => Navigator.pushNamed(
+                  context, RouteNames.providereditaboutScreen),
+            ),
+          );
+        }
 
-    return Column(
-      children: options,
+        if (accountType == AccountType.corporateProvider) {
+          options.insert(
+            4,
+            _buildOption(
+              context,
+              Icons.group,
+              'Employees',
+              ontap: () =>
+                  Navigator.pushNamed(context, RouteNames.employeeScreen),
+            ),
+          );
+        } else if (accountType == AccountType.employeeProvider) {
+          options.insert(
+            4,
+            _buildOption(
+              context,
+              Icons.apartment,
+              'My Company',
+              ontap: () => Navigator.pushNamed(
+                context,
+                RouteNames.companyProfileScreen,
+                arguments: Company(
+                  image: KImages.d01,
+                  name: "Tech Solutions",
+                  fin: "12-3456789",
+                  email: "info@techsolutions.com",
+                  phone: "+1 123 456 7890",
+                  address: "Dominican Republic",
+                  description:
+                      "We provide cutting-edge software development and IT consultancy services to businesses worldwide.",
+                ),
+              ),
+            ),
+          );
+        }
+
+        options.addAll([
+          _buildOption(
+            context,
+            Icons.logout,
+            'Logout',
+            ontap: () => _showLogoutDialog(context),
+          ),
+          if (accountType == AccountType.client ||
+              accountType == AccountType.independentProvider &&
+                  referralCode.isNotEmpty)
+            _buildCopyReferral(context, referralCode),
+          if (accountType == AccountType.corporateProvider &&
+              referralCode.isNotEmpty)
+            _buildCopyReferral(context, referralCode),
+        ]);
+
+        return Column(
+          children: options,
+        );
+      },
     );
   }
 
@@ -287,7 +351,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               controller: TextEditingController(text: referralCode),
               readOnly: true,
               decoration: InputDecoration(
-                labelText: 'Referral Number',
+                labelText: 'Referral Code',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.copy),
                   onPressed: () {
@@ -335,27 +399,24 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  void _showConfirmationDialog(BuildContext context, String actionText,
-      String currentRole, String secondaryRole) {
-    // Determinar el nuevo rol (el contrario al actual)
-    final newRole = currentRole == 'Provider' ? 'Client' : 'Provider';
+  void _showConfirmationDialog(
+      BuildContext context,
+      String actionText,
+      String currentRole,
+      String secondaryRole,
+      AccountType? accountType,
+      AccountTypeNotifier accountset) {
+    // Determinar el nuevo rol (el rol secundario)
+    final targetRole = secondaryRole;
 
-    // Prevenir que el rol y el rol secundario sean iguales
-    if (newRole == secondaryRole) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Role and Secondary Role cannot be the same.')),
-      );
-      return;
-    }
-
+    // Mostrar el cuadro de diálogo de confirmación
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmation'),
           content: Text(
-            'Are you sure you want to $actionText? You will be redirected to your $newRole dashboard.',
+            'Are you sure you want to $actionText? You will be redirected to your $targetRole dashboard.',
           ),
           actions: [
             TextButton(
@@ -365,7 +426,8 @@ class _SettingsScreenState extends State<SettingsScreen>
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                await _switchRoleAndNavigate(context, currentRole, newRole);
+                await _navigateToSwitchRole(context, accountType,
+                    accountset); // Llamar al método actualizado
               },
               child: const Text('Confirm'),
             ),
@@ -375,51 +437,127 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Future<void> _switchRoleAndNavigate(
-      BuildContext context, String currentRole, String newRole) async {
+  Future<void> _navigateToSwitchRole(BuildContext context1,
+      AccountType? accountType, AccountTypeNotifier accountset) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         throw Exception("User not logged in");
       }
 
-      // Determinar el nombre de la ruta de navegación basado en el nuevo rol
-      final routeName = newRole == 'Client'
-          ? RouteNames.ClientmainScreen // Home para "Client"
-          : RouteNames.mainScreen; // Home para "Independent Provider"
-
-      // Navegar primero al Home del nuevo rol
-      Navigator.pushReplacementNamed(context, routeName);
-
-      // Esperar un breve tiempo para asegurarse de que la navegación se complete
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Luego actualizar `role` y `secondaryRole` en Firebase
-      await FirebaseFirestore.instance
+      final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update({
-        'role': newRole,
-        'secondaryRole':
-            currentRole, // El rol actual se convierte en secundario
-      });
+          .get();
 
-      // Mostrar mensaje de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Switched to $newRole successfully.'),
-        ),
-      );
+      if (!userDoc.exists) {
+        throw Exception("User document not found");
+      }
+
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final String role = userData['role'] ?? '';
+      final String secondaryRole = userData['secondaryRole'] ?? '';
+
+      if (role.isEmpty) {
+        throw Exception("Role or Secondary Role is not defined in Firestore.");
+      }
+      var routeName;
+      // Intercambiar valores de `role` y `secondaryRole`
+      if (secondaryRole.isEmpty || secondaryRole == '') {
+        // cosas de become
+        accountType == AccountType.client
+            ? Navigator.pushNamed(
+                context1,
+                RouteNames.backgroundCheckScreen,
+              )
+            : _showConfirmationbecomeDialog(context1, userData, user.uid);
+        /*print("trate");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Switched to trate view.')),
+        );*/
+      } else {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'role': secondaryRole, 'secondaryRole': role});
+        debugPrint(
+            'Roles intercambiados: Nuevo role=$secondaryRole, Nuevo secondaryRole=$role');
+
+        // Determinar la ruta basada en el nuevo rol principal
+
+        switch (secondaryRole) {
+          case 'Client':
+            routeName = RouteNames.ClientmainScreen;
+            accountset.selectAccountType(AccountType.client);
+            break;
+          case 'Independent Provider':
+            routeName = RouteNames.mainScreen;
+            accountset.selectAccountType(AccountType.independentProvider);
+            break;
+          default:
+        }
+
+        // Navegar al dashboard correspondiente y reiniciar el árbol
+        Navigator.pushNamedAndRemoveUntil(
+            context1, routeName, (route) => false);
+        // Navigator.pushReplacementNamed(context1, routeName);
+        ScaffoldMessenger.of(context1).showSnackBar(
+          SnackBar(content: Text('Switched to $secondaryRole view.')),
+        );
+      }
     } catch (e) {
-      // Manejar errores
-      print('Error updating role: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
+      debugPrint('Error switching role: $e');
+      ScaffoldMessenger.of(context1).showSnackBar(
         const SnackBar(content: Text('Failed to switch role.')),
       );
     }
   }
 
-  Widget _buildActionButton(BuildContext context, String defaultButtonText) {
+  void _showConfirmationbecomeDialog(
+      BuildContext context, Map<String, dynamic> userdatas, String userid) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmación'),
+          content: Text('¿Deseas convertirte en cliente?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo sin hacer nada
+              },
+              child: Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userid)
+                    .update({
+                  'role': userdatas['role'],
+                  'secondaryRole': 'Client',
+                });
+
+                debugPrint(
+                    'Roles intercambiados: Nuevo role=${userdatas['role']}, Nuevo secondaryRole=Client');
+                setState(() {});
+                Navigator.of(context).pop(); // Cierra el diálogo
+                // Aquí puedes agregar lógica para manejar el "Sí"
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('¡Bienvenido como cliente!')),
+                );
+              },
+              child: Text('Sí'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context, String defaultButtonText,
+      AccountType? accountType, AccountTypeNotifier accountset) {
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance
           .collection('users')
@@ -433,24 +571,23 @@ class _SettingsScreenState extends State<SettingsScreen>
         if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
           return const Text("Error loading role data");
         }
-
+        var buttonText = '';
+        final psecondaryrole =
+            defaultButtonText == 'Client' ? "Provider" : "Client";
         final userData = snapshot.data!.data() as Map<String, dynamic>;
-        final currentRole = userData['role'] ?? '';
-        final secondaryRole = userData['secondaryRole'] ?? '';
-
-        // Determinar el texto del botón
-        final buttonText = secondaryRole.isNotEmpty
-            ? "Switch to ${currentRole == 'Client' ? 'Independent Provider' : 'Client'}"
-            : defaultButtonText;
+        final String role = userData['role'] ?? '';
+        final String secondaryRole = userData['secondaryRole'] ?? '';
+        if (secondaryRole.isEmpty || secondaryRole == '') {
+          buttonText = "Become to $psecondaryrole";
+        } else {
+          buttonText = "Switch to $secondaryRole";
+        }
 
         return Padding(
           padding: const EdgeInsets.all(5.0),
           child: ElevatedButton(
-            onPressed: () => _switchRoleAndNavigate(
-              context,
-              currentRole,
-              currentRole == 'Client' ? 'Independent Provider' : 'Client',
-            ),
+            onPressed: () =>
+                _navigateToSwitchRole(context, accountType, accountset),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),

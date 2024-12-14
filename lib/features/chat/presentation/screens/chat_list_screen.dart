@@ -25,7 +25,104 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadIndependentProviders();
+    _determineUserRoleAndLoadChats();
+  }
+
+  Future<void> _determineUserRoleAndLoadChats() async {
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) return;
+
+      // Consultar el rol del usuario actual
+      DocumentSnapshot userSnapshot =
+          await _firestore.collection('users').doc(currentUser.uid).get();
+
+      if (userSnapshot.exists) {
+        final userData = userSnapshot.data() as Map<String, dynamic>;
+        final userRole = userData['role']; // Obtener el rol
+
+        // Cargar chats basados en el rol
+        if (userRole == 'Independent Provider') {
+          await _loadClientsForProvider(); // Proveedor: Cargar clientes con los que trabajó
+        } else {
+          await _loadIndependentProviders(); // Cliente: Cargar proveedores
+        }
+      }
+    } catch (e) {
+      print('Error determining user role: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load chat list')),
+      );
+    }
+  }
+
+  Future<void> _loadClientsForProvider() async {
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) return;
+
+      // Obtener los bookings donde el proveedor es el usuario actual
+      QuerySnapshot bookingsSnapshot = await _firestore
+          .collection('bookings')
+          .where('providerId', isEqualTo: currentUser.uid)
+          .get();
+
+      // Obtener los IDs únicos de los clientes
+      final Set<String> customerIds = bookingsSnapshot.docs
+          .map((doc) =>
+              (doc.data() as Map<String, dynamic>)['customerId'] as String?)
+          .where((id) => id != null) // Validar que no sean nulos
+          .cast<String>()
+          .toSet();
+
+      final List<Map<String, dynamic>> tempChats = [];
+
+      for (var customerId in customerIds) {
+        try {
+          DocumentSnapshot customerSnapshot =
+              await _firestore.collection('users').doc(customerId).get();
+
+          String customerName = 'Unknown'; // Nombre predeterminado
+          String profileImage = KImages.pp; // Imagen predeterminada
+
+          if (customerSnapshot.exists) {
+            final customerData =
+                customerSnapshot.data() as Map<String, dynamic>;
+            customerName =
+                '${customerData['name']} ${customerData['lastName'] ?? ''}'
+                    .trim();
+            profileImage = customerData['profileImage'] ?? KImages.pp;
+          }
+
+          String chatRoomId = _generateChatRoomId(currentUser.uid, customerId);
+
+          tempChats.add({
+            'name': customerName,
+            'message': '',
+            'time': '',
+            'unread': 0,
+            'hasMessages': false,
+            'image': profileImage,
+            'chatRoomId': chatRoomId,
+            'customerId': customerId,
+            'providerId': currentUser.uid,
+          });
+        } catch (e) {
+          print('Error loading customer data for $customerId: $e');
+        }
+      }
+
+      setState(() {
+        _chats = tempChats;
+      });
+
+      _loadChatData();
+    } catch (e) {
+      print('Error loading clients for provider: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load chat list')),
+      );
+    }
   }
 
   Future<void> _loadIndependentProviders() async {
@@ -33,80 +130,181 @@ class _ChatListScreenState extends State<ChatListScreen> {
       User? currentUser = _auth.currentUser;
       if (currentUser == null) return;
 
+      // Consultar los chats donde el usuario actual es el cliente
       QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .where('role', isEqualTo: 'Independent Provider')
+          .collection('chats')
+          .where('customerId', isEqualTo: currentUser.uid)
           .get();
 
+      final List<Map<String, dynamic>> tempChats = [];
+
+      for (var doc in snapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String chatRoomId = doc.id;
+        String providerId = data['providerId'];
+
+        // Consultar el nombre y la imagen del proveedor desde la colección `users`
+        DocumentSnapshot providerSnapshot =
+            await _firestore.collection('users').doc(providerId).get();
+
+        String providerName = 'Unknown'; // Nombre predeterminado
+        String profileImage = KImages.pp; // Imagen predeterminada
+        if (providerSnapshot.exists) {
+          final providerData = providerSnapshot.data() as Map<String, dynamic>;
+          providerName =
+              '${providerData['name']} ${providerData['lastName'] ?? ''}'
+                  .trim();
+          profileImage = providerData['profileImage'] ??
+              KImages.pp; // Cargar imagen de perfil o usar la predeterminada
+        }
+
+        tempChats.add({
+          'name': providerName, // Nombre real del proveedor
+          'message': '', // Se actualizará con el último mensaje
+          'time': '', // Se actualizará con el timestamp del mensaje
+          'unread': 0, // Se actualizará con la cantidad de mensajes no leídos
+          'hasMessages': false, // Indicar si hay mensajes
+          'image': profileImage, // Imagen del perfil del proveedor
+          'chatRoomId': chatRoomId,
+          'customerId': data['customerId'],
+          'providerId': providerId,
+        });
+      }
+
       setState(() {
-        _chats = snapshot.docs
-            .where(
-                (doc) => doc.id != currentUser.uid) // Exclude the current user
-            .map((doc) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          String chatRoomId = _generateChatRoomId(currentUser.uid, doc.id);
-
-          return {
-            'name': '${data['name'] ?? ''} ${data['lastName'] ?? ''}',
-            'message': '', // Will be updated with the latest message
-            'time': '', // Will be updated with the latest message timestamp
-            'unread': 0, // Will be updated with the count of unread messages
-            'hasMessages': false, // New field to check if messages exist
-            'image': KImages.pp, // Default profile image, can be customized
-            'chatRoomId': chatRoomId,
-            'customerId': currentUser.uid,
-            'providerId': doc.id,
-          };
-        }).toList();
-
-        // Load unread counts and last messages for each chat room
-        _loadChatData();
+        _chats = tempChats;
       });
+
+      // Cargar mensajes no leídos y últimos mensajes para cada sala de chat
+      _loadChatData();
     } catch (e) {
-      print('Error loading independent providers: $e');
+      print('Error loading chats: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to load chat list')),
       );
     }
   }
 
+  Future<void> _loadChatList() async {
+    User? currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    // Consultar el rol del usuario
+    DocumentSnapshot userSnapshot =
+        await _firestore.collection('users').doc(currentUser.uid).get();
+
+    if (userSnapshot.exists) {
+      final userData = userSnapshot.data() as Map<String, dynamic>;
+      final userRole = userData['role'];
+
+      if (userRole == 'Independent Provider') {
+        await _loadClientsForProvider(); // Cargar clientes del proveedor
+      } else {
+        await _loadIndependentProviders(); // Cargar proveedores para clientes
+      }
+    }
+  }
+
   Future<void> _loadChatData() async {
     for (var chat in _chats) {
-      String chatRoomId = chat['chatRoomId'];
-      // Load the count of unread messages
-      _firestore
-          .collection('chats')
-          .doc(chatRoomId)
-          .collection('messages')
-          .where('read', isEqualTo: false)
-          .where('receiverId', isEqualTo: _auth.currentUser?.uid)
-          .get()
-          .then((snapshot) {
-        if (snapshot.docs.isNotEmpty) {
+      if (chat == null) continue;
+
+      String? chatRoomId = chat['chatRoomId'] as String?;
+      if (chatRoomId == null) continue;
+
+      try {
+        // Escucha los mensajes en tiempo real.
+        _firestore
+            .collection('chats')
+            .doc(chatRoomId)
+            .collection('messages')
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .listen((snapshot) {
+          if (snapshot.docs.isNotEmpty) {
+            final messageData =
+                snapshot.docs.first.data() as Map<String, dynamic>?;
+
+            if (messageData != null &&
+                messageData.containsKey('text') &&
+                messageData.containsKey('createdAt')) {
+              setState(() {
+                chat['message'] = messageData['text'];
+                chat['time'] = _formatTimestamp(messageData['createdAt']);
+                chat['hasMessages'] = true;
+              });
+            } else {
+              print('Invalid message data for $chatRoomId: $messageData');
+            }
+          } else {
+            setState(() {
+              chat['message'] = 'No messages yet';
+              chat['time'] = '';
+              chat['hasMessages'] = false;
+            });
+          }
+        }, onError: (error) {
+          print('Error loading messages for $chatRoomId: $error');
+        });
+
+        // Escucha los mensajes no leídos en tiempo real.
+        _firestore
+            .collection('chats')
+            .doc(chatRoomId)
+            .collection('messages')
+            .where('read', isEqualTo: false)
+            .where('receiverId', isEqualTo: _auth.currentUser?.uid)
+            .snapshots()
+            .listen((snapshot) {
           setState(() {
+            // Actualiza los mensajes no leídos.
             chat['unread'] = snapshot.docs.length;
           });
-        }
-      });
+        }, onError: (error) {
+          print('Error loading unread messages for $chatRoomId: $error');
+        });
+      } catch (e) {
+        print('Unexpected error in chat data loading for $chatRoomId: $e');
+      }
+    }
+  }
 
-      // Load the last message
-      _firestore
-          .collection('chats')
-          .doc(chatRoomId)
-          .collection('messages')
-          .orderBy('createdAt', descending: true)
-          .limit(1)
-          .get()
-          .then((snapshot) {
-        if (snapshot.docs.isNotEmpty) {
-          final lastMessageData = snapshot.docs.first.data();
-          setState(() {
-            chat['message'] = lastMessageData['text'] ?? '';
-            chat['time'] = _formatTimestamp(lastMessageData['createdAt']);
-            chat['hasMessages'] = true; // Set flag to true if messages exist
-          });
+  void _markMessagesAsRead(String chatRoomId) async {
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) return; // Validar que haya un usuario autenticado
+
+      final chatRoomRef = _firestore.collection('chats').doc(chatRoomId);
+
+      await _firestore.runTransaction((transaction) async {
+        final chatRoomSnapshot = await transaction.get(chatRoomRef);
+
+        if (!chatRoomSnapshot.exists) return;
+
+        // Obtener los contadores actuales
+        final unreadCounts = Map<String, dynamic>.from(
+          chatRoomSnapshot.data()?['unreadCounts'] ?? {},
+        );
+
+        // Limpiar los mensajes no leídos del usuario actual
+        unreadCounts[userId] = 0;
+
+        // Actualizar Firestore
+        transaction.update(chatRoomRef, {'unreadCounts': unreadCounts});
+
+        // Opcional: Marcar mensajes como leídos
+        final unreadMessagesQuery = await chatRoomRef
+            .collection('messages')
+            .where('receiverId', isEqualTo: userId)
+            .where('read', isEqualTo: false)
+            .get();
+
+        for (var doc in unreadMessagesQuery.docs) {
+          transaction.update(doc.reference, {'read': true});
         }
       });
+    } catch (e) {
+      print('Error marking messages as read: $e');
     }
   }
 
@@ -114,10 +312,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return id1.compareTo(id2) < 0 ? '${id1}_$id2' : '${id2}_$id1';
   }
 
-  String _formatTimestamp(int? timestamp) {
+  String _formatTimestamp(dynamic timestamp) {
     if (timestamp == null) return '';
-    DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return DateFormat('hh:mm a').format(date);
+    try {
+      if (timestamp is Timestamp) {
+        return DateFormat('hh:mm a').format(timestamp.toDate());
+      } else if (timestamp is int) {
+        return DateFormat('hh:mm a')
+            .format(DateTime.fromMillisecondsSinceEpoch(timestamp));
+      } else {
+        print('Unsupported timestamp type: $timestamp');
+      }
+    } catch (e) {
+      print('Error formatting timestamp: $e');
+    }
+    return '';
   }
 
   void _setSearchTerm(String term) {
@@ -149,6 +358,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   void _navigateToChat(Map<String, dynamic> chat) {
+    _markMessagesAsRead(chat['chatRoomId']); // Marcar mensajes como leídos
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -156,7 +366,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           chatRoomId: chat['chatRoomId'],
           customerId: chat['customerId'],
           providerId: chat['providerId'],
-          isFakeData: false, // Real data usage
+          isFakeData: false,
         ),
       ),
     );
@@ -221,24 +431,57 @@ class _ChatListScreenState extends State<ChatListScreen> {
       title: const Text('Chats',
           style: TextStyle(fontSize: 24, color: Colors.white)),
       centerTitle: true,
-      actions: const [
+      actions: [
         Padding(
-          padding: EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            radius: 25,
-            backgroundColor: Colors.transparent,
-            child: ClipOval(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: CustomImage(
-                  url: null,
-                  path: KImages.pp,
-                  fit: BoxFit.cover,
-                  width: 40,
-                  height: 40,
-                ),
-              ),
-            ),
+          padding: const EdgeInsets.all(8.0),
+          child: FutureBuilder<DocumentSnapshot>(
+            future: _firestore
+                .collection('users')
+                .doc(_auth.currentUser?.uid)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.grey,
+                  child: CircularProgressIndicator(),
+                );
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!.exists) {
+                print('Error loading user data: ${snapshot.error}');
+                return const CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.error, color: Colors.white),
+                );
+              }
+
+              try {
+                final userData = snapshot.data!.data() as Map<String, dynamic>;
+                final profileImageUrl =
+                    userData['profileImageUrl'] ?? KImages.pp;
+
+                return CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.transparent,
+                  child: ClipOval(
+                    child: CustomImage(
+                      path: profileImageUrl,
+                      fit: BoxFit.cover,
+                      url: null,
+                    ),
+                  ),
+                );
+              } catch (e) {
+                print('Error processing user data: $e');
+                return const CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.error, color: Colors.white),
+                );
+              }
+            },
           ),
         ),
       ],
@@ -251,23 +494,33 @@ class _ChatListScreenState extends State<ChatListScreen> {
       child: Container(
         height: 42,
         decoration: BoxDecoration(
-          color: Colors.grey[350],
+          color: Colors.white,
           borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: Colors.grey[400]!, // Color del borde
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 6,
+              offset: const Offset(0, 2), // Sombra ligera para resaltar
+            ),
+          ],
         ),
         child: TextField(
           onChanged: _setSearchTerm,
           decoration: const InputDecoration(
-            hintText: 'Search',
+            hintText: 'Search...',
             hintStyle:
-                TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
             prefixIcon: Icon(
               Icons.search,
-              color: Colors.white,
-              size: 30,
+              color: Colors.grey,
+              size: 25,
             ),
             border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           ),
           style: const TextStyle(color: Colors.black),
@@ -306,43 +559,68 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Widget _buildChatItem(Map<String, dynamic> chat) {
-    final bool hasUnreadMessages = chat['unread'] > 0;
+    final bool hasUnreadMessages = (chat['unread'] ?? 0) > 0;
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.transparent,
-        child: ClipOval(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: CustomImage(
-              url: null,
-              path: chat['image'].toString(),
-              fit: BoxFit.cover,
+      leading: FutureBuilder<DocumentSnapshot>(
+        future: _firestore
+            .collection('users')
+            .doc(
+              chat['customerId'] == _auth.currentUser?.uid
+                  ? chat['providerId']
+                  : chat['customerId'],
+            )
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircleAvatar(
+              backgroundColor: Colors.grey,
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError ||
+              !snapshot.hasData ||
+              !snapshot.data!.exists) {
+            return const CircleAvatar(
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.error, color: Colors.white),
+            );
+          }
+
+          final userData = snapshot.data!.data() as Map<String, dynamic>;
+          final profileImageUrl = userData['profileImageUrl'] ?? KImages.pp;
+          print(userData['profileImageUrl']);
+
+          return CircleAvatar(
+            backgroundColor: Colors.transparent,
+            child: ClipOval(
+              child: CustomImage(
+                path: profileImageUrl,
+                fit: BoxFit.cover,
+                url: null,
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
       title: Text(
-        chat['name'],
+        chat['name'] ?? 'Unknown',
         style: TextStyle(
           fontSize: 16,
           fontWeight: hasUnreadMessages ? FontWeight.bold : FontWeight.normal,
         ),
       ),
-      subtitle: chat['hasMessages']
-          ? Text(
-              chat['message'],
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: hasUnreadMessages ? Colors.black : Colors.grey[600],
-              ),
-            )
-          : null,
+      subtitle: Text(
+        chat['message'] ?? 'No messages yet',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: hasUnreadMessages ? Colors.black : Colors.grey[600],
+        ),
+      ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(chat['time'], style: const TextStyle(fontSize: 12)),
-          if (chat['unread'] > 0)
+          Text(chat['time'] ?? '', style: const TextStyle(fontSize: 12)),
+          if (hasUnreadMessages)
             Container(
               margin: const EdgeInsets.only(top: 5),
               padding: const EdgeInsets.all(5),
@@ -357,6 +635,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ),
         ],
       ),
+      onTap: () => _navigateToChat(chat),
     );
   }
 }

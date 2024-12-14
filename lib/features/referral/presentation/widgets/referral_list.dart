@@ -1,8 +1,8 @@
 import 'package:ezpc_tasks_app/features/referral/data/referral_provider.dart';
-import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referral_bonus_header.dart';
-import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referral_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'referral_card.dart';
+import 'referral_bonus_header.dart';
 
 class ReferralList extends ConsumerWidget {
   const ReferralList({super.key});

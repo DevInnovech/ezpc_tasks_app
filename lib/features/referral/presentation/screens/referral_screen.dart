@@ -1,6 +1,5 @@
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referral_bonus_header.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referral_list.dart';
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
 class ReferralScreen extends StatelessWidget {
@@ -9,6 +8,7 @@ class ReferralScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
@@ -86,4 +86,16 @@ Widget buildCustomAppBar(BuildContext context, String title) {
       ],
     ),
   );
+=======
+      appBar: AppBar(
+        title: const Text('Referrals'),
+        centerTitle: true,
+      ),
+      body: const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: ReferralList(),
+      ),
+    );
+  }
+>>>>>>> 83879b75d89960497a3b7ae11f5a3163d80988cd
 }

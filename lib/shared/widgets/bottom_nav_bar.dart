@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class MyBottomNavigationBar extends StatelessWidget {
-  const MyBottomNavigationBar({super.key});
+  const MyBottomNavigationBar({super.key, required this.scaffoldKey});
+  final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
   Widget build(BuildContext context) {
@@ -76,16 +77,21 @@ class MyBottomNavigationBar extends StatelessWidget {
                       label: "Wallet",
                     ),
                     BottomNavigationBarItem(
-                      tooltip: "Profile",
-                      icon: _navIcon(KImages.person),
-                      activeIcon: _navIcon(KImages.personActive),
-                      label: "Profile",
+                      tooltip: "More",
+                      icon: _navIcon(KImages.more),
+                      activeIcon: _navIcon(KImages.moreActive),
+                      label: "More",
                     ),
                   ],
                   // type: BottomNavigationBarType.fixed,
                   currentIndex: selectedIndex,
                   onTap: (int index) {
-                    controller.naveListener.sink.add(index);
+                    if (index == 4) {
+                      scaffoldKey.currentState!.openDrawer();
+                      controller.naveListener.sink.add(0);
+                    } else {
+                      controller.naveListener.sink.add(index);
+                    }
                   },
                 ));
           },

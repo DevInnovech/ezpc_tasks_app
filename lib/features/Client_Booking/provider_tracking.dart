@@ -1,8 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/provider_tracking_provider.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/expandable_status.dart';
+import 'package:ezpc_tasks_app/features/chat/data/chat_repository.dart';
+import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -29,7 +33,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
-                _buildHeader(trackingData),
+                _buildHeader(trackingData, context),
                 _buildOrderInfo(trackingData),
                 _buildMap(trackingData, context),
                 _buildProcessIndicator(trackingData.status),
@@ -51,7 +55,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(trackingData) {
+  Widget _buildHeader(trackingData, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
       child: Column(
@@ -75,9 +79,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
                       Icons.chat,
                       color: primaryColor,
                     ),
-                    onPressed: () {
-                      // Navegar a la pantalla de chat
-                    },
+                    onPressed: () => _openChatWithCustomer(context),
                   ),
                   IconButton(
                     icon: const Icon(
@@ -95,6 +97,79 @@ class ProviderTrackingScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _openChatWithCustomer(BuildContext context) async {
+    final clientId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (clientId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Unable to start chat: Missing client ID')),
+      );
+      return;
+    }
+
+    try {
+      // Consulta la orden en Firebase para obtener el providerId
+      final orderSnapshot = await FirebaseFirestore.instance
+          .collection('orders') // Cambia por la colección correspondiente
+          .doc(order.orderId) // Usa orderId para buscar la orden
+          .get();
+
+      if (!orderSnapshot.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Order not found!')),
+        );
+        return;
+      }
+
+      // Extraer providerId de los datos de la orden
+      final orderData = orderSnapshot.data() as Map<String, dynamic>;
+      final providerId = orderData['providerId'] as String?;
+
+      if (providerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Provider ID not found in order data')),
+        );
+        return;
+      }
+
+      final chatRepository = ChatRepository();
+      final chatRoomId =
+          chatRepository.generateChatRoomId(clientId, providerId);
+
+      // Crear la sala de chat si no existe
+      final chatRoomRef =
+          FirebaseFirestore.instance.collection('chats').doc(chatRoomId);
+      final chatRoomSnapshot = await chatRoomRef.get();
+
+      if (!chatRoomSnapshot.exists) {
+        await chatRoomRef.set({
+          'createdAt': DateTime.now().millisecondsSinceEpoch,
+          'customerId': clientId,
+          'providerId': providerId,
+        });
+      }
+
+      // Navegar a la pantalla de chat
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CustomerChatScreen(
+            chatRoomId: chatRoomId,
+            customerId: clientId,
+            providerId: providerId,
+            isFakeData: false,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+      print('Error opening chat: $e');
+    }
   }
 
   Widget _buildOrderInfo(trackingData) {
