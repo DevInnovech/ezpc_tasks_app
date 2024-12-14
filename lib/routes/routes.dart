@@ -450,7 +450,10 @@ class RouteNames {
           ),
         );
       case RouteNames.provideraboutScreen:
-        return MaterialPageRoute(builder: (_) => const AboutMeScreen());
+        final args = settings.arguments as Map<String, dynamic>;
+        final userId = args['userId'] as String;
+        return MaterialPageRoute(builder: (_) => AboutMeScreen(userId: userId));
+
       case RouteNames.providereditaboutScreen:
         return MaterialPageRoute(builder: (_) => const EditAboutMeScreen());
       case RouteNames.previewScreen:

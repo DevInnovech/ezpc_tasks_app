@@ -11,12 +11,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AboutMeScreen extends StatelessWidget {
-  const AboutMeScreen({super.key});
-
+  final String userId;
+  const AboutMeScreen({super.key, required this.userId});
   Future<Map<String, dynamic>?> fetchAboutMeData() async {
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId == null) throw Exception("User not logged in");
+      if (userId.isEmpty) throw Exception("No userId provided");
 
       final doc = await FirebaseFirestore.instance
           .collection('about_me')
