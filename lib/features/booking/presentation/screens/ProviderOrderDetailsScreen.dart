@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:ezpc_tasks_app/features/booking/data/booking_provider.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/Map_Screen.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/single_expansion_tile.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -8,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 class OrderDetailsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> order;
@@ -214,6 +218,29 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     );
   }
 
+  Future<Map<String, double>?> getCoordinatesFromAddress(
+      String address, String apiKey) async {
+    final url =
+        'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$apiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['results'].isNotEmpty) {
+          final location = data['results'][0]['geometry']['location'];
+          return {
+            'latitude': location['lat'],
+            'longitude': location['lng'],
+          };
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching coordinates: $e');
+    }
+    return null;
+  }
+
   Widget _buildConditionalButton(BuildContext context) {
     if (taskStatus == "pending") {
       return Row(
@@ -241,7 +268,43 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       );
     } else if (taskStatus == "accepted") {
       return ElevatedButton(
-        onPressed: () => _updateTaskStatus("started"),
+        onPressed: () async {
+          final String address =
+              widget.order['clientAddress'] ?? 'Unknown Address';
+
+          // Si no tienes latitud/longitud en el pedido, usa la API de Geocoding
+          double latitude = widget.order['latitude'] ?? 0.0;
+          double longitude = widget.order['longitude'] ?? 0.0;
+
+          if (latitude == 0.0 && longitude == 0.0) {
+            // Llamar a la función para obtener las coordenadas desde la dirección
+            final coordinates = await getCoordinatesFromAddress(
+                address, 'AIzaSyAniwsNy7RlHjkeU8x_k44dPsw4isyK-d0');
+            if (coordinates != null) {
+              latitude = coordinates['latitude']!;
+              longitude = coordinates['longitude']!;
+            } else {
+              // Mostrar un mensaje si no se puede obtener la ubicación
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Failed to fetch location.')),
+              );
+              return;
+            }
+          }
+
+          // Navegar a la pantalla del mapa
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MapScreen(
+                latitude: latitude,
+                longitude: longitude,
+                address: address,
+                providerId: FirebaseAuth.instance.currentUser?.uid ?? '',
+              ),
+            ),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
           minimumSize: const Size.fromHeight(50),

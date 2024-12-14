@@ -6,8 +6,7 @@ class FolderView extends StatelessWidget {
   final String title;
   final List<VideoModel> videos;
 
-  const FolderView({Key? key, required this.title, required this.videos})
-      : super(key: key);
+  const FolderView({super.key, required this.title, required this.videos});
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +42,7 @@ class VideosByGuideScreen extends StatelessWidget {
   final List<VideoModel> videos;
 
   const VideosByGuideScreen(
-      {Key? key, required this.title, required this.videos})
-      : super(key: key);
+      {super.key, required this.title, required this.videos});
 
   @override
   Widget build(BuildContext context) {

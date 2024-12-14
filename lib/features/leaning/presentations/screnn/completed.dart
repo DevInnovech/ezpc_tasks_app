@@ -5,7 +5,7 @@ import '../../data/video_provider.dart';
 import '../widgets/folder_view.dart';
 
 class CompletedTab extends ConsumerWidget {
-  const CompletedTab({Key? key}) : super(key: key);
+  const CompletedTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

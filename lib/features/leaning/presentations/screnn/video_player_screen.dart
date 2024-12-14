@@ -4,7 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class VideoPlayerScreen extends StatelessWidget {
   final String videoUrl;
 
-  const VideoPlayerScreen({Key? key, required this.videoUrl}) : super(key: key);
+  const VideoPlayerScreen({super.key, required this.videoUrl});
 
   @override
   Widget build(BuildContext context) {

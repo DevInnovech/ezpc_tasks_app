@@ -110,7 +110,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
         providerId: userID, // Asignar el ID del proveedor
         provider: null,
         details: '', duration: '', description: '', clientName: '',
-        clientLastName: '',
+        clientLastName: '', questions: '',
       );
 
       state = state.copyWith(currentTask: emptyTask);
@@ -288,7 +288,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
         duration: task.duration,
         description: task.description,
         clientName: task.clientName,
-        clientLastName: task.clientLastName,
+        clientLastName: task.clientLastName, questions: task.questions,
       );
 
       // Save the task in the repository

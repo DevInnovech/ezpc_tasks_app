@@ -40,6 +40,7 @@ class Task {
   final String description; // Nuevo campo
   final String clientName; // Nuevo campo para el nombre del cliente
   final String clientLastName; // Nuevo campo para el apellido del cliente
+  final String questions;
 
   Task({
     required this.id,
@@ -83,6 +84,7 @@ class Task {
     required this.description,
     required this.clientName, // Inicialización del nuevo campo
     required this.clientLastName, // Inicialización del nuevo campo
+    required this.questions,
   });
 
   // Método para copiar la tarea con modificaciones
@@ -129,6 +131,7 @@ class Task {
     String? userId,
     String? clientName,
     String? clientLastName,
+    String? questions,
   }) {
     return Task(
       id: id ?? this.id,
@@ -173,6 +176,7 @@ class Task {
       description: description ?? this.description,
       clientName: clientName ?? this.clientName,
       clientLastName: clientLastName ?? this.clientLastName,
+      questions: questions ?? this.questions,
     );
   }
 
@@ -220,6 +224,7 @@ class Task {
       'description': description,
       'clientName': clientName, // Conversión del nuevo campo
       'clientLastName': clientLastName, // Conversión del nuevo campo
+      'questions': questions, // Conversión del nuevo campo
     };
   }
 
@@ -227,7 +232,7 @@ class Task {
     return Task(
       id: map['id'] ?? '',
       taskId: map['taskId'] ?? '',
-      taskName: map['name'] ?? '',
+      taskName: map['taskName'] ?? '',
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
       slug: map['slug'] ?? '',
@@ -243,6 +248,7 @@ class Task {
       licenseNumber: map['licenseNumber'] ?? '',
       licenseExpirationDate: map['licenseExpirationDate'] ?? '',
       workingDays: List<String>.from(map['workingDays'] ?? []),
+      questions: map['questions'] ?? '',
       workingHours: (map['workingHours'] != null)
           ? (map['workingHours'] as Map<String, dynamic>).map((key, value) {
               return MapEntry(key, Map<String, String>.from(value));

@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 class ReferralPopup extends StatelessWidget {
   final String referralCode;
 
-  const ReferralPopup({Key? key, required this.referralCode}) : super(key: key);
+  const ReferralPopup({super.key, required this.referralCode});
 
   final String titulo = 'Get 5 by helping your friends';
   final String subtitulo =
@@ -122,9 +122,9 @@ class ReferralPopup extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: const Text(
+                        child: const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
                             'Referral program details: Share this link with your friends to earn rewards!',
                             style: TextStyle(fontSize: 16),
                           ),

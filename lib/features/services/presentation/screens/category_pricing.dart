@@ -27,13 +27,13 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
   bool _isLoadingCategories = true;
   bool _isLoadingSubCategories = false;
 
-  double? _categoryRate; // Se asigna al modelo como `price`.
-  double? _serviceRate; // Se asigna al modelo como `subCategoryprice`.
+  double? _categoryRate; // Asigna al modelo como `price`.
+  double? _serviceRate; // Asigna al modelo como `subCategoryPrice`.
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _loadCategories(); // Carga las categorías al iniciar
   }
 
   Future<void> _loadCategories() async {
@@ -41,6 +41,7 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
       _isLoadingCategories = true;
     });
 
+    // Obtén todas las categorías desde Firestore
     final snapshot =
         await FirebaseFirestore.instance.collection('categories').get();
     final categories =
@@ -49,6 +50,13 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
     setState(() {
       _categories = categories;
       _isLoadingCategories = false;
+
+      // Reinicia la selección si no es válida
+      if (!_categories.any((cat) => cat['id'] == _selectedCategoryId)) {
+        _selectedCategoryId = null;
+        _subCategories = [];
+        _services = [];
+      }
     });
   }
 
@@ -57,14 +65,22 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
       _isLoadingSubCategories = true;
     });
 
+    // Obtén subcategorías y preguntas para la categoría seleccionada
     final category = _categories.firstWhere((cat) => cat['id'] == categoryId);
     final subCategories =
         List<Map<String, dynamic>>.from(category['subcategories'] ?? []);
+    final questions =
+        List<Map<String, dynamic>>.from(category['questions'] ?? []);
 
     setState(() {
       _subCategories = subCategories;
       _isLoadingSubCategories = false;
-      _services = []; // Reiniciar servicios al cargar nuevas subcategorías
+
+      // Reinicia las subcategorías y servicios seleccionados
+      if (!_subCategories.any((sub) => sub['name'] == _selectedSubCategoryId)) {
+        _selectedSubCategoryId = null;
+        _services = [];
+      }
     });
   }
 
@@ -74,6 +90,11 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
 
     setState(() {
       _services = List<String>.from(subCategory['services'] ?? []);
+
+      // Reinicia el servicio seleccionado si no es válido
+      if (!_services.contains(_selectedServiceId)) {
+        _selectedServiceId = null;
+      }
     });
   }
 
@@ -92,7 +113,7 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
             const SizedBox(height: 8),
             ServiceImage(
               onImageSelected: (String imageUrl) {
-                // Actualizar el estado con la URL de la imagen
+                // Actualiza la URL de la imagen en el estado
                 ref.read(taskProvider.notifier).updateTask(imageUrl: imageUrl);
               },
             ),
@@ -125,6 +146,7 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
 
                         ref.read(taskProvider.notifier).updateTask(
                               category: category['name'],
+                              categoryId: categoryId,
                             );
                       }
                     },

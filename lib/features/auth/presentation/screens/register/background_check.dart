@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 class BackgroundCheckPage extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
 
+  BackgroundCheckPage({super.key});
+
   Future<void> createCandidate(
       BuildContext context, Map<String, dynamic> candidateData) async {
     const String apiKey = "YOUR_CHECKR_API_KEY";

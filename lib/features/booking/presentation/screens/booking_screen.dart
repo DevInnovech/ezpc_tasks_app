@@ -12,7 +12,7 @@ import 'package:ezpc_tasks_app/shared/widgets/loading_widget.dart';
 import 'package:ezpc_tasks_app/shared/widgets/scrolling_taggle_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';*/
 import 'package:flutter/material.dart';
-import 'package:ezpc_tasks_app/features/booking/presentation/screens/OrderDetailsScreen.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

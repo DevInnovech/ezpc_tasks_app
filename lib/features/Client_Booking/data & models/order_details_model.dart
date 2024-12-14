@@ -1,9 +1,7 @@
-import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
-import 'package:ezpc_tasks_app/features/order/models/order_model.dart';
-
 class OrderDetailsDto {
   final String orderId;
   final String taskName;
+  final String providerId;
   final String providerName;
   final String providerImageUrl;
   final String date;
@@ -23,6 +21,7 @@ class OrderDetailsDto {
     required this.orderId,
     required this.taskName,
     required this.providerName,
+    required this.providerId,
     required this.providerImageUrl,
     required this.date,
     required this.time,
@@ -43,6 +42,7 @@ class OrderDetailsDto {
     return OrderDetailsDto(
       orderId: map['id'] ?? '',
       taskName: map['taskName'] ?? '',
+      providerId: map['providerId'] ?? '',
       providerName: map['providerName'] ?? '',
       providerImageUrl: map['providerImageUrl'] ?? '',
       date: map['date'] ?? '',
@@ -65,6 +65,7 @@ class OrderDetailsDto {
     return {
       'id': orderId,
       'taskName': taskName,
+      'providerId': providerId,
       'providerName': providerName,
       'providerImageUrl': providerImageUrl,
       'date': date,

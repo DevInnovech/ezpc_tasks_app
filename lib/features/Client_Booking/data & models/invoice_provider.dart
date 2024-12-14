@@ -1,8 +1,3 @@
-import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
-import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
-import 'package:ezpc_tasks_app/features/order/models/order_model.dart';
-import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 /*
 // Proveedor falso para los detalles de la factura de una orden
 final invoiceProvider =

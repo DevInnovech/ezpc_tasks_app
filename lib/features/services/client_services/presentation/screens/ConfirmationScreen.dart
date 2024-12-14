@@ -23,11 +23,7 @@ class ConfirmationScreen extends StatefulWidget {
 class _ConfirmationScreenState extends State<ConfirmationScreen> {
   bool isLoading = false;
 
-  Future<void> saveBookingToFirestore() async {
-    setState(() {
-      isLoading = true;
-    });
-
+  Future<void> saveBookingToFirestoreAfterPayment() async {
     try {
       // Obtener el ID del cliente autenticado
       final user = FirebaseAuth.instance.currentUser;
@@ -43,27 +39,32 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
         'bookingId': bookingId,
         'customerId': user.uid, // ID del cliente autenticado
         'status': 'pending', // Estado inicial
+        'paymentStatus': 'Paid', // Estado del pago
       };
 
+      // Guardar la reserva en Firestore
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId) // Guardar usando el bookingId generado
           .set(bookingData);
 
+      if (kDebugMode) {
+        print("Booking saved successfully with payment status 'Paid'");
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Booking saved successfully!')),
       );
 
-      // Navegar a la pantalla de pago
-      Navigator.pushNamed(context, '/payment');
+      // Navegar a la pantalla de éxito o cerrar el flujo actual
+      Navigator.pushNamed(context, '/success');
     } catch (e) {
+      if (kDebugMode) {
+        print("Failed to save booking: $e");
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save booking: $e')),
       );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
@@ -361,8 +362,8 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
         const SnackBar(content: Text("Payment successful!")),
       );
 
-      // Guardar en Firestore con `paymentStatus` como "Paid"
-      await savePaymentStatus("Paid");
+      // Guardar el booking después del pago exitoso
+      await saveBookingToFirestoreAfterPayment();
 
       // Mostrar tarjeta de éxito
       showDialog(

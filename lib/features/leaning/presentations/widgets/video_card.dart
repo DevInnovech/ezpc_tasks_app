@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 class VideoCard extends StatelessWidget {
   final VideoModel video;
 
-  const VideoCard({Key? key, required this.video}) : super(key: key);
+  const VideoCard({super.key, required this.video});
 
   @override
   Widget build(BuildContext context) {

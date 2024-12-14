@@ -1,5 +1,6 @@
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/booking_details_tasks_details.dart';
+import 'package:ezpc_tasks_app/features/Client_Booking/provider_tracking.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -70,20 +71,26 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     setState(() {
       if (index == 0) {
+        // Filtrar tanto 'pending' como 'accepted' en la categoría de pendientes
         filteredBookings = bookings
-            .where((booking) => booking['status']?.toLowerCase() == 'pending')
+            .where((booking) =>
+                booking['status']?.toLowerCase() == 'pending' ||
+                booking['status']?.toLowerCase() == 'accepted')
             .toList();
       } else if (index == 1) {
+        // 'in progress' y 'started' para tareas en progreso
         filteredBookings = bookings
             .where((booking) =>
                 booking['status']?.toLowerCase() == 'in progress' ||
                 booking['status']?.toLowerCase() == 'started')
             .toList();
       } else if (index == 2) {
+        // Solo 'completed' para tareas completadas
         filteredBookings = bookings
             .where((booking) => booking['status']?.toLowerCase() == 'completed')
             .toList();
       } else if (index == 3) {
+        // Solo 'cancelled' para tareas canceladas
         filteredBookings = bookings
             .where((booking) => booking['status']?.toLowerCase() == 'cancelled')
             .toList();
@@ -136,33 +143,67 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       final booking = filteredBookings[index];
                       return InkWell(
                         onTap: () {
-                          // Convertir datos de booking a OrderDetailsDto
-                          final orderDetails = OrderDetailsDto(
-                            orderId: booking['bookingId'] ?? 'N/A',
-                            taskName: booking['selectedTaskName'] ?? 'N/AAA',
-                            providerName: booking['providerName'] ?? 'N/A',
-                            providerImageUrl: booking['providerImageUrl'] ?? '',
-                            date: booking['date'] ?? 'N/A',
-                            time: booking['timeSlot'] ?? 'N/A',
-                            price: booking['taskPrice']?.toDouble() ?? 0.0,
-                            discount: booking['discount']?.toDouble() ?? 0.0,
-                            tax: booking['tax']?.toDouble() ?? 0.0,
-                            total: booking['totalPrice']?.toDouble() ?? 0.0,
-                            status: booking['status'] ?? 'N/A',
-                            address: booking['clientAddress'] ?? 'N/A',
-                            providerEmail: booking['providerEmail'] ?? 'N/A',
-                            providerPhone: booking['providerPhone'] ?? 'N/A',
-                            rating: booking['rating']?.toDouble() ?? 0.0,
-                            paymentStatus: booking['paymentStatus'] ?? 'N/A',
-                          );
+                          try {
+                            // Crea el objeto OrderDetailsDto a partir de los datos de booking
+                            final orderDetails = OrderDetailsDto(
+                              orderId:
+                                  booking['bookingId']?.toString() ?? 'N/A',
+                              providerId:
+                                  booking['providerId']?.toString() ?? 'N/A',
+                              taskName:
+                                  booking['selectedTaskName']?.toString() ??
+                                      'N/A',
+                              providerName:
+                                  booking['providerName']?.toString() ?? 'N/A',
+                              providerImageUrl:
+                                  booking['providerImageUrl']?.toString() ?? '',
+                              date: booking['date']?.toString() ?? 'N/A',
+                              time: booking['timeSlot']?.toString() ?? 'N/A',
+                              price: double.tryParse(
+                                      booking['taskPrice']?.toString() ??
+                                          '0.0') ??
+                                  0.0,
+                              discount: double.tryParse(
+                                      booking['discount']?.toString() ??
+                                          '0.0') ??
+                                  0.0,
+                              tax: double.tryParse(
+                                      booking['tax']?.toString() ?? '0.0') ??
+                                  0.0,
+                              total: double.tryParse(
+                                      booking['totalPrice']?.toString() ??
+                                          '0.0') ??
+                                  0.0,
+                              status: booking['status']?.toString() ?? 'N/A',
+                              address:
+                                  booking['clientAddress']?.toString() ?? 'N/A',
+                              providerEmail:
+                                  booking['providerEmail']?.toString() ?? 'N/A',
+                              providerPhone:
+                                  booking['providerPhone']?.toString() ?? 'N/A',
+                              rating: double.tryParse(
+                                      booking['rating']?.toString() ?? '0.0') ??
+                                  0.0,
+                              paymentStatus:
+                                  booking['paymentStatus']?.toString() ?? 'N/A',
+                            );
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  OrderDetails(order: orderDetails),
-                            ),
-                          );
+                            // Navega al ProviderTrackingScreen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProviderTrackingScreen(order: orderDetails),
+                              ),
+                            );
+                          } catch (e) {
+                            // Muestra un mensaje de error si algo falla
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text('Error al cargar la orden: $e')),
+                            );
+                          }
                         },
                         child: _buildBookingCard(booking),
                       );

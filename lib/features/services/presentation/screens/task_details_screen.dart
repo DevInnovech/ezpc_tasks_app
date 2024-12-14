@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 
 class TaskDetailsScreen extends ConsumerWidget {
   final Task task;
@@ -118,7 +116,7 @@ class TaskDetailsScreen extends ConsumerWidget {
               const SizedBox(height: 16.0),
               _buildSectionTitle('Description'),
               Text(
-                task.description,
+                task.details,
                 style: const TextStyle(
                   fontSize: 16.0,
                   height: 1.5,

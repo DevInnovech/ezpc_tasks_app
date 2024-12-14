@@ -6,7 +6,7 @@ import '../../data/video_provider.dart';
 import '../widgets/video_card.dart';
 
 class LearningScreen extends ConsumerWidget {
-  const LearningScreen({Key? key}) : super(key: key);
+  const LearningScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,21 +20,21 @@ class LearningScreen extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('Learning'),
           centerTitle: true,
-          bottom: TabBar(
+          bottom: const TabBar(
             indicatorColor:
                 primaryColor, // Color de la línea debajo del tab activo
             indicatorWeight: 6, // Grosor de la línea
             labelColor: primaryColor, // Color del texto del tab activo
             unselectedLabelColor:
                 Colors.grey, // Color del texto de los tabs inactivos
-            labelStyle: const TextStyle(
+            labelStyle: TextStyle(
               fontSize: 16, // Tamaño del texto del tab activo
               fontWeight: FontWeight.bold,
             ),
-            unselectedLabelStyle: const TextStyle(
+            unselectedLabelStyle: TextStyle(
               fontSize: 16, // Tamaño del texto de los tabs inactivos
             ),
-            tabs: const [
+            tabs: [
               Tab(text: 'Coming Soon'),
               Tab(text: 'Active'),
               Tab(text: 'Completed'),
@@ -60,8 +60,8 @@ class VideoList extends StatelessWidget {
   final String status;
   final VideoNotifier videoNotifier;
 
-  const VideoList({Key? key, required this.status, required this.videoNotifier})
-      : super(key: key);
+  const VideoList(
+      {super.key, required this.status, required this.videoNotifier});
 
   @override
   Widget build(BuildContext context) {

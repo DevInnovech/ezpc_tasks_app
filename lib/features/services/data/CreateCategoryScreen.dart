@@ -17,8 +17,11 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
   final _categoryNameController = TextEditingController();
   final _subcategoryNameController = TextEditingController();
   final _serviceNameController = TextEditingController();
+  final _questionController =
+      TextEditingController(); // Controlador para preguntas
   final List<Map<String, dynamic>> _subcategories = [];
   final List<String> _services = [];
+  final List<Map<String, dynamic>> _questions = []; // Lista de preguntas
   bool _isFeatured = false;
 
   File? _selectedImage;
@@ -31,6 +34,7 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
     _categoryNameController.dispose();
     _subcategoryNameController.dispose();
     _serviceNameController.dispose();
+    _questionController.dispose(); // Liberar controlador
     super.dispose();
   }
 
@@ -81,6 +85,18 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
     }
   }
 
+  void _addQuestion() {
+    if (_questionController.text.isNotEmpty) {
+      setState(() {
+        _questions.add({
+          'id': const Uuid().v4(),
+          'text': _questionController.text,
+        });
+        _questionController.clear();
+      });
+    }
+  }
+
   Future<void> _saveCategory() async {
     if (_categoryNameController.text.isEmpty || _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,6 +128,7 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
       'imageUrl': imageUrl,
       'isFeatured': _isFeatured,
       'subcategories': _subcategories,
+      'questions': _questions, // Guardar las preguntas
     };
 
     await FirebaseFirestore.instance
@@ -233,6 +250,39 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                                 title: Text(sub['name']),
                                 subtitle: Text(
                                     'Services: ${sub['services'].join(', ')}'),
+                              ))
+                          .toList(),
+                    ),
+
+                  const SizedBox(height: 10.0),
+
+                  // Campo para Preguntas
+                  TextField(
+                    controller: _questionController,
+                    decoration:
+                        const InputDecoration(labelText: 'Question Text'),
+                  ),
+                  const SizedBox(height: 10.0),
+
+                  // Botón para añadir Pregunta
+                  ElevatedButton(
+                    onPressed: _addQuestion,
+                    child: const Text('Add Question'),
+                  ),
+
+                  // Lista de Preguntas
+                  if (_questions.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _questions
+                          .map((question) => ListTile(
+                                title: Text(question['text']),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () => setState(() {
+                                    _questions.remove(question);
+                                  }),
+                                ),
                               ))
                           .toList(),
                     ),

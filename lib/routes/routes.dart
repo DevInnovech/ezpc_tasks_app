@@ -476,7 +476,7 @@ class RouteNames {
                 ));
 
       case RouteNames.learningScreen:
-        return MaterialPageRoute(builder: (_) => LearningScreen());
+        return MaterialPageRoute(builder: (_) => const LearningScreen());
 
       /*  
       case RouteNames.registerProviderScreen:

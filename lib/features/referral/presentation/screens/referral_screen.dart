@@ -4,7 +4,7 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/material.dart';
 
 class ReferralScreen extends StatelessWidget {
-  const ReferralScreen({Key? key}) : super(key: key);
+  const ReferralScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +32,14 @@ class ReferralScreen extends StatelessWidget {
                       topRight: Radius.circular(30.0),
                     ),
                   ),
-                  child: Column(
+                  child: const Column(
                     children: [
                       // Encabezado de bonos de referidos
 
                       // Lista de referidos
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          padding: EdgeInsets.symmetric(horizontal: 8.0),
                           child: ReferralList(),
                         ),
                       ),
@@ -77,7 +77,7 @@ Widget buildCustomAppBar(BuildContext context, String title) {
         // Título centrado en la pantalla
         Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 22.0,
             fontWeight: FontWeight.bold,

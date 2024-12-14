@@ -187,7 +187,7 @@ class HomeLoadedData extends StatelessWidget {
               onTap: () {
                 showDialog(
                   context: context,
-                  builder: (context) => ReferralPopup(
+                  builder: (context) => const ReferralPopup(
                     referralCode:
                         "referral01", // Código de referido del usuario
                   ),

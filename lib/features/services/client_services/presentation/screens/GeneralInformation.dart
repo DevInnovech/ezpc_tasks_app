@@ -425,6 +425,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
                         'providerEmail': providerEmail,
                         'providerPhone': providerPhone,
                         'createdAt': DateTime.now().toIso8601String(),
+                        'paymentStatus': "", // Inicializamos como vacío
                       },
                     ),
                   ),

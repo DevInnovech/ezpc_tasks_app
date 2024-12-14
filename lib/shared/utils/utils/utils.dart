@@ -226,15 +226,17 @@ class Utils {
     switch (orderStatus) {
       case 'awaiting':
         return 'Pending';
+      case 'accepted':
+        return 'Accepted';
       case 'started':
         return 'Started';
       case 'success':
         return 'Success';
-      case 'paid':
+      case 'Paid':
         return 'Paid';
       case 'pending':
         return 'Pending';
-      case 'complete':
+      case 'completed':
         return 'Completed';
       case 'active':
         return 'Active';
@@ -265,6 +267,8 @@ class Utils {
         return const Color(0xFFB3CAFF).withOpacity(1);
       case "active":
         return const Color(0xff00BF8C).withOpacity(0.2);
+      case "accepted":
+        return const Color(0xff00BF8C).withOpacity(0.2);
       case "approved":
         return const Color(0xff00BF8C).withOpacity(0.2);
       case "success":
@@ -273,11 +277,11 @@ class Utils {
         return const Color(0xff00BF8C).withOpacity(1);
       case "0":
         return redColor.withOpacity(1);
-      case "complete":
+      case "completed":
         return const Color(0xff378FFF).withOpacity(0.2);
       case "cancelled":
         return Colors.transparent;
-      case "paid":
+      case "Paid":
         return const Color(0xff00BF8C).withOpacity(0.1);
       default:
         return const Color(0xffFEEEEE);
@@ -292,13 +296,15 @@ class Utils {
         return redColor;
       case "active":
         return greenColor;
+      case "accepted":
+        return const Color.fromARGB(255, 255, 255, 255);
       case "started":
         return const Color.fromARGB(255, 17, 47, 218);
       case "approved":
         return greenColor;
       case "success":
         return greenColor;
-      case "complete":
+      case "completed":
         return primaryColor;
       case "cancelled":
         return Colors.red;
@@ -308,7 +314,7 @@ class Utils {
         return greenColor;
       case "declined":
         return Colors.red;
-      case "paid":
+      case "Paid":
         return greenColor;
       default:
         return primaryColor;
