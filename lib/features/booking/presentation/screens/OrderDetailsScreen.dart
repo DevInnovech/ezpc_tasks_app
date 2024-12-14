@@ -1,5 +1,7 @@
 import 'package:ezpc_tasks_app/features/booking/data/booking_provider.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/single_expansion_tile.dart';
+import 'package:ezpc_tasks_app/features/chat/data/chat_repository.dart';
+import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/button_state.dart';
@@ -699,18 +701,44 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   // Open chat with customer
 // Open chat with customer
-  void _openChatWithCustomer(BuildContext context) {
-    Navigator.pushNamed(
+  void _openChatWithCustomer(BuildContext context) async {
+    final clientId = widget.order['customerId']; // Extraer el ID del cliente
+    final providerId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (clientId == null || providerId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to start chat: Missing IDs')),
+      );
+      return;
+    }
+
+    final chatRepository = ChatRepository();
+    final chatRoomId = chatRepository.generateChatRoomId(clientId, providerId);
+
+    // Crear la sala de chat si no existe
+    final chatRoomRef =
+        FirebaseFirestore.instance.collection('chats').doc(chatRoomId);
+    final chatRoomSnapshot = await chatRoomRef.get();
+
+    if (!chatRoomSnapshot.exists) {
+      await chatRoomRef.set({
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+        'customerId': clientId,
+        'providerId': providerId,
+      });
+    }
+
+    // Navegar a la pantalla de chat
+    Navigator.push(
       context,
-      RouteNames
-          .customerChatScreen, // Usa el nombre de ruta adecuado para CustomerChatScreen
-      arguments: {
-        'chatRoomId':
-            'chat_room_id', // Reemplaza con el ID de la sala de chat real
-        'customerId': 'customer_id', // Reemplaza con el ID del cliente real
-        'providerId': 'provider_id', // Reemplaza con el ID del proveedor real
-        'isFakeData': true,
-      },
+      MaterialPageRoute(
+        builder: (context) => CustomerChatScreen(
+          chatRoomId: chatRoomId,
+          customerId: clientId,
+          providerId: providerId,
+          isFakeData: false,
+        ),
+      ),
     );
   }
 

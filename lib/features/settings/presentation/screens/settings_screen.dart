@@ -465,11 +465,12 @@ class _SettingsScreenState extends State<SettingsScreen>
       // Intercambiar valores de `role` y `secondaryRole`
       if (secondaryRole.isEmpty || secondaryRole == '') {
         // cosas de become
-
-        Navigator.pushNamed(
-          context1,
-          RouteNames.backgroundCheckScreen,
-        );
+        accountType == AccountType.client
+            ? Navigator.pushNamed(
+                context1,
+                RouteNames.backgroundCheckScreen,
+              )
+            : _showConfirmationbecomeDialog(context1, userData, user.uid);
         /*print("trate");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Switched to trate view.')),
@@ -510,6 +511,49 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SnackBar(content: Text('Failed to switch role.')),
       );
     }
+  }
+
+  void _showConfirmationbecomeDialog(
+      BuildContext context, Map<String, dynamic> userdatas, String userid) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmación'),
+          content: Text('¿Deseas convertirte en cliente?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo sin hacer nada
+              },
+              child: Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userid)
+                    .update({
+                  'role': userdatas['role'],
+                  'secondaryRole': 'Client',
+                });
+
+                debugPrint(
+                    'Roles intercambiados: Nuevo role=${userdatas['role']}, Nuevo secondaryRole=Client');
+                setState(() {});
+                Navigator.of(context).pop(); // Cierra el diálogo
+                // Aquí puedes agregar lógica para manejar el "Sí"
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('¡Bienvenido como cliente!')),
+                );
+              },
+              child: Text('Sí'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildActionButton(BuildContext context, String defaultButtonText,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
@@ -38,22 +40,32 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
   void initState() {
     super.initState();
     _initializeChat();
+    _setUserOnlineStatus(true); // Marca como online al entrar
+
+    // Listener para desconexión
+    _auth.authStateChanges().listen((user) {
+      if (user == null) {
+        _setUserOnlineStatus(false); // Marca como offline al salir
+      }
+    });
   }
 
-  void _initializeChat() {
-    final currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      _currentUser = types.User(
-        id: currentUser.uid,
-        firstName: currentUser.displayName ?? 'User',
-      );
-      _createChatRoomIfNeeded();
-      _loadChatPartnerInfo(); // Load chat partner's name
-      _loadMessages();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No user is signed in!')),
-      );
+  Map<String, dynamic>? _chatPartnerData;
+
+  Future<void> runTransactionWithRetry(
+    Future<void> Function(Transaction transaction) operation, {
+    int retries = 3,
+  }) async {
+    for (int i = 0; i < retries; i++) {
+      try {
+        await FirebaseFirestore.instance.runTransaction(operation);
+        return;
+      } catch (e) {
+        if (i == retries - 1) {
+          print('Transaction failed after $retries attempts: $e');
+          rethrow; // Re-throw the exception after the final attempt
+        }
+      }
     }
   }
 
@@ -77,6 +89,46 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     }
   }
 
+  void _setUserOnlineStatus(bool isOnline) async {
+    try {
+      final userId = _currentUser.id;
+      final chatRoomRef = _firestore.collection('chats').doc(widget.chatRoomId);
+
+      await runTransactionWithRetry((transaction) async {
+        final chatRoomSnapshot = await transaction.get(chatRoomRef);
+
+        if (!chatRoomSnapshot.exists) return;
+
+        final currentOnlineUsers =
+            List<String>.from(chatRoomSnapshot['onlineUsers'] ?? []);
+        final updatedOnlineUsers = isOnline
+            ? (currentOnlineUsers..add(userId)).toSet().toList()
+            : (currentOnlineUsers..remove(userId));
+
+        transaction.update(chatRoomRef, {'onlineUsers': updatedOnlineUsers});
+      });
+    } catch (e) {
+      print('Error updating user online status: $e');
+    }
+  }
+
+  void _initializeChat() {
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      _currentUser = types.User(
+        id: currentUser.uid,
+        firstName: currentUser.displayName ?? 'User',
+      );
+      _createChatRoomIfNeeded();
+      _loadChatPartnerInfo(); // Load chat partner's name
+      _loadMessages();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No user is signed in!')),
+      );
+    }
+  }
+
   Future<void> _createChatRoomIfNeeded() async {
     final chatRoomRef = _firestore.collection('chats').doc(widget.chatRoomId);
     final chatRoomSnapshot = await chatRoomRef.get();
@@ -90,57 +142,137 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     }
   }
 
+  StreamSubscription?
+      _messagesSubscription; // Controlador para escuchar mensajes.
+
   void _loadMessages() {
-    _firestore
+    _messagesSubscription = _firestore
         .collection('chats')
         .doc(widget.chatRoomId)
         .collection('messages')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .listen((snapshot) {
-      final messages = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return types.TextMessage(
-          author: types.User(id: data['authorId']),
-          createdAt: data['createdAt'],
-          id: data['id'],
-          text: data['text'],
-        );
-      }).toList();
+        .listen((snapshot) async {
+      try {
+        // Map Firestore messages to TextMessage objects
+        final loadedMessages = snapshot.docs.map((doc) {
+          final data = doc.data();
 
-      setState(() {
-        _messages.clear();
-        _messages.addAll(messages);
-      });
+          return types.TextMessage(
+            author: types.User(id: data['authorId']),
+            createdAt: data['createdAt'],
+            id: data['id'],
+            text: data['text'],
+            metadata: {
+              'read': data['read'] ?? false, // Default to false if null
+            },
+          );
+        }).toList();
+
+        // Update messages in the UI
+        setState(() {
+          _messages
+            ..clear()
+            ..addAll(loadedMessages)
+            ..sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+        });
+
+        // Mark messages as read (if both users are online)
+        final chatRoomSnapshot =
+            await _firestore.collection('chats').doc(widget.chatRoomId).get();
+        final currentOnlineUsers =
+            List<String>.from(chatRoomSnapshot['onlineUsers'] ?? []);
+        final bothUsersOnline =
+            currentOnlineUsers.contains(widget.customerId) &&
+                currentOnlineUsers.contains(widget.providerId);
+
+        if (bothUsersOnline) {
+          final batch = _firestore.batch();
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            if ((data['read'] ?? false) == false &&
+                data['receiverId'] == _currentUser.id) {
+              batch.update(doc.reference, {'read': true});
+            }
+          }
+          await batch.commit();
+        }
+      } catch (e) {
+        print('Error loading messages: $e');
+      }
     });
   }
 
-  void _handleSendPressed(String messageText) {
-    if (messageText.isEmpty) return;
+  @override
+  void dispose() {
+    // Cancela la suscripción para evitar fugas de memoria.
+    _messagesSubscription?.cancel();
+    _setUserOnlineStatus(false); // Marca como offline al salir.
+    super.dispose();
+  }
 
-    final textMessage = types.TextMessage(
-      author: _currentUser,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: const Uuid().v4(),
-      text: messageText,
-    );
-
-    _firestore
-        .collection('chats')
-        .doc(widget.chatRoomId)
-        .collection('messages')
-        .doc(textMessage.id)
-        .set({
-      'authorId': _currentUser.id,
-      'createdAt': textMessage.createdAt,
-      'id': textMessage.id,
-      'text': textMessage.text,
-    });
+  bool _isSending = false;
+  void _handleSendPressed(String messageText) async {
+    if (messageText.isEmpty || _isSending) return;
 
     setState(() {
-      _messages.insert(0, textMessage);
-      _messageController.clear();
+      _isSending = true;
     });
+
+    try {
+      final textMessage = types.TextMessage(
+        author: _currentUser,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        text: messageText,
+      );
+
+      final receiverId = _currentUser.id == widget.customerId
+          ? widget.providerId
+          : widget.customerId;
+
+      final chatRoomRef = _firestore.collection('chats').doc(widget.chatRoomId);
+
+      await runTransactionWithRetry((transaction) async {
+        final chatRoomSnapshot = await transaction.get(chatRoomRef);
+
+        if (!chatRoomSnapshot.exists) return;
+
+        final currentOnlineUsers =
+            List<String>.from(chatRoomSnapshot['onlineUsers'] ?? []);
+        final unreadCounts = Map<String, dynamic>.from(
+          chatRoomSnapshot.data()?['unreadCounts'] ?? {},
+        );
+
+        // Increment unread count if the receiver is offline
+        if (!currentOnlineUsers.contains(receiverId)) {
+          unreadCounts[receiverId] = (unreadCounts[receiverId] ?? 0) + 1;
+        }
+
+        transaction.set(
+          chatRoomRef.collection('messages').doc(textMessage.id),
+          {
+            'authorId': _currentUser.id,
+            'createdAt': textMessage.createdAt,
+            'id': textMessage.id,
+            'text': textMessage.text,
+            'read': currentOnlineUsers
+                .contains(receiverId), // Explicitly set 'read'
+            'receiverId': receiverId,
+          },
+        );
+
+        transaction.update(chatRoomRef, {'unreadCounts': unreadCounts});
+      });
+
+      _messageController.clear();
+    } catch (e) {
+      print('Error sending message: $e');
+    } finally {
+      setState(() {
+        _isSending = false;
+      });
+    }
   }
 
   @override
@@ -169,8 +301,12 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
   }
 
   Widget customAppBar(BuildContext context) {
+    final otherUserId = _currentUser.id == widget.customerId
+        ? widget.providerId
+        : widget.customerId;
+
     return Container(
-      padding: const EdgeInsets.only(top: 25, bottom: 5),
+      padding: const EdgeInsets.only(top: 35, bottom: 5),
       color: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -181,62 +317,126 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 35,
-                      height: 35,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.arrow_back_ios_rounded,
-                          color: Colors.black,
-                          size: 20,
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_rounded,
+                      color: Colors.black,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                FutureBuilder<DocumentSnapshot>(
+                  future: _firestore.collection('users').doc(otherUserId).get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      );
+                    } else if (snapshot.hasError ||
+                        !snapshot.hasData ||
+                        !snapshot.data!.exists) {
+                      return const CircleAvatar(
+                        radius: 25,
+                        backgroundColor: Colors.grey,
+                        child: Icon(Icons.error, color: Colors.white),
+                      );
+                    }
+
+                    final userData =
+                        snapshot.data?.data() as Map<String, dynamic>? ?? {};
+                    final profileImageUrl =
+                        userData['profileImageUrl'] ?? KImages.pp;
+
+                    return CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Colors.transparent,
+                      child: ClipOval(
+                        child: CustomImage(
+                          path: profileImageUrl,
+                          fit: BoxFit.cover,
+                          url: null,
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                const CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.transparent,
-                  child: ClipOval(
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: CustomImage(
-                        url: null,
-                        path: KImages.pp,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _chatPartnerName,
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                    const Text(
-                      'Online',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                  ],
-                ),
+                StreamBuilder<DocumentSnapshot>(
+                  stream: _firestore
+                      .collection('chats')
+                      .doc(widget.chatRoomId)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.hasError) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _chatPartnerName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const Text(
+                            'Offline',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    // Obtiene datos del chat y verifica los usuarios en línea
+                    final chatData =
+                        snapshot.data!.data() as Map<String, dynamic>;
+                    final onlineUsers =
+                        List<String>.from(chatData['onlineUsers'] ?? []);
+                    final chatPartnerId = _currentUser.id == widget.customerId
+                        ? widget.providerId
+                        : widget.customerId;
+
+                    final isOnline = onlineUsers.contains(chatPartnerId);
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _chatPartnerName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          isOnline ? 'Online' : 'Offline',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isOnline ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                )
               ],
             ),
             GestureDetector(
@@ -248,12 +448,10 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.more_vert,
-                    color: Colors.black,
-                    size: 25,
-                  ),
+                child: const Icon(
+                  Icons.more_vert,
+                  color: Colors.black,
+                  size: 25,
                 ),
               ),
             ),

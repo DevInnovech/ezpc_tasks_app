@@ -310,9 +310,12 @@ class ClientAppDrawer extends ConsumerWidget {
         Navigator.popAndPushNamed(context, RouteNames.clientCategoryScreen);
         break;
       case 1:
-        Navigator.popAndPushNamed(context, RouteNames.senttingsScreen);
+        Navigator.popAndPushNamed(context, RouteNames.chatListScreen);
         break;
       case 2:
+        Navigator.popAndPushNamed(context, RouteNames.senttingsScreen);
+        break;
+      case 3:
         Navigator.popAndPushNamed(context, RouteNames.learningScreen);
         break;
       default:
@@ -325,6 +328,10 @@ List<Map<String, String>> drawerItems = [
   {
     "name": "All Category",
     "icon": KImages.drawerCategory,
+  },
+  {
+    "name": "Chat",
+    "icon": KImages.inbox,
   },
   {
     "name": "Edit Profile",
