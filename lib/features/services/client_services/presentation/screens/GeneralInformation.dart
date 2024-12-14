@@ -80,6 +80,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
             nameController.text = data['name'] ?? '';
             phoneController.text = data['phoneNumber'] ?? '';
             emailController.text = data['email'] ?? '';
+            addressController.text = data['address'] ?? '';
           }
           isLoading = false;
         });
@@ -207,6 +208,72 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
   }
 
   Widget _buildClientInfoCard() {
+    var children = [
+      const Text(
+        "Client Details",
+        style: TextStyle(
+          fontSize: 16.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      const Divider(),
+      _buildTextField(
+        label: "Name",
+        controller: nameController,
+        isEnabled: applyForAnotherPerson,
+      ),
+      _buildTextField(
+        label: "Phone",
+        controller: phoneController,
+        keyboardType: TextInputType.phone,
+        isEnabled: applyForAnotherPerson,
+      ),
+      _buildTextField(
+        label: "Email",
+        controller: emailController,
+        keyboardType: TextInputType.emailAddress,
+        isEnabled: applyForAnotherPerson,
+      ),
+      const SizedBox(height: 8.0),
+
+      // Si applyForAnotherPerson es true, añade el textField, si no, añade el Text
+      if (!applyForAnotherPerson)
+        _buildTextField(
+          label: "Email",
+          controller: addressController,
+          keyboardType: TextInputType.streetAddress,
+          isEnabled: applyForAnotherPerson,
+        )
+      else
+        const Text(
+          "Address",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
+        ),
+
+      if (applyForAnotherPerson) const SizedBox(height: 8.0),
+      if (applyForAnotherPerson)
+        GooglePlaceAutoCompleteTextField(
+          textEditingController: addressController,
+          googleAPIKey: "TU_API_KEY",
+          inputDecoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            hintText: "Enter Address",
+          ),
+          debounceTime: 800,
+          isLatLngRequired: true,
+          getPlaceDetailWithLatLng: (prediction) {
+            debugPrint("Place Details: $prediction");
+          },
+          itemClick: (prediction) {
+            addressController.text = prediction.description!;
+            addressController.selection = TextSelection.fromPosition(
+                TextPosition(offset: prediction.description!.length));
+          },
+        ),
+      if (applyForAnotherPerson) const SizedBox(height: 16.0),
+    ];
     return Card(
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
@@ -216,61 +283,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Client Details",
-              style: TextStyle(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Divider(),
-            _buildTextField(
-              label: "Name",
-              controller: nameController,
-              isEnabled: applyForAnotherPerson,
-            ),
-            _buildTextField(
-              label: "Phone",
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              isEnabled: applyForAnotherPerson,
-            ),
-            _buildTextField(
-              label: "Email",
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              isEnabled: applyForAnotherPerson,
-            ),
-            const SizedBox(height: 8.0),
-            const Text(
-              "Address",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
-            ),
-            const SizedBox(height: 8.0),
-            GooglePlaceAutoCompleteTextField(
-              textEditingController: addressController,
-              googleAPIKey:
-                  "AIzaSyDwxlmeFfLFPceI3B4J35xq7UqHan7iA6s", // Reemplaza con tu API Key
-              inputDecoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                hintText: "Enter Address",
-              ),
-              debounceTime: 800,
-              isLatLngRequired: true,
-              getPlaceDetailWithLatLng: (prediction) {
-                debugPrint("Place Details: $prediction");
-              },
-              itemClick: (prediction) {
-                addressController.text = prediction.description!;
-                addressController.selection = TextSelection.fromPosition(
-                    TextPosition(offset: prediction.description!.length));
-              },
-            ),
-            const SizedBox(height: 16.0),
-          ],
+          children: children,
         ),
       ),
     );
