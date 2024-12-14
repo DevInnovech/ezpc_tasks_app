@@ -260,7 +260,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         final providerStatus = bookingData['ProviderStatus'] ?? 'pending';
 
         if (providerStatus == "pending") {
-          // Mostrar botones de "Accept" y "Decline"
+          // Display "Accept" and "Decline" buttons
           return Row(
             children: [
               Expanded(
@@ -285,14 +285,14 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ],
           );
         } else if (providerStatus == "accepted") {
-          // Mostrar botón "Drive to Task"
+          // Display "Drive to Task" button
           return ElevatedButton(
             onPressed: () async {
               final String address =
                   widget.order['clientAddress'] ?? 'Unknown Address';
               final bookingId = widget.order['bookingId'];
 
-              // Si no tienes latitud/longitud en el booking, usa la API
+              // If no latitude/longitude is available, fetch coordinates
               double latitude = widget.order['latitude'] ?? 0.0;
               double longitude = widget.order['longitude'] ?? 0.0;
 
@@ -310,7 +310,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                 }
               }
 
-              // Navegar a la pantalla de mapas y pasar bookingId
+              // Navigate to MapScreen
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -334,9 +334,23 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ),
           );
         } else if (providerStatus == "arrived") {
-          // Mostrar botón "Start Task"
+          // Display "Start Task" button
           return ElevatedButton(
-            onPressed: () => _updateTaskStatus("started"),
+            onPressed: () async {
+              await _updateTaskStatus("in progress");
+              // Update ProviderStatus to "in_progress"
+              await FirebaseFirestore.instance
+                  .collection('bookings')
+                  .doc(widget.order['bookingId'])
+                  .update({
+                'ProviderStatus': 'in_progress',
+                'updatedAt': FieldValue.serverTimestamp(),
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Task has started!')),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
               minimumSize: const Size.fromHeight(50),
@@ -346,11 +360,20 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           );
-        } else if (providerStatus == "started") {
-          // Mostrar botón "Complete Task"
+        } else if (providerStatus == "in_progress") {
+          // Display "Complete Task" button
           return ElevatedButton(
             onPressed: () async {
               await _updateTaskStatus("completed");
+              // Update ProviderStatus to "completed"
+              await FirebaseFirestore.instance
+                  .collection('bookings')
+                  .doc(widget.order['bookingId'])
+                  .update({
+                'ProviderStatus': 'completed',
+                'updatedAt': FieldValue.serverTimestamp(),
+              });
+
               _showCompletionReviewPopup(context);
             },
             style: ElevatedButton.styleFrom(
