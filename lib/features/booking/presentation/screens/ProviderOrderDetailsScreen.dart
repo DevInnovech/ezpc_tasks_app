@@ -257,10 +257,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         }
 
         final bookingData = snapshot.data!.data() as Map<String, dynamic>;
-        final providerStatus = bookingData['ProviderStatus'] ?? 'pending';
+        final taskStatus = bookingData['status']?.toLowerCase() ?? 'pending';
+        final providerStatus =
+            bookingData['ProviderStatus']?.toLowerCase() ?? 'pending';
 
-        if (providerStatus == "pending") {
-          // Display "Accept" and "Decline" buttons
+        if (taskStatus == "pending") {
+          // Botones para aceptar o rechazar la tarea
           return Row(
             children: [
               Expanded(
@@ -284,15 +286,14 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               ),
             ],
           );
-        } else if (providerStatus == "accepted") {
-          // Display "Drive to Task" button
+        } else if (taskStatus == "accepted" && providerStatus == "on_the_way") {
+          // Botón para navegar a la tarea
           return ElevatedButton(
             onPressed: () async {
               final String address =
                   widget.order['clientAddress'] ?? 'Unknown Address';
               final bookingId = widget.order['bookingId'];
 
-              // If no latitude/longitude is available, fetch coordinates
               double latitude = widget.order['latitude'] ?? 0.0;
               double longitude = widget.order['longitude'] ?? 0.0;
 
@@ -310,7 +311,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                 }
               }
 
-              // Navigate to MapScreen
+              // Navegar al MapScreen
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -333,12 +334,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           );
-        } else if (providerStatus == "arrived") {
-          // Display "Start Task" button
+        } else if (taskStatus == "accepted" && providerStatus == "arrived") {
+          // Botón para iniciar la tarea
           return ElevatedButton(
             onPressed: () async {
               await _updateTaskStatus("in progress");
-              // Update ProviderStatus to "in_progress"
+
               await FirebaseFirestore.instance
                   .collection('bookings')
                   .doc(widget.order['bookingId'])
@@ -360,12 +361,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           );
-        } else if (providerStatus == "in_progress") {
-          // Display "Complete Task" button
+        } else if (taskStatus == "in progress") {
+          // Botón para completar la tarea
           return ElevatedButton(
             onPressed: () async {
               await _updateTaskStatus("completed");
-              // Update ProviderStatus to "completed"
+
               await FirebaseFirestore.instance
                   .collection('bookings')
                   .doc(widget.order['bookingId'])
@@ -382,6 +383,19 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ),
             child: const Text(
               "Complete Task",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          );
+        } else if (taskStatus == "completed") {
+          // Botón de soporte técnico
+          return ElevatedButton(
+            onPressed: () => _showTechnicalSupportOptions(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              "Technical Support",
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           );
@@ -522,6 +536,11 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   Widget _buildButtonSection(BuildContext context, WidgetRef ref) {
     final extraTimeRequested = ref.watch(extraTimeRequestedProvider);
+
+    // Ocultar botones si la tarea está en estado "pending" o "completed"
+    if (taskStatus == 'pending' || taskStatus == 'completed') {
+      return const SizedBox.shrink(); // Retorna un espacio vacío
+    }
 
     return Column(
       children: [
