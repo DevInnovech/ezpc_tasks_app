@@ -717,7 +717,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                     icon: const Icon(Icons.chat),
                     onPressed: () {
                       Navigator.pop(context);
-                      _openSupportChat(context);
+                      openSupportChat(context);
                     },
                   ),
                   const Text('Message'),
@@ -804,42 +804,42 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       ),
     );
   }
+}
 
-  void _openSupportChat(BuildContext context) {
-    Navigator.pushNamed(
-      context,
-      RouteNames
-          .supportChatScreen, // Usa el nombre de ruta adecuado para SupportChatScreen
-      arguments: {
-        'chatRoomId':
-            'supportChatRoomId', // ID del chat de soporte, puede ser único
-        'userId': FirebaseAuth.instance.currentUser?.uid ??
-            'guest_user', // ID del usuario actual o 'guest_user'
-      },
-    );
-  }
+void openSupportChat(BuildContext context) {
+  Navigator.pushNamed(
+    context,
+    RouteNames
+        .supportChatScreen, // Usa el nombre de ruta adecuado para SupportChatScreen
+    arguments: {
+      'chatRoomId':
+          'supportChatRoomId', // ID del chat de soporte, puede ser único
+      'userId': FirebaseAuth.instance.currentUser?.uid ??
+          'guest_user', // ID del usuario actual o 'guest_user'
+    },
+  );
+}
 
 // Make a phone call
-  Future<void> makePhoneCall(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      // Handle error
-    }
+Future<void> makePhoneCall(String url) async {
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    // Handle error
   }
+}
 
 // Send an email
-  Future<void> sendEmail(String email) async {
-    final Uri params = Uri(
-      scheme: 'mailto',
-      path: email,
-      query: '', // Add subject and body if needed
-    );
-    String url = params.toString();
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      // Handle error
-    }
+Future<void> sendEmail(String email) async {
+  final Uri params = Uri(
+    scheme: 'mailto',
+    path: email,
+    query: '', // Add subject and body if needed
+  );
+  String url = params.toString();
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    // Handle error
   }
 }

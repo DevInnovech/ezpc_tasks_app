@@ -131,22 +131,22 @@ class _EndDrawerMenuState extends State<EndDrawerMenu> {
                 Scaffold.of(context).closeEndDrawer();
               },
             ),
-            DrawerItem(
+            /*DrawerItem(
               icon: KImages.di01,
               title: 'Appointment Schedule',
               onTap: () {
                 Navigator.pushNamed(context, RouteNames.scheduleScreen);
                 Scaffold.of(context).closeEndDrawer();
               },
-            ),
-            DrawerItem(
+            ),*/
+            /* DrawerItem(
               icon: KImages.di02,
               title: 'Profile',
               onTap: () {
                 Navigator.pushNamed(context, RouteNames.profileScreen);
                 Scaffold.of(context).closeEndDrawer();
               },
-            ),
+            ),*/
             DrawerItem(
               icon: KImages.di04,
               title: 'Review',
@@ -156,7 +156,7 @@ class _EndDrawerMenuState extends State<EndDrawerMenu> {
               },
             ),
             DrawerItem(
-              icon: KImages.di04,
+              icon: KImages.inbox,
               title: 'Chats',
               onTap: () {
                 Navigator.pushNamed(context, RouteNames.chatListScreen);

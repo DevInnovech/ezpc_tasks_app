@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/data/dashboardnotifi.dart';
+import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/end_drawer_menu.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -32,6 +34,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       debugPrint("Error loading user data: $e");
       return null;
     }
+  }
+
+  Future<void> checkReferralStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      final referralPartner = data['referralPartner'] ?? '';
+
+      // Si el usuario no tiene referralPartner y no ha indicado 'no_referral'
+      // entonces mostramos el diálogo.
+      // Si referralPartner == 'no_referral', no mostramos nada.
+      if (referralPartner.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const ReferralDialog(),
+          );
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkReferralStatus();
   }
 
   @override

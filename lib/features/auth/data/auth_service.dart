@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -97,16 +98,20 @@ class AuthService {
       if (user != null) {
         // Generar el código único basado en el rol
         String uniqueCode = generateUniqueCode(role);
+        final utils = Utils();
+        // Generar el código de referido basado en el UID
+        String referralCode = utils.generateReferralCode(user.uid);
 
         // Guardar información en la colección `users`
         await _firestore.collection('users').doc(user.uid).set({
           'accountType': role, // AccountType es igual al role
           'role': role,
           'email': email,
-          'status': 'Pending', // Estado inicial
+          'status': role == "Client" ? "Approved" : 'Pending', // Estado inicial
           'userID': uniqueCode,
           'name': name,
           'lastName': lastName,
+          'referralCode': referralCode,
         });
 
         // Guardar información en la colección correspondiente (`clients` o `providers`)

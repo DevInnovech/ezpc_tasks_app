@@ -45,15 +45,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
-  String _generateReferralCode(String uid) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final rawCode = '$uid$timestamp';
-    final hash = rawCode.hashCode.toRadixString(36).toUpperCase();
-
-    // Rellenar con caracteres adicionales si es necesario
-    return hash.padRight(8, 'X').substring(0, 8);
-  }
-
   Future<void> _loadUserData() async {
     User? currentUser = _auth.currentUser;
 

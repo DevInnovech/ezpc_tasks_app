@@ -8,85 +8,6 @@ class ReferralScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-      extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          // Fondo de color en la parte superior
-          Container(
-            height: double.infinity, // Ocupa toda la altura
-            color: primaryColor,
-          ),
-          // Contenido principal con bordes redondeados en la parte superior
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Widget de AppBar personalizado
-              buildCustomAppBar(context, "Referrals"),
-              Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30.0),
-                      topRight: Radius.circular(30.0),
-                    ),
-                  ),
-                  child: const Column(
-                    children: [
-                      // Encabezado de bonos de referidos
-
-                      // Lista de referidos
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: ReferralList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Widget del AppBar personalizado
-}
-
-// Widget del AppBar personalizado
-Widget buildCustomAppBar(BuildContext context, String title) {
-  return Container(
-    padding:
-        const EdgeInsets.only(top: 30.0, left: 16.0, right: 16.0, bottom: 10.0),
-    color: Colors.transparent,
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        // Botón de retroceso alineado a la izquierda
-        Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        // Título centrado en la pantalla
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22.0,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    ),
-  );
-=======
       appBar: AppBar(
         title: const Text('Referrals'),
         centerTitle: true,
@@ -97,5 +18,4 @@ Widget buildCustomAppBar(BuildContext context, String title) {
       ),
     );
   }
->>>>>>> 83879b75d89960497a3b7ae11f5a3163d80988cd
 }

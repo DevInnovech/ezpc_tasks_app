@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart';
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
@@ -6,21 +7,62 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_single_
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_slider_section.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
+import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_filter.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class ClientHomeScreen extends ConsumerWidget {
+class ClientHomeScreen extends ConsumerStatefulWidget {
   const ClientHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ClientHomeScreen> createState() => _ClientHomeScreenState();
+}
+
+class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    checkReferralStatus();
+  }
+
+  Future<void> checkReferralStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      final referralPartner = data['referralPartner'] ?? '';
+
+      // Si el usuario no tiene referralPartner y no ha indicado 'no_referral'
+      // entonces mostramos el diálogo.
+      // Si referralPartner == 'no_referral', no mostramos nada.
+      if (referralPartner.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const ReferralDialog(),
+          );
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final homeControllerState = ref.watch(homeControllerProvider);
 
     return Column(

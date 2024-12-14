@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Para autenticar al usuario
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -144,9 +145,7 @@ class ClientHomeHeader extends ConsumerWidget {
                       ),
                       Utils.horizontalSpace(10),
                       GestureDetector(
-                        onTap: () {
-                          // Acción para soporte
-                        },
+                        onTap: () => showTechnicalSupportOptions(context),
                         child: Container(
                           height: Utils.vSize(50.0),
                           width: Utils.vSize(50.0),
@@ -219,4 +218,67 @@ class ClientHomeHeader extends ConsumerWidget {
       ),
     );
   }
+}
+
+void showTechnicalSupportOptions(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        height: 150,
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // Message Option
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chat),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    openSupportChat(context);
+                  },
+                ),
+                const Text('Message'),
+              ],
+            ),
+            // Call Option
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.phone),
+                  onPressed: () {
+                    // Open phone dialer
+                    Navigator.pop(context);
+                    makePhoneCall(
+                        'tel:+1234567890'); // Replace with support number
+                  },
+                ),
+                const Text('Call'),
+              ],
+            ),
+            // Email Option
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.email),
+                  onPressed: () {
+                    // Open email client
+                    Navigator.pop(context);
+                    sendEmail(
+                        'support@example.com'); // Replace with support email
+                  },
+                ),
+                const Text('Email'),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }

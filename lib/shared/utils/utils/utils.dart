@@ -10,6 +10,15 @@ import 'package:intl/intl.dart';
 import '../theme/constraints.dart';
 
 class Utils {
+  String generateReferralCode(String uid) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final rawCode = '$uid$timestamp';
+    final hash = rawCode.hashCode.toRadixString(36).toUpperCase();
+
+    // Rellenar con caracteres adicionales si es necesario
+    return hash.padRight(8, 'X').substring(0, 8);
+  }
+
   static final _selectedDate = DateTime.now();
 
   static final _initialTime = TimeOfDay.now();

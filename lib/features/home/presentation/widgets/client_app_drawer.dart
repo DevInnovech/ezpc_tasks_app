@@ -128,30 +128,33 @@ class ClientAppDrawer extends ConsumerWidget {
                         ),
                       ),
                       Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '$name $lastName',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontFamily: 'Work Sans',
-                                fontWeight: FontWeight.w600,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$name $lastName',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontFamily: 'Work Sans',
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            Text(
-                              email,
-                              style: const TextStyle(
-                                color: Color(0xFFEAF4FF),
-                                fontSize: 14,
-                                fontFamily: 'Work Sans',
-                                fontWeight: FontWeight.w400,
-                                height: 1.57,
+                              Text(
+                                email,
+                                style: const TextStyle(
+                                  color: Color(0xFFEAF4FF),
+                                  fontSize: 14,
+                                  fontFamily: 'Work Sans',
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.57,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -333,14 +336,14 @@ List<Map<String, String>> drawerItems = [
     "icon": KImages.inbox,
   },
   {
-    "name": "Edit Profile",
+    "name": "Setting",
     "icon": KImages.editProfile,
   },
   {
     "name": "Learning",
     "icon": KImages.booking,
   },
-  {
+  /*{
     "name": "Ticket Support",
     "icon": KImages.supportIcon,
   },
@@ -359,5 +362,5 @@ List<Map<String, String>> drawerItems = [
   {
     "name": "About Us",
     "icon": KImages.aboutUs,
-  },
+  },*/
 ];
