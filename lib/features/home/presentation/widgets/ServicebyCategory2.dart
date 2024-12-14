@@ -82,7 +82,10 @@ class _ServicesByCategoryScreens2State
                   constraints: BoxConstraints(
                     maxWidth: MediaQuery.of(context).size.width,
                   ),
-                  child: ServiceCard(task: task),
+                  child: ServiceCard(
+                    task: task,
+                    imageHeight: 120,
+                  ),
                 );
               },
             );
