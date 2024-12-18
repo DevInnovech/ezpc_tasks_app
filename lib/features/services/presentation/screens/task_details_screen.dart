@@ -25,31 +25,38 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
 
   Future<void> _toggleTaskStatus() async {
     try {
-      // Mostramos un estado de carga si es necesario
       setState(() {
         isLoading = true;
       });
 
+      // Consulta el documento basado en el campo `taskId`
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .where('taskId', isEqualTo: currentTask.taskId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception('Task not found in Firestore');
+      }
+
+      final taskDoc = querySnapshot.docs.first;
+
       // Cambiamos el estado de la tarea localmente
       final newStatus = currentTask.status == 1 ? 0 : 1;
 
-      // Actualizamos el estado en Firebase
+      // Actualizamos el estado en Firestore
       await FirebaseFirestore.instance
           .collection('tasks')
-          .doc(currentTask.taskId)
+          .doc(taskDoc.id) // Aquí usamos el documentId
           .update({'status': newStatus});
 
-      // Recargamos la información actualizada desde Firebase
-      final updatedTaskDoc = await FirebaseFirestore.instance
-          .collection('tasks')
-          .doc(currentTask.taskId)
-          .get();
-
-      // Actualizamos el estado local con los datos obtenidos
+      // Actualizamos el estado local
       setState(() {
         currentTask = Task.fromMap({
-          ...updatedTaskDoc.data()!,
-          'taskId': updatedTaskDoc.id,
+          ...taskDoc.data(),
+          'taskId': currentTask.taskId, // Aseguramos que el `taskId` persista
+          'status': newStatus, // Actualizamos el estado
         });
         isLoading = false;
       });

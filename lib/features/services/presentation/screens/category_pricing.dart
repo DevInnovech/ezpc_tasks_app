@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/license_document_widget.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/service_image.dart';
-import 'package:ezpc_tasks_app/shared/widgets/customcheckbox.dart';
 
 class CategoryPricingStep extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -19,21 +17,21 @@ class CategoryPricingStep extends ConsumerStatefulWidget {
 
 class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
   String? _selectedCategoryId;
-  String? _selectedSubCategoryId;
-  String? _selectedServiceId;
   List<Map<String, dynamic>> _categories = [];
-  List<Map<String, dynamic>> _subCategories = [];
-  List<String> _services = [];
+  List<Map<String, dynamic>> _services = [];
+  List<String> _selectedServices = [];
   bool _isLoadingCategories = true;
-  bool _isLoadingSubCategories = false;
 
-  double? _categoryRate; // Asigna al modelo como `price`.
-  double? _serviceRate; // Asigna al modelo como `subCategoryPrice`.
+  bool _applyGeneralPrice = false;
+  double? _generalPrice;
+  Map<String, double> _servicePrices = {};
+
+  bool _showProfessionalLicense = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCategories(); // Carga las categorías al iniciar
+    _loadCategories();
   }
 
   Future<void> _loadCategories() async {
@@ -41,67 +39,80 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
       _isLoadingCategories = true;
     });
 
-    // Obtén todas las categorías desde Firestore
-    final snapshot =
-        await FirebaseFirestore.instance.collection('categories').get();
-    final categories =
-        snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('categories').get();
+      final categories =
+          snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
 
-    setState(() {
-      _categories = categories;
-      _isLoadingCategories = false;
-
-      // Reinicia la selección si no es válida
-      if (!_categories.any((cat) => cat['id'] == _selectedCategoryId)) {
-        _selectedCategoryId = null;
-        _subCategories = [];
-        _services = [];
-      }
-    });
+      setState(() {
+        _categories = categories;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load categories: $e")),
+      );
+    } finally {
+      setState(() {
+        _isLoadingCategories = false;
+      });
+    }
   }
 
-  Future<void> _loadSubCategories(String categoryId) async {
-    setState(() {
-      _isLoadingSubCategories = true;
-    });
-
-    // Obtén subcategorías y preguntas para la categoría seleccionada
+  void _loadServices(String categoryId) {
     final category = _categories.firstWhere((cat) => cat['id'] == categoryId);
-    final subCategories =
-        List<Map<String, dynamic>>.from(category['subcategories'] ?? []);
-    final questions =
-        List<Map<String, dynamic>>.from(category['questions'] ?? []);
+    final services =
+        List<Map<String, dynamic>>.from(category['services'] ?? []);
 
     setState(() {
-      _subCategories = subCategories;
-      _isLoadingSubCategories = false;
-
-      // Reinicia las subcategorías y servicios seleccionados
-      if (!_subCategories.any((sub) => sub['name'] == _selectedSubCategoryId)) {
-        _selectedSubCategoryId = null;
-        _services = [];
-      }
+      _services = services;
+      _selectedServices.clear();
+      _servicePrices.clear();
+      _generalPrice = null;
+      _applyGeneralPrice = false;
     });
   }
 
-  void _loadServices(String subCategoryName) {
-    final subCategory =
-        _subCategories.firstWhere((sub) => sub['name'] == subCategoryName);
-
-    setState(() {
-      _services = List<String>.from(subCategory['services'] ?? []);
-
-      // Reinicia el servicio seleccionado si no es válido
-      if (!_services.contains(_selectedServiceId)) {
-        _selectedServiceId = null;
-      }
-    });
+  Widget _buildServiceDropdown() {
+    return DropdownButtonFormField<String>(
+      hint: const Text("Select Services"),
+      value: null,
+      items: _services.map((service) {
+        return DropdownMenuItem<String>(
+          value: service['name'],
+          child: StatefulBuilder(
+            builder: (context, setStateCheckbox) {
+              return CheckboxListTile(
+                title: Text(service['name']),
+                value: _selectedServices.contains(service['name']),
+                onChanged: (bool? isChecked) {
+                  setState(() {
+                    if (isChecked == true) {
+                      _selectedServices.add(service['name']);
+                    } else {
+                      _selectedServices.remove(service['name']);
+                      _servicePrices.remove(service['name']);
+                    }
+                    _applyGeneralPrice = false;
+                  });
+                  setStateCheckbox(() {});
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              );
+            },
+          ),
+        );
+      }).toList(),
+      onChanged: (_) {},
+      isExpanded: true,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLicenseRequired = ref.watch(isLicenseRequiredProvider);
-
     return Form(
       key: widget.formKey,
       child: SingleChildScrollView(
@@ -113,7 +124,6 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
             const SizedBox(height: 8),
             ServiceImage(
               onImageSelected: (String imageUrl) {
-                // Actualiza la URL de la imagen en el estado
                 ref.read(taskProvider.notifier).updateTask(imageUrl: imageUrl);
               },
             ),
@@ -133,170 +143,100 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                     onChanged: (String? categoryId) {
                       setState(() {
                         _selectedCategoryId = categoryId;
-                        _selectedSubCategoryId = null;
-                        _categoryRate = null;
-                        _serviceRate = null;
                       });
 
                       if (categoryId != null) {
-                        _loadSubCategories(categoryId);
-
-                        final category = _categories
-                            .firstWhere((cat) => cat['id'] == categoryId);
-
-                        ref.read(taskProvider.notifier).updateTask(
-                              category: category['name'],
-                              categoryId: categoryId,
-                            );
+                        _loadServices(categoryId);
                       }
                     },
                   ),
             const SizedBox(height: 16),
-            _buildSectionTitle(context, 'Category Rate'),
-            TextFormField(
-              initialValue: _categoryRate?.toStringAsFixed(2),
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Enter Category Rate',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                final rate = double.tryParse(value) ?? 0.0;
-                setState(() {
-                  _categoryRate = rate;
-                });
-
-                ref.read(taskProvider.notifier).updateTask(price: rate);
-              },
-            ),
-            const SizedBox(height: 16),
-            _buildSectionTitle(context, 'Choose Subcategory'),
-            _isLoadingSubCategories
-                ? const Center(child: CircularProgressIndicator())
-                : DropdownButtonFormField<String>(
-                    value: _selectedSubCategoryId,
-                    hint: const Text('Select a subcategory'),
-                    items: _subCategories
-                        .map((subCategory) => DropdownMenuItem<String>(
-                              value: subCategory['name'],
-                              child: Text(subCategory['name']),
-                            ))
-                        .toList(),
-                    onChanged: (String? subCategoryName) {
-                      setState(() {
-                        _selectedSubCategoryId = subCategoryName;
-                        _serviceRate = null;
-                        _selectedServiceId = null;
-                      });
-
-                      if (subCategoryName != null) {
-                        _loadServices(subCategoryName);
-
-                        ref.read(taskProvider.notifier).updateTask(
-                              subCategory: subCategoryName,
-                            );
-                      }
-                    },
-                  ),
-            const SizedBox(height: 16),
-            if (_services.isNotEmpty)
-              _buildSectionTitle(context, 'Choose Service'),
-            if (_services.isNotEmpty)
-              DropdownButtonFormField<String>(
-                value: _selectedServiceId,
-                hint: const Text('Select a service'),
-                items: _services
-                    .map((service) => DropdownMenuItem<String>(
-                          value: service,
-                          child: Text(service),
-                        ))
-                    .toList(),
-                onChanged: (String? serviceId) {
+            if (_services.isNotEmpty) ...[
+              _buildSectionTitle(context, 'Select Services'),
+              _buildServiceDropdown(),
+            ],
+            if (_selectedServices.length > 1)
+              _buildRadioButton(
+                "Apply General Price for All Services",
+                _applyGeneralPrice,
+                (value) {
                   setState(() {
-                    _selectedServiceId = serviceId;
+                    _applyGeneralPrice = value ?? false;
+                    if (_applyGeneralPrice) _servicePrices.clear();
                   });
-
-                  ref
-                      .read(taskProvider.notifier)
-                      .updateTask(service: serviceId);
                 },
               ),
-            const SizedBox(height: 16),
-            _buildSectionTitle(context, 'Service Rate'),
-            TextFormField(
-              initialValue: _serviceRate?.toStringAsFixed(2),
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Enter Service Rate',
-                border: OutlineInputBorder(),
+            if (_applyGeneralPrice)
+              TextFormField(
+                initialValue: _generalPrice?.toStringAsFixed(2),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Enter General Price',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _generalPrice = double.tryParse(value) ?? 0.0;
+                  });
+                },
               ),
-              onChanged: (value) {
-                final rate = double.tryParse(value) ?? 0.0;
-                setState(() {
-                  _serviceRate = rate;
-                });
-
-                ref
-                    .read(taskProvider.notifier)
-                    .updateTask(subCategoryprice: rate);
-              },
-            ),
+            if (!_applyGeneralPrice)
+              ..._selectedServices.map((service) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    initialValue:
+                        _servicePrices[service]?.toStringAsFixed(2) ?? '',
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Price for $service',
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _servicePrices[service] = double.tryParse(value) ?? 0.0;
+                      });
+                    },
+                  ),
+                );
+              }).toList(),
             const SizedBox(height: 16),
             _buildSectionTitle(context, 'Professional License'),
-            CustomCheckboxListTile(
-              title: 'I hold a professional license',
-              value: isLicenseRequired,
-              onChanged: (bool? value) {
-                ref.read(isLicenseRequiredProvider.notifier).state =
-                    value ?? false;
-
-                ref.read(taskProvider.notifier).updateTask(
-                      requiresLicense: value ?? false,
-                    );
+            _buildRadioButton(
+              "I hold a professional license",
+              _showProfessionalLicense,
+              (value) {
+                setState(() {
+                  _showProfessionalLicense = value ?? false;
+                });
               },
-              activeColor: Colors.blue,
             ),
-            AbsorbPointer(
-              absorbing: !isLicenseRequired,
-              child: Opacity(
-                opacity: isLicenseRequired ? 1.0 : 0.5,
-                child: LicenseDocumentInput(
-                  onLicenseTypeChanged: (String licenseType) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          licenseType: licenseType,
-                        );
-                  },
-                  onLicenseNumberChanged: (String licenseNumber) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          licenseNumber: licenseNumber,
-                        );
-                  },
-                  onPhoneChanged: (String phone) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          phone: phone,
-                        );
-                  },
-                  onIssueDateChanged: (String issueDate) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          issueDate: issueDate,
-                        );
-                  },
-                  onLicenseExpirationDateChanged: (String expirationDate) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          licenseExpirationDate: expirationDate,
-                        );
-                  },
-                  onDocumentSelected: (File file) {
-                    ref.read(taskProvider.notifier).updateTask(
-                          documentUrl: file.path,
-                        );
-                  },
-                ),
+            if (_showProfessionalLicense)
+              LicenseDocumentInput(
+                onLicenseTypeChanged: (String licenseType) {},
+                onLicenseNumberChanged: (String licenseNumber) {},
+                onPhoneChanged: (String phone) {},
+                onIssueDateChanged: (String issueDate) {},
+                onLicenseExpirationDateChanged: (String expirationDate) {},
+                onDocumentSelected: (File file) {},
               ),
-            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRadioButton(
+      String title, bool value, ValueChanged<bool?> onChanged) {
+    return Row(
+      children: [
+        Radio<bool>(
+          value: true,
+          groupValue: value,
+          onChanged: onChanged,
+        ),
+        Text(title),
+      ],
     );
   }
 

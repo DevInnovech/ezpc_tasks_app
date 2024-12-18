@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -107,17 +108,73 @@ class TaskNotifier extends StateNotifier<TaskState> {
         averageRating: '0.0',
         totalReview: 0,
         totalOrder: 0,
-        providerId: userID, // Asignar el ID del proveedor
+        providerId: userID,
         provider: null,
-        details: '', duration: '', description: '', clientName: '',
-        clientLastName: '', questions: '',
+        details: '',
+        duration: '',
+        description: '',
+        clientName: '',
+        clientLastName: '',
+        questions: '',
+        selectedTasks: [],
       );
 
       state = state.copyWith(currentTask: emptyTask);
-      debugPrint('Tarea inicializada correctamente con el proveedor.');
+      debugPrint('Tarea inicializada correctamente.');
     } catch (e) {
-      debugPrint('Error al inicializar la tarea: $e');
       state = state.copyWith(error: e.toString());
+      debugPrint('Error al inicializar la tarea: $e');
+    }
+  }
+
+  /// Cargar preguntas de Firebase basadas en los servicios seleccionados
+  Future<void> loadQuestionsForSelectedServices() async {
+    final currentTask = state.currentTask;
+    if (currentTask == null || currentTask.service.isEmpty) return;
+
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      final categoryDoc = await FirebaseFirestore.instance
+          .collection('categories')
+          .doc(currentTask.categoryId)
+          .get();
+
+      if (!categoryDoc.exists) return;
+
+      final List<dynamic> services = categoryDoc.data()?['services'] ?? [];
+      final List<String> selectedServices =
+          currentTask.service.split(',').map((s) => s.trim()).toList();
+
+      Map<String, List<String>> questionsMap = {};
+
+      for (String serviceName in selectedServices) {
+        final service = services.firstWhere(
+          (s) => s['name'] == serviceName,
+          orElse: () => null,
+        );
+
+        if (service != null && service['questions'] != null) {
+          final List<dynamic> questions = service['questions'];
+          questionsMap[serviceName] =
+              questions.map((q) => q.toString()).toList();
+        }
+      }
+
+      final updatedTask = currentTask.copyWith(
+        questions: jsonEncode(questionsMap),
+      );
+
+      state = state.copyWith(
+        currentTask: updatedTask,
+        isLoading: false,
+      );
+
+      debugPrint('Preguntas cargadas exitosamente.');
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false, error: 'Error al cargar preguntas: $e');
+      debugPrint('Error al cargar preguntas: $e');
     }
   }
 
@@ -288,7 +345,9 @@ class TaskNotifier extends StateNotifier<TaskState> {
         duration: task.duration,
         description: task.description,
         clientName: task.clientName,
-        clientLastName: task.clientLastName, questions: task.questions,
+        clientLastName: task.clientLastName,
+        questions: task.questions, // Asegurarse de guardar preguntas
+        selectedTasks: task.selectedTasks, // Guardar tareas seleccionadas
       );
 
       // Save the task in the repository
@@ -345,6 +404,13 @@ class TaskNotifier extends StateNotifier<TaskState> {
     dynamic provider,
     String? details,
     Map<String, String>? questionResponses,
+    String? duration,
+    String? description,
+    String? clientName,
+    String? clientLastName,
+    Map<String, List<String>>? questions, // Agregado para actualizar preguntas
+    List<String>?
+        selectedTasks, // Agregado para actualizar tareas seleccionadas
   }) {
     if (state.currentTask == null) return;
 
@@ -382,12 +448,16 @@ class TaskNotifier extends StateNotifier<TaskState> {
       providerId: providerId,
       provider: provider,
       details: details,
-      questionResponses: questionResponses,
+      questionResponses:
+          questionResponses ?? state.currentTask!.questionResponses,
+      questions: questions != null
+          ? jsonEncode(questions)
+          : state.currentTask!.questions, // Convertir a String
+      selectedTasks: selectedTasks ?? state.currentTask!.selectedTasks,
     );
 
     state = state.copyWith(currentTask: updatedTask);
-    debugPrint(
-        'Task updated: ${updatedTask.workingDays}, ${updatedTask.workingHours}');
+    debugPrint('Task updated: ${updatedTask.selectedTasks}');
   }
 
   Future<void> deleteTask(TaskModel.Task task) async {

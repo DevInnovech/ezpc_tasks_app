@@ -1,10 +1,11 @@
 class Task {
-  String id;
+  final String id;
   final String taskId;
   final String taskName;
-  final String firstName; // Nuevo campo
-  final String lastName; // Nuevo campo
-  final String slug; // Nuevo campo
+  final List<String> selectedTasks; // NUEVO CAMPO
+  final String firstName;
+  final String lastName;
+  final String slug;
   final String category;
   final String categoryId;
   final String subCategory;
@@ -25,27 +26,28 @@ class Task {
   final String issueDate;
   final String? additionalOption;
   final Map<String, String>? questionResponses;
-  final int makeFeatured; // Nuevo campo
-  final int isBanned; // Nuevo campo
-  late final int status; // Nuevo campo
-  final String createdAt; // Nuevo campo
-  final int approveByAdmin; // Nuevo campo
-  final String averageRating; // Nuevo campo
-  final int totalReview; // Nuevo campo
-  final int totalOrder; // Nuevo campo
-  final String providerId; // Nuevo campo
-  final dynamic provider; // Nuevo campo
-  final String details; // Nuevo campo
-  final String duration; // Nuevo campo
-  final String description; // Nuevo campo
-  final String clientName; // Nuevo campo para el nombre del cliente
-  final String clientLastName; // Nuevo campo para el apellido del cliente
   final String questions;
+  final int makeFeatured;
+  final int isBanned;
+  final int status;
+  final String createdAt;
+  final int approveByAdmin;
+  final String averageRating;
+  final int totalReview;
+  final int totalOrder;
+  final String providerId;
+  final dynamic provider;
+  final String details;
+  final String duration;
+  final String description;
+  final String clientName;
+  final String clientLastName;
 
   Task({
     required this.id,
     required this.taskId,
     required this.taskName,
+    required this.selectedTasks, // NUEVO CAMPO
     required this.firstName,
     required this.lastName,
     required this.slug,
@@ -69,6 +71,7 @@ class Task {
     required this.issueDate,
     this.additionalOption,
     this.questionResponses,
+    required this.questions,
     required this.makeFeatured,
     required this.isBanned,
     required this.status,
@@ -82,16 +85,16 @@ class Task {
     required this.details,
     required this.duration,
     required this.description,
-    required this.clientName, // Inicialización del nuevo campo
-    required this.clientLastName, // Inicialización del nuevo campo
-    required this.questions,
+    required this.clientName,
+    required this.clientLastName,
   });
 
-  // Método para copiar la tarea con modificaciones
+  // Método copyWith
   Task copyWith({
     String? id,
     String? taskId,
     String? taskName,
+    List<String>? selectedTasks, // NUEVO PARÁMETRO
     String? firstName,
     String? lastName,
     String? slug,
@@ -115,6 +118,7 @@ class Task {
     String? issueDate,
     String? additionalOption,
     Map<String, String>? questionResponses,
+    String? questions,
     int? makeFeatured,
     int? isBanned,
     int? status,
@@ -128,24 +132,23 @@ class Task {
     String? details,
     String? duration,
     String? description,
-    String? userId,
     String? clientName,
     String? clientLastName,
-    String? questions,
   }) {
     return Task(
       id: id ?? this.id,
       taskId: taskId ?? this.taskId,
       taskName: taskName ?? this.taskName,
+      selectedTasks: selectedTasks ?? this.selectedTasks, // NUEVO CAMPO
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       slug: slug ?? this.slug,
       categoryId: categoryId ?? this.categoryId,
       category: category ?? this.category,
       subCategory: subCategory ?? this.subCategory,
-      type: type ?? this.type,
       price: price ?? this.price,
       subCategoryprice: subCategoryprice ?? this.subCategoryprice,
+      type: type ?? this.type,
       imageUrl: imageUrl ?? this.imageUrl,
       requiresLicense: requiresLicense ?? this.requiresLicense,
       licenseType: licenseType ?? this.licenseType,
@@ -161,6 +164,7 @@ class Task {
       issueDate: issueDate ?? this.issueDate,
       additionalOption: additionalOption ?? this.additionalOption,
       questionResponses: questionResponses ?? this.questionResponses,
+      questions: questions ?? this.questions,
       makeFeatured: makeFeatured ?? this.makeFeatured,
       isBanned: isBanned ?? this.isBanned,
       status: status ?? this.status,
@@ -176,16 +180,16 @@ class Task {
       description: description ?? this.description,
       clientName: clientName ?? this.clientName,
       clientLastName: clientLastName ?? this.clientLastName,
-      questions: questions ?? this.questions,
     );
   }
 
-  // Método para convertir a Map
+  // Convertir a mapa
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'taskId': taskId,
       'taskName': taskName,
+      'selectedTasks': selectedTasks, // NUEVO CAMPO
       'firstName': firstName,
       'lastName': lastName,
       'slug': slug,
@@ -209,6 +213,7 @@ class Task {
       'issueDate': issueDate,
       'additionalOption': additionalOption,
       'questionResponses': questionResponses,
+      'questions': questions,
       'makeFeatured': makeFeatured,
       'isBanned': isBanned,
       'status': status,
@@ -222,17 +227,19 @@ class Task {
       'details': details,
       'duration': duration,
       'description': description,
-      'clientName': clientName, // Conversión del nuevo campo
-      'clientLastName': clientLastName, // Conversión del nuevo campo
-      'questions': questions, // Conversión del nuevo campo
+      'clientName': clientName,
+      'clientLastName': clientLastName,
     };
   }
 
+  // Crear desde mapa
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       id: map['id'] ?? '',
       taskId: map['taskId'] ?? '',
       taskName: map['taskName'] ?? '',
+      selectedTasks:
+          List<String>.from(map['selectedTasks'] ?? []), // NUEVO CAMPO
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
       slug: map['slug'] ?? '',
@@ -249,11 +256,8 @@ class Task {
       licenseExpirationDate: map['licenseExpirationDate'] ?? '',
       workingDays: List<String>.from(map['workingDays'] ?? []),
       questions: map['questions'] ?? '',
-      workingHours: (map['workingHours'] != null)
-          ? (map['workingHours'] as Map<String, dynamic>).map((key, value) {
-              return MapEntry(key, Map<String, String>.from(value));
-            })
-          : {},
+      workingHours:
+          (map['workingHours'] ?? {}).cast<String, Map<String, String>>(),
       specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
       documentUrl: map['documentUrl'] ?? '',
       phone: map['phone'] ?? '',
@@ -267,7 +271,7 @@ class Task {
       status: map['status'] ?? 1,
       createdAt: map['createdAt'] ?? '',
       approveByAdmin: map['approveByAdmin'] ?? 0,
-      averageRating: map['averageRating'] ?? '0.0',
+      averageRating: map['averageRating'] ?? '',
       totalReview: map['totalReview'] ?? 0,
       totalOrder: map['totalOrder'] ?? 0,
       providerId: map['providerId'] ?? '',

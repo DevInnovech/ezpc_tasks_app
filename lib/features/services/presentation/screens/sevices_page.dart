@@ -126,7 +126,7 @@ class ServiceScreen extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(10.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,10 +199,8 @@ class ServiceScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4.0),
                 CustomText(
-                  text: DateFormat.yMMMMd().format(DateTime.tryParse(
-                          task.issueDate) ??
-                      DateTime
-                          .now()), // cuidado con ponerle dique la hora actual
+                  text: DateFormat.yMMMMd().format(
+                      DateTime.tryParse(task.issueDate) ?? DateTime.now()),
                   fontSize: 14.0,
                   color: Colors.grey,
                 ),

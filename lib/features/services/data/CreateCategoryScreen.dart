@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -15,26 +14,21 @@ class CreateCategoryScreen extends StatefulWidget {
 
 class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
   final _categoryNameController = TextEditingController();
-  final _subcategoryNameController = TextEditingController();
   final _serviceNameController = TextEditingController();
-  final _questionController =
-      TextEditingController(); // Controlador para preguntas
-  final List<Map<String, dynamic>> _subcategories = [];
-  final List<String> _services = [];
-  final List<Map<String, dynamic>> _questions = []; // Lista de preguntas
-  bool _isFeatured = false;
+  final _questionController = TextEditingController();
 
+  final List<Map<String, dynamic>> _services = [];
   File? _selectedImage;
   bool _isUploading = false;
 
   final ImagePicker _picker = ImagePicker();
+  String? _selectedService; // Para seleccionar servicio al añadir preguntas
 
   @override
   void dispose() {
     _categoryNameController.dispose();
-    _subcategoryNameController.dispose();
     _serviceNameController.dispose();
-    _questionController.dispose(); // Liberar controlador
+    _questionController.dispose();
     super.dispose();
   }
 
@@ -66,32 +60,21 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
   void _addService() {
     if (_serviceNameController.text.isNotEmpty) {
       setState(() {
-        _services.add(_serviceNameController.text);
+        _services.add({
+          'name': _serviceNameController.text,
+          'questions': <String>[],
+        });
         _serviceNameController.clear();
       });
     }
   }
 
-  void _addSubcategory() {
-    if (_subcategoryNameController.text.isNotEmpty && _services.isNotEmpty) {
-      setState(() {
-        _subcategories.add({
-          'name': _subcategoryNameController.text,
-          'services': List<String>.from(_services),
-        });
-        _subcategoryNameController.clear();
-        _services.clear();
-      });
-    }
-  }
-
   void _addQuestion() {
-    if (_questionController.text.isNotEmpty) {
+    if (_questionController.text.isNotEmpty && _selectedService != null) {
       setState(() {
-        _questions.add({
-          'id': const Uuid().v4(),
-          'text': _questionController.text,
-        });
+        final service = _services
+            .firstWhere((service) => service['name'] == _selectedService);
+        (service['questions'] as List<String>).add(_questionController.text);
         _questionController.clear();
       });
     }
@@ -126,9 +109,7 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
       'id': categoryId,
       'name': _categoryNameController.text,
       'imageUrl': imageUrl,
-      'isFeatured': _isFeatured,
-      'subcategories': _subcategories,
-      'questions': _questions, // Guardar las preguntas
+      'services': _services,
     };
 
     await FirebaseFirestore.instance
@@ -181,25 +162,9 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                       fit: BoxFit.cover,
                     ),
 
-                  const SizedBox(height: 10.0),
+                  const SizedBox(height: 20.0),
 
-                  // Toggle para destacar categoría
-                  SwitchListTile(
-                    value: _isFeatured,
-                    onChanged: (value) => setState(() => _isFeatured = value),
-                    title: const Text('Feature this category'),
-                  ),
-
-                  const SizedBox(height: 10.0),
-
-                  // Campo para Subcategorías
-                  TextField(
-                    controller: _subcategoryNameController,
-                    decoration:
-                        const InputDecoration(labelText: 'Subcategory Name'),
-                  ),
-
-                  // Campo para Servicios
+                  // Campo para agregar servicios
                   Row(
                     children: [
                       Expanded(
@@ -216,83 +181,74 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                     ],
                   ),
 
-                  // Lista de Servicios
+                  // Lista de servicios
                   if (_services.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _services
-                          .map((service) => ListTile(
-                                title: Text(service),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () => setState(() {
-                                    _services.remove(service);
-                                  }),
-                                ),
-                              ))
-                          .toList(),
-                    ),
-
-                  const SizedBox(height: 10.0),
-
-                  // Botón para añadir Subcategoría
-                  ElevatedButton(
-                    onPressed: _addSubcategory,
-                    child: const Text('Add Subcategory'),
-                  ),
-
-                  // Lista de Subcategorías
-                  if (_subcategories.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _subcategories
-                          .map((sub) => ListTile(
-                                title: Text(sub['name']),
-                                subtitle: Text(
-                                    'Services: ${sub['services'].join(', ')}'),
-                              ))
-                          .toList(),
-                    ),
-
-                  const SizedBox(height: 10.0),
-
-                  // Campo para Preguntas
-                  TextField(
-                    controller: _questionController,
-                    decoration:
-                        const InputDecoration(labelText: 'Question Text'),
-                  ),
-                  const SizedBox(height: 10.0),
-
-                  // Botón para añadir Pregunta
-                  ElevatedButton(
-                    onPressed: _addQuestion,
-                    child: const Text('Add Question'),
-                  ),
-
-                  // Lista de Preguntas
-                  if (_questions.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _questions
-                          .map((question) => ListTile(
-                                title: Text(question['text']),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () => setState(() {
-                                    _questions.remove(question);
-                                  }),
-                                ),
-                              ))
-                          .toList(),
+                      children: _services.map((service) {
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            title: Text(service['name']),
+                            subtitle: Text(
+                                'Questions: ${(service['questions'] as List<String>).join(", ")}'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => setState(() {
+                                _services.remove(service);
+                              }),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
 
                   const SizedBox(height: 20.0),
 
-                  // Botón para guardar categoría
-                  ElevatedButton(
-                    onPressed: _saveCategory,
-                    child: const Text('Save Category'),
+                  // Selección de servicio para añadir preguntas
+                  DropdownButton<String>(
+                    isExpanded: true,
+                    hint: const Text('Select Service to Add Questions'),
+                    value: _selectedService,
+                    items: _services
+                        .map((service) => DropdownMenuItem<String>(
+                              value: service['name'],
+                              child: Text(service['name']),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedService = value;
+                      });
+                    },
+                  ),
+
+                  // Campo para añadir preguntas
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _questionController,
+                          decoration:
+                              const InputDecoration(labelText: 'Add Question'),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _addQuestion,
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20.0),
+
+                  // Botón para guardar la categoría
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _saveCategory,
+                      child: const Text('Save Category'),
+                    ),
                   ),
                 ],
               ),

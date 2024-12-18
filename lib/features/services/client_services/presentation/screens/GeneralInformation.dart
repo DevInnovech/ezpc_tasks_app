@@ -254,7 +254,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
       if (applyForAnotherPerson)
         GooglePlaceAutoCompleteTextField(
           textEditingController: addressController,
-          googleAPIKey: "TU_API_KEY",
+          googleAPIKey: "AIzaSyAniwsNy7RlHjkeU8x_k44dPsw4isyK-d0",
           inputDecoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.0),
