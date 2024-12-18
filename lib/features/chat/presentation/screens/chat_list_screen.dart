@@ -270,27 +270,37 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void _markMessagesAsRead(String chatRoomId) async {
     try {
       final userId = _auth.currentUser?.uid;
-      if (userId == null) return; // Validar que haya un usuario autenticado
+      if (userId == null) {
+        print('No authenticated user found.');
+        return; // Validar que haya un usuario autenticado
+      }
 
       final chatRoomRef = _firestore.collection('chats').doc(chatRoomId);
 
       await _firestore.runTransaction((transaction) async {
         final chatRoomSnapshot = await transaction.get(chatRoomRef);
 
-        if (!chatRoomSnapshot.exists) return;
+        if (!chatRoomSnapshot.exists) {
+          print('Chat room does not exist: $chatRoomId');
+          return; // Detener si el documento no existe
+        }
 
-        // Obtener los contadores actuales
-        final unreadCounts = Map<String, dynamic>.from(
-          chatRoomSnapshot.data()?['unreadCounts'] ?? {},
-        );
+        // Convertir los datos del snapshot a un mapa y manejar valores opcionales
+        final chatRoomData =
+            chatRoomSnapshot.data() as Map<String, dynamic>? ?? {};
 
-        // Limpiar los mensajes no leídos del usuario actual
+        // Validar la existencia del campo `unreadCounts`
+        final unreadCounts = chatRoomData.containsKey('unreadCounts')
+            ? Map<String, dynamic>.from(chatRoomData['unreadCounts'])
+            : {};
+
+        // Establecer el contador de mensajes no leídos a 0 para el usuario actual
         unreadCounts[userId] = 0;
 
-        // Actualizar Firestore
+        // Actualizar el documento de la sala de chat con los contadores actualizados
         transaction.update(chatRoomRef, {'unreadCounts': unreadCounts});
 
-        // Opcional: Marcar mensajes como leídos
+        // Opcional: Marcar mensajes como leídos dentro de la subcolección `messages`
         final unreadMessagesQuery = await chatRoomRef
             .collection('messages')
             .where('receiverId', isEqualTo: userId)
@@ -301,6 +311,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
           transaction.update(doc.reference, {'read': true});
         }
       });
+
+      print('Messages marked as read in chatRoomId: $chatRoomId');
     } catch (e) {
       print('Error marking messages as read: $e');
     }
@@ -325,6 +337,46 @@ class _ChatListScreenState extends State<ChatListScreen> {
       print('Error formatting timestamp: $e');
     }
     return '';
+  }
+
+  Future<void> createChatRoomIfNotExists(
+      String chatRoomId, String customerId, String providerId) async {
+    try {
+      final chatRoomRef = _firestore.collection('chats').doc(chatRoomId);
+      final chatRoomSnapshot = await chatRoomRef.get();
+
+      if (!chatRoomSnapshot.exists) {
+        // Crear el documento de la sala de chat con campos inicializados
+        await chatRoomRef.set({
+          'customerId': customerId,
+          'providerId': providerId,
+          'createdAt': FieldValue.serverTimestamp(),
+          'unreadCounts': {}, // Inicializar como mapa vacío
+          'onlineUsers': [], // Inicializar como lista vacía
+        });
+        print('Chat room created: $chatRoomId');
+      } else {
+        print('Chat room already exists: $chatRoomId');
+
+        // Validar y actualizar campos faltantes si el documento ya existe
+        final chatRoomData =
+            chatRoomSnapshot.data() as Map<String, dynamic>? ?? {};
+
+        // Actualizar `unreadCounts` si no existe
+        if (!chatRoomData.containsKey('unreadCounts')) {
+          await chatRoomRef.update({'unreadCounts': {}});
+          print('Added missing field "unreadCounts" to chat room: $chatRoomId');
+        }
+
+        // Actualizar `onlineUsers` si no existe
+        if (!chatRoomData.containsKey('onlineUsers')) {
+          await chatRoomRef.update({'onlineUsers': []});
+          print('Added missing field "onlineUsers" to chat room: $chatRoomId');
+        }
+      }
+    } catch (e) {
+      print('Error creating or updating chat room: $e');
+    }
   }
 
   void _setSearchTerm(String term) {
@@ -355,15 +407,25 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return filtered;
   }
 
-  void _navigateToChat(Map<String, dynamic> chat) {
-    _markMessagesAsRead(chat['chatRoomId']); // Marcar mensajes como leídos
+  void _navigateToChat(Map<String, dynamic> chat) async {
+    String chatRoomId = chat['chatRoomId'];
+    String customerId = chat['customerId'];
+    String providerId = chat['providerId'];
+
+    // Asegúrate de que la sala de chat exista en Firestore
+    await createChatRoomIfNotExists(chatRoomId, customerId, providerId);
+
+    // Marcar los mensajes como leídos
+    _markMessagesAsRead(chatRoomId);
+
+    // Navegar a la pantalla de chat
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CustomerChatScreen(
-          chatRoomId: chat['chatRoomId'],
-          customerId: chat['customerId'],
-          providerId: chat['providerId'],
+          chatRoomId: chatRoomId,
+          customerId: customerId,
+          providerId: providerId,
           isFakeData: false,
         ),
       ),
