@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
+import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/componentaddservices/license_document_widget.dart';
@@ -195,6 +196,31 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                     onChanged: (value) {
                       setState(() {
                         _servicePrices[service] = double.tryParse(value) ?? 0.0;
+
+                        // Filtrar preguntas solo de los servicios seleccionados
+                        Map<String, String> questionR = {};
+                        for (final selectedService in _selectedServices) {
+                          final serviceData = _services.firstWhere(
+                            (s) => s['name'] == selectedService,
+                            orElse: () => {},
+                          );
+
+                          if (serviceData.isNotEmpty &&
+                              serviceData.containsKey('questions')) {
+                            final questions = List<dynamic>.from(
+                                serviceData['questions'] ?? []);
+                            for (final question in questions) {
+                              questionR[question] =
+                                  selectedService; // Respuesta inicial
+                            }
+                          }
+                        }
+                        ref.read(taskProvider.notifier).updateTask(
+                            category: _categories.firstWhere((category) =>
+                                category['id'] == _selectedCategoryId)['name'],
+                            categoryId: _selectedCategoryId,
+                            selectedTasks: _servicePrices,
+                            questions: questionR);
                       });
                     },
                   ),

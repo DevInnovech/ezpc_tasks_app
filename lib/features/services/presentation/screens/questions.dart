@@ -35,26 +35,16 @@ class _QuestionsStepState extends ConsumerState<QuestionsStep> {
     }
 
     try {
-      // Consultar Firebase para obtener las preguntas de la categoría
-      final categoryDoc = await FirebaseFirestore.instance
-          .collection('categories')
-          .doc(currentTask.categoryId) // Usar categoryId de la tarea actual
-          .get();
-
-      if (categoryDoc.exists) {
-        final categoryData = categoryDoc.data();
-        final List<dynamic> questionList = categoryData?['questions'] ?? [];
-
-        setState(() {
-          // Manejar preguntas como una lista de mapas
-          questions = questionList.cast<Map<String, dynamic>>();
-          isLoading = false;
+      currentTask.questions!.forEach((question, response) {
+        questions.add({
+          'text': question, // Pregunta
+          'type': response, // Respuesta asociada
         });
-      } else {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      });
+
+      setState(() {
+        isLoading = false;
+      });
     } catch (e) {
       setState(() {
         isLoading = false;
@@ -67,6 +57,15 @@ class _QuestionsStepState extends ConsumerState<QuestionsStep> {
   Widget build(BuildContext context) {
     final taskState = ref.watch(taskProvider);
     final Task? currentTask = taskState.currentTask;
+    // Agrupar preguntas por tipo
+    final Map<String, List<Map<String, dynamic>>> groupedQuestions = {};
+    for (final question in questions) {
+      final type = question['type'] as String;
+      if (!groupedQuestions.containsKey(type)) {
+        groupedQuestions[type] = [];
+      }
+      groupedQuestions[type]!.add(question);
+    }
 
     return Form(
       key: widget.formKey, // Asignar formKey
@@ -88,33 +87,64 @@ class _QuestionsStepState extends ConsumerState<QuestionsStep> {
                   const SizedBox(height: 16),
                   if (questions.isNotEmpty)
                     Column(
-                      children: questions.map((question) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              labelText: question['text'],
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: groupedQuestions.entries.map((entry) {
+                        final String type = entry.key;
+                        final List<Map<String, dynamic>> questionsForType =
+                            entry.value;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Título del grupo (type)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                type,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
                             ),
-                            onChanged: (value) {
-                              if (currentTask != null) {
-                                Map<String, String> questionResponses =
-                                    currentTask.questionResponses ?? {};
-                                questionResponses[question['text']] = value;
-                                ref.read(taskProvider.notifier).updateTask(
-                                      questionResponses: questionResponses,
-                                    );
-                              }
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please fill in this field';
-                              }
-                              return null;
-                            },
-                            initialValue: currentTask
-                                    ?.questionResponses?[question['id']] ??
-                                '',
-                          ),
+                            // Lista de preguntas del grupo
+                            ...questionsForType.map((question) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: question['text'],
+                                  ),
+                                  onChanged: (value) {
+                                    if (currentTask != null) {
+                                      Map<String, String> questionResponses =
+                                          currentTask.questionResponses ?? {};
+                                      questionResponses[question['text']] =
+                                          value;
+                                      ref
+                                          .read(taskProvider.notifier)
+                                          .updateTask(
+                                            questionResponses:
+                                                questionResponses,
+                                          );
+                                    }
+                                  },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please fill in this field';
+                                    }
+                                    return null;
+                                  },
+                                  initialValue: currentTask?.questionResponses?[
+                                          question['text']] ??
+                                      '',
+                                ),
+                              );
+                            }).toList(),
+                          ],
                         );
                       }).toList(),
                     )

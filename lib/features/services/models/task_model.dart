@@ -1,8 +1,10 @@
+import 'dart:ffi';
+
 class Task {
   final String id;
   final String taskId;
   final String taskName;
-  final List<String> selectedTasks; // NUEVO CAMPO
+  final Map<String, double> selectedTasks; // NUEVO CAMPO
   final String firstName;
   final String lastName;
   final String slug;
@@ -26,7 +28,7 @@ class Task {
   final String issueDate;
   final String? additionalOption;
   final Map<String, String>? questionResponses;
-  final String questions;
+  final Map<String, String>? questions;
   final int makeFeatured;
   final int isBanned;
   final int status;
@@ -94,7 +96,7 @@ class Task {
     String? id,
     String? taskId,
     String? taskName,
-    List<String>? selectedTasks, // NUEVO PARÁMETRO
+    Map<String, double>? selectedTasks, // NUEVO PARÁMETRO
     String? firstName,
     String? lastName,
     String? slug,
@@ -118,7 +120,7 @@ class Task {
     String? issueDate,
     String? additionalOption,
     Map<String, String>? questionResponses,
-    String? questions,
+    Map<String, String>? questions,
     int? makeFeatured,
     int? isBanned,
     int? status,
@@ -238,16 +240,17 @@ class Task {
       id: map['id'] ?? '',
       taskId: map['taskId'] ?? '',
       taskName: map['taskName'] ?? '',
-      selectedTasks:
-          List<String>.from(map['selectedTasks'] ?? []), // NUEVO CAMPO
+      selectedTasks: (map['selectedTasks'] ?? {}).map<String, double>(
+          (key, value) => MapEntry(key, value.todouble())), // Actualizado
+      // NUEVO CAMPO
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
       slug: map['slug'] ?? '',
       categoryId: map['categoryId'] ?? '',
       category: map['category'] ?? '',
       subCategory: map['subCategory'] ?? '',
-      price: (map['price'] ?? 0.0).toDouble(),
-      subCategoryprice: (map['subCategoryprice'] ?? 0.0).toDouble(),
+      price: (map['price'] ?? 0.0).todouble(),
+      subCategoryprice: (map['subCategoryprice'] ?? 0.0).todouble(),
       type: map['type'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       requiresLicense: map['requiresLicense'] ?? false,
@@ -255,7 +258,7 @@ class Task {
       licenseNumber: map['licenseNumber'] ?? '',
       licenseExpirationDate: map['licenseExpirationDate'] ?? '',
       workingDays: List<String>.from(map['workingDays'] ?? []),
-      questions: map['questions'] ?? '',
+      questions: Map<String, String>.from(map['questions'] ?? {}),
       workingHours:
           (map['workingHours'] ?? {}).cast<String, Map<String, String>>(),
       specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),

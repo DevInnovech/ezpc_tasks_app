@@ -115,8 +115,8 @@ class TaskNotifier extends StateNotifier<TaskState> {
         description: '',
         clientName: '',
         clientLastName: '',
-        questions: '',
-        selectedTasks: [],
+        questions: {},
+        selectedTasks: {},
       );
 
       state = state.copyWith(currentTask: emptyTask);
@@ -127,6 +127,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
     }
   }
 
+/*
   /// Cargar preguntas de Firebase basadas en los servicios seleccionados
   Future<void> loadQuestionsForSelectedServices() async {
     final currentTask = state.currentTask;
@@ -177,7 +178,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
       debugPrint('Error al cargar preguntas: $e');
     }
   }
-
+*/
   Future<void> _loadTasks() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
@@ -408,8 +409,8 @@ class TaskNotifier extends StateNotifier<TaskState> {
     String? description,
     String? clientName,
     String? clientLastName,
-    Map<String, List<String>>? questions, // Agregado para actualizar preguntas
-    List<String>?
+    Map<String, String>? questions, // Agregado para actualizar preguntas
+    Map<String, double>?
         selectedTasks, // Agregado para actualizar tareas seleccionadas
   }) {
     if (state.currentTask == null) return;
@@ -450,9 +451,8 @@ class TaskNotifier extends StateNotifier<TaskState> {
       details: details,
       questionResponses:
           questionResponses ?? state.currentTask!.questionResponses,
-      questions: questions != null
-          ? jsonEncode(questions)
-          : state.currentTask!.questions, // Convertir a String
+      questions:
+          questions ?? state.currentTask!.questions, // Convertir a String
       selectedTasks: selectedTasks ?? state.currentTask!.selectedTasks,
     );
 
