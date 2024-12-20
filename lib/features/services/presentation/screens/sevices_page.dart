@@ -146,7 +146,7 @@ class ServiceScreen extends ConsumerWidget {
                   fit: BoxFit.cover,
                   path: task.imageUrl.isNotEmpty
                       ? task.imageUrl
-                      : KImages.emptyBookingImage,
+                      : KImages.emptyBookingImage, // Usa imagen por defecto
                 ),
               ),
               // Estado de la tarea
@@ -157,12 +157,12 @@ class ServiceScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 6.0),
                   decoration: BoxDecoration(
-                    color: Colors.green,
+                    color: task.status == 1 ? Colors.green : Colors.red,
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  child: const Text(
-                    'Active',
-                    style: TextStyle(
+                  child: Text(
+                    task.status == 1 ? 'Active' : 'Inactive',
+                    style: const TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -192,12 +192,14 @@ class ServiceScreen extends ConsumerWidget {
               children: [
                 _buildCategoryTag(task.category),
                 const SizedBox(height: 8.0),
+                // Nombre de la tarea
                 CustomText(
                   text: task.taskName,
                   fontSize: 18.0,
                   fontWeight: FontWeight.w700,
                 ),
                 const SizedBox(height: 4.0),
+                // Fecha de creación
                 CustomText(
                   text: DateFormat.yMMMMd().format(
                       DateTime.tryParse(task.issueDate) ?? DateTime.now()),
@@ -205,13 +207,47 @@ class ServiceScreen extends ConsumerWidget {
                   color: Colors.grey,
                 ),
                 const SizedBox(height: 4.0),
+                // Precio total de la tarea
                 CustomText(
-                  text: '\$${task.price}',
+                  text: '\$${task.price.toStringAsFixed(2)}',
                   fontSize: 20.0,
                   fontWeight: FontWeight.bold,
                   color: primaryColor,
                 ),
                 const SizedBox(height: 10.0),
+                // Mostrar servicios seleccionados y sus precios
+                if (task.selectedTasks.isNotEmpty) ...[
+                  const Text(
+                    "Selected Services:",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  ...task.selectedTasks.entries.map((entry) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          entry.key,
+                          style: const TextStyle(fontSize: 14.0),
+                        ),
+                        Text(
+                          '\$${entry.value.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ],
+                const SizedBox(height: 10.0),
+                // Botón de detalles
                 Center(
                   child: ElevatedButton(
                     onPressed: () {

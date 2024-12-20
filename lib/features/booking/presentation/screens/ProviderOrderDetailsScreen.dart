@@ -117,7 +117,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                                 )
                               : Text(
                                   '${index + 1}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -143,7 +143,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                             height: 2,
                             decoration: BoxDecoration(
                               gradient: index < currentStep
-                                  ? LinearGradient(
+                                  ? const LinearGradient(
                                       colors: [Colors.blue, Colors.blue],
                                       begin: Alignment.centerLeft,
                                       end: Alignment.centerRight,

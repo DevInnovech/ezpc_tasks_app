@@ -5,7 +5,7 @@ import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 class EditServiceScreen extends StatefulWidget {
   final Task task;
 
-  const EditServiceScreen({Key? key, required this.task}) : super(key: key);
+  const EditServiceScreen({super.key, required this.task});
 
   @override
   _EditServiceScreenState createState() => _EditServiceScreenState();
@@ -201,7 +201,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                     },
                   ),
                 );
-              }).toList(),
+              }),
               const SizedBox(height: 16.0),
 
               // Sección para las preguntas y respuestas
@@ -229,7 +229,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                     },
                   ),
                 );
-              }).toList(),
+              }),
               const SizedBox(height: 16.0),
 
               // Botón para guardar los cambios
@@ -264,9 +264,12 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
-    _workingHoursControllers.values
-        .forEach((controller) => controller.dispose());
-    _questionControllers.values.forEach((controller) => controller.dispose());
+    for (var controller in _workingHoursControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _questionControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 }

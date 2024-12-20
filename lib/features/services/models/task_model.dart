@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class Task {
   final String id;
   final String taskId;
@@ -240,17 +238,20 @@ class Task {
       id: map['id'] ?? '',
       taskId: map['taskId'] ?? '',
       taskName: map['taskName'] ?? '',
-      selectedTasks: (map['selectedTasks'] ?? {}).map<String, double>(
-          (key, value) => MapEntry(key, value.todouble())), // Actualizado
-      // NUEVO CAMPO
+      selectedTasks: map['selectedTasks'] != null && map['selectedTasks'] is Map
+          ? Map<String, double>.from(
+              map['selectedTasks']
+                  .map((key, value) => MapEntry(key, value.toDouble())),
+            )
+          : {}, // Ensure default is an empty map if not present or invalid
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
       slug: map['slug'] ?? '',
       categoryId: map['categoryId'] ?? '',
       category: map['category'] ?? '',
       subCategory: map['subCategory'] ?? '',
-      price: (map['price'] ?? 0.0).todouble(),
-      subCategoryprice: (map['subCategoryprice'] ?? 0.0).todouble(),
+      price: (map['price'] ?? 0.0).toDouble(),
+      subCategoryprice: (map['subCategoryprice'] ?? 0.0).toDouble(),
       type: map['type'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       requiresLicense: map['requiresLicense'] ?? false,

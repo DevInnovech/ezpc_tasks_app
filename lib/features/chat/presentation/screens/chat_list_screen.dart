@@ -286,8 +286,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         }
 
         // Convertir los datos del snapshot a un mapa y manejar valores opcionales
-        final chatRoomData =
-            chatRoomSnapshot.data() as Map<String, dynamic>? ?? {};
+        final chatRoomData = chatRoomSnapshot.data() ?? {};
 
         // Validar la existencia del campo `unreadCounts`
         final unreadCounts = chatRoomData.containsKey('unreadCounts')
@@ -359,8 +358,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         print('Chat room already exists: $chatRoomId');
 
         // Validar y actualizar campos faltantes si el documento ya existe
-        final chatRoomData =
-            chatRoomSnapshot.data() as Map<String, dynamic>? ?? {};
+        final chatRoomData = chatRoomSnapshot.data() ?? {};
 
         // Actualizar `unreadCounts` si no existe
         if (!chatRoomData.containsKey('unreadCounts')) {

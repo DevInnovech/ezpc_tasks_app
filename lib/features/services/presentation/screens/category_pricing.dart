@@ -20,12 +20,12 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
   String? _selectedCategoryId;
   List<Map<String, dynamic>> _categories = [];
   List<Map<String, dynamic>> _services = [];
-  List<String> _selectedServices = [];
+  final List<String> _selectedServices = [];
   bool _isLoadingCategories = true;
 
   bool _applyGeneralPrice = false;
   double? _generalPrice;
-  Map<String, double> _servicePrices = {};
+  final Map<String, double> _servicePrices = {};
 
   bool _showProfessionalLicense = false;
 
@@ -225,7 +225,7 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                     },
                   ),
                 );
-              }).toList(),
+              }),
             const SizedBox(height: 16),
             _buildSectionTitle(context, 'Professional License'),
             _buildRadioButton(

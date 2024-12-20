@@ -7,7 +7,6 @@ import 'package:ezpc_tasks_app/features/About%20me/presentation/widgets/aboutme_
 import 'package:ezpc_tasks_app/features/About%20me/presentation/widgets/aboutme_reviews.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AboutMeScreen extends StatelessWidget {

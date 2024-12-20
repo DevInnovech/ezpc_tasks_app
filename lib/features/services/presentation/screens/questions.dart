@@ -143,7 +143,7 @@ class _QuestionsStepState extends ConsumerState<QuestionsStep> {
                                       '',
                                 ),
                               );
-                            }).toList(),
+                            }),
                           ],
                         );
                       }).toList(),

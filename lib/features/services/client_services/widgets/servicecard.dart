@@ -1,9 +1,6 @@
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/Booking_Screen.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
-import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/Booking_Screen.dart';
-import 'package:flutter/material.dart';
-import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 
 class ServiceCard extends StatelessWidget {
   final Task task;
