@@ -827,45 +827,68 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   // Open chat with customer
 // Open chat with customer
+  // Open chat with customer
   void _openChatWithCustomer(BuildContext context) async {
-    final clientId = widget.order['customerId']; // Extraer el ID del cliente
+    final clientId = widget.order['customerId']; // ID del cliente
     final providerId = FirebaseAuth.instance.currentUser?.uid;
+    final orderId = widget.order['bookingId']; // ID de la orden (o bookingId)
 
-    if (clientId == null || providerId == null) {
+    if (clientId == null || providerId == null || orderId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to start chat: Missing IDs')),
       );
       return;
     }
 
-    final chatRepository = ChatRepository();
-    final chatRoomId = chatRepository.generateChatRoomId(clientId, providerId);
+    final chatRoomId = _generateChatRoomId(clientId, providerId);
 
-    // Crear la sala de chat si no existe
-    final chatRoomRef =
-        FirebaseFirestore.instance.collection('chats').doc(chatRoomId);
-    final chatRoomSnapshot = await chatRoomRef.get();
+    try {
+      // Crear o actualizar la sala de chat
+      final chatRoomRef =
+          FirebaseFirestore.instance.collection('chats').doc(chatRoomId);
+      final chatRoomSnapshot = await chatRoomRef.get();
 
-    if (!chatRoomSnapshot.exists) {
-      await chatRoomRef.set({
-        'createdAt': DateTime.now().millisecondsSinceEpoch,
-        'customerId': clientId,
-        'providerId': providerId,
-      });
-    }
+      if (!chatRoomSnapshot.exists) {
+        // Crear la sala de chat si no existe
+        await chatRoomRef.set({
+          'createdAt': DateTime.now().millisecondsSinceEpoch,
+          'customerId': clientId,
+          'providerId': providerId,
+          'orderId': orderId, // Asociar la sala de chat con el orderId
+          'unreadCounts': {}, // Inicializar contadores de no leídos
+          'onlineUsers': [], // Inicializar usuarios en línea
+        });
+      } else {
+        // Verificar y agregar el orderId si falta
+        final chatRoomData = chatRoomSnapshot.data() as Map<String, dynamic>;
+        if (!chatRoomData.containsKey('orderId')) {
+          await chatRoomRef.update({'orderId': orderId});
+        }
+      }
 
-    // Navegar a la pantalla de chat
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CustomerChatScreen(
-          chatRoomId: chatRoomId,
-          customerId: clientId,
-          providerId: providerId,
-          isFakeData: false,
+      // Navegar a la pantalla de chat
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CustomerChatScreen(
+            chatRoomId: chatRoomId,
+            customerId: clientId,
+            providerId: providerId,
+            orderId: orderId, // Pasar el orderId a la pantalla de chat
+            isFakeData: false,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening chat: $e')),
+      );
+      print('Error opening chat: $e');
+    }
+  }
+
+  String _generateChatRoomId(String id1, String id2) {
+    return id1.compareTo(id2) < 0 ? '${id1}_$id2' : '${id2}_$id1';
   }
 }
 

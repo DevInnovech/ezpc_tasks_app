@@ -14,6 +14,7 @@ class CustomerChatScreen extends StatefulWidget {
   final String chatRoomId;
   final String customerId;
   final String providerId;
+  final String orderId; // Nuevo campo
   final bool isFakeData;
 
   const CustomerChatScreen({
@@ -21,6 +22,7 @@ class CustomerChatScreen extends StatefulWidget {
     required this.chatRoomId,
     required this.customerId,
     required this.providerId,
+    required this.orderId, // Incluir en el constructor
     this.isFakeData = false,
   });
 
@@ -138,7 +140,16 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
         'createdAt': DateTime.now().millisecondsSinceEpoch,
         'customerId': widget.customerId,
         'providerId': widget.providerId,
+        'orderId': widget.orderId, // Agregar el orderId
+        'unreadCounts': {}, // Inicializar los contadores de no leídos
+        'onlineUsers': [], // Inicializar lista de usuarios en línea
       });
+    } else {
+      // Verificar y agregar el orderId si falta
+      final chatRoomData = chatRoomSnapshot.data() as Map<String, dynamic>;
+      if (!chatRoomData.containsKey('orderId')) {
+        await chatRoomRef.update({'orderId': widget.orderId});
+      }
     }
   }
 
@@ -256,9 +267,9 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
             'createdAt': textMessage.createdAt,
             'id': textMessage.id,
             'text': textMessage.text,
-            'read': currentOnlineUsers
-                .contains(receiverId), // Explicitly set 'read'
+            'read': currentOnlineUsers.contains(receiverId),
             'receiverId': receiverId,
+            'orderId': widget.orderId, // Incluir orderId en el mensaje
           },
         );
 
@@ -331,6 +342,15 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                       color: Colors.black,
                       size: 20,
                     ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Order: ${widget.orderId}', // Mostrar el orderId
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 FutureBuilder<DocumentSnapshot>(
