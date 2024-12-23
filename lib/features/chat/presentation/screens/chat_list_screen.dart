@@ -67,49 +67,44 @@ class _ChatListScreenState extends State<ChatListScreen> {
           .where('providerId', isEqualTo: currentUser.uid)
           .get();
 
-      // Obtener los IDs únicos de los clientes
-      final Set<String> customerIds = bookingsSnapshot.docs
-          .map((doc) =>
-              (doc.data() as Map<String, dynamic>)['customerId'] as String?)
-          .where((id) => id != null) // Validar que no sean nulos
-          .cast<String>()
-          .toSet();
-
       final List<Map<String, dynamic>> tempChats = [];
 
-      for (var customerId in customerIds) {
-        try {
-          DocumentSnapshot customerSnapshot =
-              await _firestore.collection('users').doc(customerId).get();
+      for (var booking in bookingsSnapshot.docs) {
+        final bookingData = booking.data() as Map<String, dynamic>;
+        final customerId = bookingData['customerId'] as String?;
+        final orderId = booking.id; // Extraer el orderId del documento
 
-          String customerName = 'Unknown'; // Nombre predeterminado
-          String profileImage = KImages.pp; // Imagen predeterminada
+        if (customerId == null) continue;
 
-          if (customerSnapshot.exists) {
-            final customerData =
-                customerSnapshot.data() as Map<String, dynamic>;
-            customerName =
-                '${customerData['name']} ${customerData['lastName'] ?? ''}'
-                    .trim();
-            profileImage = customerData['profileImage'] ?? KImages.pp;
-          }
+        // Consultar los datos del cliente
+        DocumentSnapshot customerSnapshot =
+            await _firestore.collection('users').doc(customerId).get();
 
-          String chatRoomId = _generateChatRoomId(currentUser.uid, customerId);
+        String customerName = 'Unknown'; // Nombre predeterminado
+        String profileImage = KImages.pp; // Imagen predeterminada
 
-          tempChats.add({
-            'name': customerName,
-            'message': '',
-            'time': '',
-            'unread': 0,
-            'hasMessages': false,
-            'image': profileImage,
-            'chatRoomId': chatRoomId,
-            'customerId': customerId,
-            'providerId': currentUser.uid,
-          });
-        } catch (e) {
-          print('Error loading customer data for $customerId: $e');
+        if (customerSnapshot.exists) {
+          final customerData = customerSnapshot.data() as Map<String, dynamic>;
+          customerName =
+              '${customerData['name']} ${customerData['lastName'] ?? ''}'
+                  .trim();
+          profileImage = customerData['profileImage'] ?? KImages.pp;
         }
+
+        String chatRoomId = _generateChatRoomId(currentUser.uid, customerId);
+
+        tempChats.add({
+          'name': customerName,
+          'message': '',
+          'time': '',
+          'unread': 0,
+          'hasMessages': false,
+          'image': profileImage,
+          'chatRoomId': chatRoomId,
+          'customerId': customerId,
+          'providerId': currentUser.uid,
+          'orderId': orderId, // Agregar el orderId
+        });
       }
 
       setState(() {
@@ -139,35 +134,37 @@ class _ChatListScreenState extends State<ChatListScreen> {
       final List<Map<String, dynamic>> tempChats = [];
 
       for (var doc in snapshot.docs) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        String chatRoomId = doc.id;
-        String providerId = data['providerId'];
+        final data = doc.data() as Map<String, dynamic>;
+        final String chatRoomId = doc.id;
+        final String providerId = data['providerId'];
+        final String orderId = data['orderId'] ?? 'Unknown'; // Agregar orderId
 
-        // Consultar el nombre y la imagen del proveedor desde la colección `users`
+        // Consultar los datos del proveedor
         DocumentSnapshot providerSnapshot =
             await _firestore.collection('users').doc(providerId).get();
 
         String providerName = 'Unknown'; // Nombre predeterminado
         String profileImage = KImages.pp; // Imagen predeterminada
+
         if (providerSnapshot.exists) {
           final providerData = providerSnapshot.data() as Map<String, dynamic>;
           providerName =
               '${providerData['name']} ${providerData['lastName'] ?? ''}'
                   .trim();
-          profileImage = providerData['profileImage'] ??
-              KImages.pp; // Cargar imagen de perfil o usar la predeterminada
+          profileImage = providerData['profileImage'] ?? KImages.pp;
         }
 
         tempChats.add({
-          'name': providerName, // Nombre real del proveedor
-          'message': '', // Se actualizará con el último mensaje
-          'time': '', // Se actualizará con el timestamp del mensaje
-          'unread': 0, // Se actualizará con la cantidad de mensajes no leídos
-          'hasMessages': false, // Indicar si hay mensajes
-          'image': profileImage, // Imagen del perfil del proveedor
+          'name': providerName,
+          'message': '',
+          'time': '',
+          'unread': 0,
+          'hasMessages': false,
+          'image': profileImage,
           'chatRoomId': chatRoomId,
           'customerId': data['customerId'],
           'providerId': providerId,
+          'orderId': orderId, // Agregar el orderId
         });
       }
 
@@ -175,7 +172,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         _chats = tempChats;
       });
 
-      // Cargar mensajes no leídos y últimos mensajes para cada sala de chat
       _loadChatData();
     } catch (e) {
       print('Error loading chats: $e');
@@ -409,6 +405,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     String chatRoomId = chat['chatRoomId'];
     String customerId = chat['customerId'];
     String providerId = chat['providerId'];
+    String orderId = chat['orderId'];
 
     // Asegúrate de que la sala de chat exista en Firestore
     await createChatRoomIfNotExists(chatRoomId, customerId, providerId);
@@ -425,6 +422,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           customerId: customerId,
           providerId: providerId,
           isFakeData: false,
+          orderId: orderId,
         ),
       ),
     );
@@ -666,13 +664,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
           fontWeight: hasUnreadMessages ? FontWeight.bold : FontWeight.normal,
         ),
       ),
-      subtitle: Text(
-        chat['message'] ?? 'No messages yet',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: hasUnreadMessages ? Colors.black : Colors.grey[600],
-        ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Order: ${chat['orderId']}', // Mostrar orderId
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          Text(
+            chat['message'] ?? 'No messages yet',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: hasUnreadMessages ? Colors.black : Colors.grey[600],
+            ),
+          ),
+        ],
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,

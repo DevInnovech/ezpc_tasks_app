@@ -307,6 +307,8 @@ class RouteNames {
         final String customerId = arguments['customerId'] as String;
         final String providerId = arguments['providerId'] as String;
         final bool isFakeData = arguments['isFakeData'] as bool;
+        final String orderId =
+            arguments['orderId'] as String; // Incluye el orderId
 
         // Pasa los datos recibidos a la pantalla de chat
         return MaterialPageRoute(
@@ -316,8 +318,10 @@ class RouteNames {
             customerId: customerId,
             providerId: providerId,
             isFakeData: isFakeData,
+            orderId: orderId, // Pasa el orderId a la pantalla
           ),
         );
+
       case RouteNames.supportChatScreen:
         final Map<String, dynamic> arguments =
             settings.arguments as Map<String, dynamic>;

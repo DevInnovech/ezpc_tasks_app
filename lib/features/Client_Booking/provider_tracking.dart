@@ -10,11 +10,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 class ProviderTrackingScreen extends ConsumerWidget {
   final OrderDetailsDto order;
   final MapController _mapController = MapController(); // Add MapController
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   ProviderTrackingScreen({super.key, required this.order});
 
@@ -98,6 +101,77 @@ class ProviderTrackingScreen extends ConsumerWidget {
     );
   }
 
+  String _generateChatRoomId(String id1, String id2) {
+    return id1.compareTo(id2) < 0 ? '${id1}_$id2' : '${id2}_$id1';
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return '';
+    try {
+      if (timestamp is Timestamp) {
+        return DateFormat('hh:mm a').format(timestamp.toDate());
+      } else if (timestamp is int) {
+        return DateFormat('hh:mm a')
+            .format(DateTime.fromMillisecondsSinceEpoch(timestamp));
+      } else {
+        print('Unsupported timestamp type: $timestamp');
+      }
+    } catch (e) {
+      print('Error formatting timestamp: $e');
+    }
+    return '';
+  }
+
+  void _markMessagesAsRead(String chatRoomId) async {
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        print('No authenticated user found.');
+        return; // Validar que haya un usuario autenticado
+      }
+
+      final chatRoomRef = _firestore.collection('chats').doc(chatRoomId);
+
+      await _firestore.runTransaction((transaction) async {
+        final chatRoomSnapshot = await transaction.get(chatRoomRef);
+
+        if (!chatRoomSnapshot.exists) {
+          print('Chat room does not exist: $chatRoomId');
+          return; // Detener si el documento no existe
+        }
+
+        // Convertir los datos del snapshot a un mapa y manejar valores opcionales
+        final chatRoomData = chatRoomSnapshot.data() ?? {};
+
+        // Validar la existencia del campo `unrea dCounts`
+        final unreadCounts = chatRoomData.containsKey('unreadCounts')
+            ? Map<String, dynamic>.from(chatRoomData['unreadCounts'])
+            : {};
+
+        // Establecer el contador de mensajes no leídos a 0 para el usuario actual
+        unreadCounts[userId] = 0;
+
+        // Actualizar el documento de la sala de chat con los contadores actualizados
+        transaction.update(chatRoomRef, {'unreadCounts': unreadCounts});
+
+        // Opcional: Marcar mensajes como leídos dentro de la subcolección `messages`
+        final unreadMessagesQuery = await chatRoomRef
+            .collection('messages')
+            .where('receiverId', isEqualTo: userId)
+            .where('read', isEqualTo: false)
+            .get();
+
+        for (var doc in unreadMessagesQuery.docs) {
+          transaction.update(doc.reference, {'read': true});
+        }
+      });
+
+      print('Messages marked as read in chatRoomId: $chatRoomId');
+    } catch (e) {
+      print('Error marking messages as read: $e');
+    }
+  }
+
   void _openChatWithCustomer(BuildContext context) async {
     final clientId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -112,8 +186,8 @@ class ProviderTrackingScreen extends ConsumerWidget {
     try {
       // Consulta la orden en Firebase para obtener el providerId
       final orderSnapshot = await FirebaseFirestore.instance
-          .collection('bookings') // Cambia por la colección correspondiente
-          .doc(order.orderId) // Usa orderId para buscar la orden
+          .collection('bookings') // Cambiar según tu colección de bookings
+          .doc(order.orderId) // Usa el orderId del pedido actual
           .get();
 
       if (!orderSnapshot.exists) {
@@ -123,7 +197,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
         return;
       }
 
-      // Extraer providerId de los datos de la orden
+      // Extraer providerId de los datos del pedido
       final orderData = orderSnapshot.data() as Map<String, dynamic>;
       final providerId = orderData['providerId'] as String?;
 
@@ -134,22 +208,34 @@ class ProviderTrackingScreen extends ConsumerWidget {
         return;
       }
 
-      final chatRepository = ChatRepository();
-      final chatRoomId =
-          chatRepository.generateChatRoomId(clientId, providerId);
+      // Generar el ID único para la sala de chat
+      final chatRoomId = _generateChatRoomId(clientId, providerId);
 
-      // Crear la sala de chat si no existe
+      // Crear o actualizar la sala de chat
       final chatRoomRef =
           FirebaseFirestore.instance.collection('chats').doc(chatRoomId);
       final chatRoomSnapshot = await chatRoomRef.get();
 
       if (!chatRoomSnapshot.exists) {
+        // Crear la sala de chat si no existe
         await chatRoomRef.set({
-          'createdAt': DateTime.now().millisecondsSinceEpoch,
           'customerId': clientId,
           'providerId': providerId,
+          'orderId': order.orderId, // Agregar orderId a la sala
+          'createdAt': FieldValue.serverTimestamp(),
+          'unreadCounts': {}, // Inicializar contadores de no leídos
+          'onlineUsers': [], // Inicializar lista de usuarios en línea
         });
+      } else {
+        // Verificar y actualizar el campo `orderId` si está ausente
+        final chatRoomData = chatRoomSnapshot.data() as Map<String, dynamic>;
+        if (!chatRoomData.containsKey('orderId')) {
+          await chatRoomRef.update({'orderId': order.orderId});
+        }
       }
+
+      // Marcar mensajes como leídos si es necesario
+      _markMessagesAsRead(chatRoomId);
 
       // Navegar a la pantalla de chat
       Navigator.push(
@@ -160,6 +246,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
             customerId: clientId,
             providerId: providerId,
             isFakeData: false,
+            orderId: order.orderId,
           ),
         ),
       );
