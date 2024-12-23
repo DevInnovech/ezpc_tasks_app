@@ -107,8 +107,13 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
   void _initializeDefaultWorkingHours(List<String> selectedDays) {
     final currentTask = ref.read(taskProvider).currentTask;
 
+    // Obtén las horas de trabajo actuales o inicializa un mapa vacío
     final Map<String, Map<String, String>> workingHours =
-        currentTask?.workingHours ?? {};
+        currentTask?.workingHours?.map((key, value) =>
+                MapEntry(key, Map<String, String>.from(value))) ??
+            {};
+
+    // Itera sobre los días seleccionados y establece valores predeterminados si no existen
     for (var day in selectedDays) {
       workingHours[day] ??= {
         'start': _defaultStartHour,
@@ -116,6 +121,7 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
       };
     }
 
+    // Actualiza el task con los nuevos workingHours
     ref.read(taskProvider.notifier).updateTask(workingHours: workingHours);
   }
 
@@ -129,9 +135,14 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
 
     final workingHours = currentTask.workingHours;
 
-    // Filtrar el mapa utilizando `entries` y convertir de nuevo a un mapa
+    // Filtrar las entradas y reconstruir el mapa asegurando el tipo correcto
     return Map.fromEntries(
-      workingHours.entries.where((entry) => selectedDays.contains(entry.key)),
+      workingHours.entries
+          .where((entry) => selectedDays.contains(entry.key))
+          .map((entry) => MapEntry(
+                entry.key,
+                Map<String, String>.from(entry.value),
+              )),
     );
   }
 

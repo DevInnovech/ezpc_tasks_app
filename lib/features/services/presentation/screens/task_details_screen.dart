@@ -29,7 +29,6 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
         isLoading = true;
       });
 
-      // Consulta el documento basado en el campo `taskId`
       final querySnapshot = await FirebaseFirestore.instance
           .collection('tasks')
           .where('taskId', isEqualTo: currentTask.taskId)
@@ -42,26 +41,22 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
 
       final taskDoc = querySnapshot.docs.first;
 
-      // Cambiamos el estado de la tarea localmente
       final newStatus = currentTask.status == 1 ? 0 : 1;
 
-      // Actualizamos el estado en Firestore
       await FirebaseFirestore.instance
           .collection('tasks')
-          .doc(taskDoc.id) // Aquí usamos el documentId
+          .doc(taskDoc.id)
           .update({'status': newStatus});
 
-      // Actualizamos el estado local
       setState(() {
         currentTask = Task.fromMap({
           ...taskDoc.data(),
-          'taskId': currentTask.taskId, // Aseguramos que el `taskId` persista
-          'status': newStatus, // Actualizamos el estado
+          'taskId': currentTask.taskId,
+          'status': newStatus,
         });
         isLoading = false;
       });
 
-      // Mostramos un mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(newStatus == 1
@@ -71,7 +66,6 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
         ),
       );
     } catch (e) {
-      // Manejo de errores
       setState(() {
         isLoading = false;
       });
@@ -108,11 +102,12 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Imagen de cabecera
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12.0),
                       child: Image.network(
-                        currentTask.imageUrl,
+                        currentTask.imageUrl.isNotEmpty
+                            ? currentTask.imageUrl
+                            : 'https://via.placeholder.com/200',
                         width: double.infinity,
                         height: 200.0,
                         fit: BoxFit.cover,
@@ -125,13 +120,13 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16.0),
-
-                    // Título del task y precio en una fila
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          currentTask.subCategory,
+                          currentTask.category.isNotEmpty
+                              ? currentTask.category
+                              : 'No SubCategory',
                           style: const TextStyle(
                             fontSize: 24.0,
                             fontWeight: FontWeight.bold,
@@ -143,7 +138,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '\$${currentTask.price}',
+                              '\$${currentTask.price.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
@@ -159,7 +154,9 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                                 ),
                                 const SizedBox(width: 4.0),
                                 Text(
-                                  currentTask.averageRating.toString(),
+                                  currentTask.averageRating.isNotEmpty
+                                      ? currentTask.averageRating
+                                      : '0.0',
                                   style: const TextStyle(
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.bold,
@@ -173,11 +170,11 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                       ],
                     ),
                     const SizedBox(height: 16.0),
-
-                    // Sección de descripción
                     _buildSectionTitle('Description'),
                     Text(
-                      currentTask.details,
+                      currentTask.details.isNotEmpty
+                          ? currentTask.details
+                          : 'No description available',
                       style: const TextStyle(
                         fontSize: 16.0,
                         height: 1.5,
@@ -185,8 +182,46 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16.0),
-
-                    // Sección de FAQs
+                    if (currentTask.selectedTasks.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle('Selected Tasks'),
+                          ...currentTask.selectedTasks.entries.map((entry) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    entry.key,
+                                    style: const TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    '\$${entry.value.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      )
+                    else
+                      const Text(
+                        'No selected tasks available.',
+                        style: TextStyle(fontSize: 16.0, color: Colors.black54),
+                      ),
+                    const SizedBox(height: 16.0),
                     if (currentTask.questionResponses != null &&
                         currentTask.questionResponses!.isNotEmpty) ...[
                       _buildSectionTitle('FAQs'),
@@ -217,42 +252,52 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                       }),
                     ],
                     const SizedBox(height: 16.0),
-
-                    // Sección de "Working Hours"
                     _buildSectionTitle('Working Hours'),
-                    Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFF404C8C)),
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: Colors.grey.shade50,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: currentTask.workingHours.entries.map((entry) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.access_time,
-                                    size: 16.0, color: Color(0xFF404C8C)),
-                                const SizedBox(width: 10.0),
-                                Text(
-                                  '${entry.key}: ${entry.value['start']} - ${entry.value['end']}',
-                                  style: const TextStyle(fontSize: 16.0),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                    if (currentTask.workingHours.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFF404C8C)),
+                          borderRadius: BorderRadius.circular(12.0),
+                          color: Colors.grey.shade50,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:
+                              currentTask.workingHours.entries.map((entry) {
+                            Map<String, String> hours = {};
+                            if (entry.value is Map) {
+                              hours = (entry.value as Map).map(
+                                (key, value) =>
+                                    MapEntry(key.toString(), value.toString()),
+                              );
+                            }
+
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.access_time,
+                                      size: 16.0, color: Color(0xFF404C8C)),
+                                  const SizedBox(width: 10.0),
+                                  Text(
+                                    '${entry.key}: ${hours['start'] ?? ''} - ${hours['end'] ?? ''}',
+                                    style: const TextStyle(fontSize: 16.0),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      )
+                    else
+                      const Text('No working hours available.'),
                     const SizedBox(height: 20.0),
                   ],
                 ),
               ),
             ),
-      // Botones de acción en la parte inferior
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
@@ -270,7 +315,6 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // Botón "Activate/Deactivate"
             Expanded(
               child: ElevatedButton(
                 onPressed: isLoading ? null : _toggleTaskStatus,
@@ -288,12 +332,10 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 16.0), // Espacio entre los botones
-            // Botón "Edit Service"
+            const SizedBox(width: 16.0),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  // Navegar a la pantalla de edición de servicio
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -321,7 +363,6 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
     );
   }
 
-  // Widget auxiliar para construir el título de cada sección
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),

@@ -18,20 +18,21 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   late TextEditingController _descriptionController;
   late Map<String, TextEditingController> _workingHoursControllers;
   late Map<String, TextEditingController> _questionControllers;
+  late Map<String, TextEditingController> _selectedTasksControllers;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Inicializamos los controladores para los campos básicos
+    // Inicializar controladores básicos
     _nameController = TextEditingController(text: widget.task.taskName);
     _priceController =
         TextEditingController(text: widget.task.price.toString());
     _descriptionController =
         TextEditingController(text: widget.task.description);
 
-    // Inicializamos los controladores para las horas de trabajo
+    // Inicializar controladores para horas de trabajo
     _workingHoursControllers = widget.task.workingHours.map((key, value) {
       return MapEntry(
         key,
@@ -41,11 +42,16 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       );
     });
 
-    // Inicializamos los controladores para las preguntas y respuestas
+    // Inicializar controladores para preguntas/respuestas
     _questionControllers = widget.task.questionResponses?.map((key, value) {
           return MapEntry(key, TextEditingController(text: value));
         }) ??
         {};
+
+    // Inicializar controladores para las tareas seleccionadas y sus precios
+    _selectedTasksControllers = widget.task.selectedTasks.map((key, value) {
+      return MapEntry(key, TextEditingController(text: value.toString()));
+    });
   }
 
   Future<void> _updateService() async {
@@ -56,7 +62,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
     });
 
     try {
-      // Convertimos las horas de trabajo editadas
+      // Convertir horas de trabajo editadas
       final updatedWorkingHours =
           _workingHoursControllers.map((key, controller) {
         final times = controller.text.split('-').map((e) => e.trim()).toList();
@@ -66,13 +72,19 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         return MapEntry(key, {'start': '', 'end': ''});
       });
 
-      // Convertimos las preguntas y respuestas editadas
+      // Convertir preguntas/respuestas editadas
       final updatedQuestionResponses =
           _questionControllers.map((key, controller) {
         return MapEntry(key, controller.text.trim());
       });
 
-      // Actualizamos la tarea en Firebase
+      // Convertir tareas seleccionadas editadas
+      final updatedSelectedTasks =
+          _selectedTasksControllers.map((key, controller) {
+        return MapEntry(key, double.tryParse(controller.text.trim()) ?? 0.0);
+      });
+
+      // Actualizar la tarea en Firestore
       await FirebaseFirestore.instance
           .collection('tasks') // Asegúrate de que la colección sea correcta
           .doc(widget.task.taskId) // taskId es el ID del documento
@@ -82,6 +94,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         'details': _descriptionController.text.trim(),
         'workingHours': updatedWorkingHours,
         'questionResponses': updatedQuestionResponses,
+        'selectedTasks': updatedSelectedTasks,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,8 +107,8 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       Navigator.pop(context); // Volver a la pantalla anterior
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update service'),
+        SnackBar(
+          content: Text('Failed to update service: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -232,6 +245,38 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
               }),
               const SizedBox(height: 16.0),
 
+              // Sección para editar tareas seleccionadas y precios
+              const Text(
+                'Selected Tasks',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              ..._selectedTasksControllers.entries.map((entry) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    controller: entry.value,
+                    decoration: InputDecoration(
+                      labelText: 'Price for ${entry.key}',
+                      border: const OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a price for ${entry.key}';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Please enter a valid number';
+                      }
+                      return null;
+                    },
+                  ),
+                );
+              }),
+              const SizedBox(height: 16.0),
+
               // Botón para guardar los cambios
               SizedBox(
                 width: double.infinity,
@@ -268,6 +313,9 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       controller.dispose();
     }
     for (var controller in _questionControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _selectedTasksControllers.values) {
       controller.dispose();
     }
     super.dispose();

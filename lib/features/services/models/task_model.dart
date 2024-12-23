@@ -260,8 +260,15 @@ class Task {
       licenseExpirationDate: map['licenseExpirationDate'] ?? '',
       workingDays: List<String>.from(map['workingDays'] ?? []),
       questions: Map<String, String>.from(map['questions'] ?? {}),
-      workingHours:
-          (map['workingHours'] ?? {}).cast<String, Map<String, String>>(),
+      workingHours: (map['workingHours'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(
+              key,
+              (value as Map<dynamic, dynamic>).map(
+                (k, v) => MapEntry(k.toString(), v.toString()),
+              ),
+            ),
+          ) ??
+          {},
       specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
       documentUrl: map['documentUrl'] ?? '',
       phone: map['phone'] ?? '',
