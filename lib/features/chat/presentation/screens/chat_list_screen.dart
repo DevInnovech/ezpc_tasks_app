@@ -91,7 +91,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
           profileImage = customerData['profileImage'] ?? KImages.pp;
         }
 
-        String chatRoomId = _generateChatRoomId(currentUser.uid, customerId);
+        // Generar un chatRoomId único basado en el customerId, providerId y orderId
+        String chatRoomId =
+            _generateChatRoomId(currentUser.uid, customerId, orderId);
 
         tempChats.add({
           'name': customerName,
@@ -313,7 +315,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
-  String _generateChatRoomId(String id1, String id2) {
+  String _generateChatRoomId(
+      String customerId, String providerId, String orderId) {
+    return '${_generateChatRoomIdForUsers(customerId, providerId)}_$orderId';
+  }
+
+  String _generateChatRoomIdForUsers(String id1, String id2) {
     return id1.compareTo(id2) < 0 ? '${id1}_$id2' : '${id2}_$id1';
   }
 
@@ -402,7 +409,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   void _navigateToChat(Map<String, dynamic> chat) async {
-    String chatRoomId = chat['chatRoomId'];
+    String chatRoomId = chat['chatRoomId']; // Pre-generado
     String customerId = chat['customerId'];
     String providerId = chat['providerId'];
     String orderId = chat['orderId'];

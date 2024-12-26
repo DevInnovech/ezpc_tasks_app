@@ -580,7 +580,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         EstadoButton(
           text: 'Chat with Customer',
           icon: Icons.chat,
-          onPressed: () => _openChatWithCustomer(context),
+          onPressed: () =>
+              _openChatWithCustomer(context), //deleteAllChatRooms(),
           enabled: true, // El botón está habilitado
           isActive: false, // No necesita estado visual activo
           normalColor: primaryColor,
@@ -761,6 +762,41 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     );
   }
 
+  Future<void> deleteAllChatRooms() async {
+    final firestore = FirebaseFirestore.instance;
+
+    try {
+      final chatRoomsSnapshot = await firestore.collection('chats').get();
+
+      for (var chatRoomDoc in chatRoomsSnapshot.docs) {
+        final chatRoomId = chatRoomDoc.id;
+
+        // Elimina los mensajes asociados en la subcolección 'messages'
+        final messagesSnapshot = await firestore
+            .collection('chats')
+            .doc(chatRoomId)
+            .collection('messages')
+            .get();
+
+        for (var messageDoc in messagesSnapshot.docs) {
+          await firestore
+              .collection('chats')
+              .doc(chatRoomId)
+              .collection('messages')
+              .doc(messageDoc.id)
+              .delete();
+        }
+
+        // Elimina la sala de chat
+        await firestore.collection('chats').doc(chatRoomId).delete();
+      }
+
+      print("Todas las salas de chat y sus mensajes han sido eliminados.");
+    } catch (e) {
+      print("Error al eliminar las salas de chat: $e");
+    }
+  }
+
   // Show Technical Support Options
   void _showTechnicalSupportOptions(BuildContext context) {
     showModalBottomSheet(
@@ -840,7 +876,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       return;
     }
 
-    final chatRoomId = _generateChatRoomId(clientId, providerId);
+    final chatRoomId = _generateChatRoomId(clientId, providerId, orderId);
 
     try {
       // Crear o actualizar la sala de chat
@@ -887,7 +923,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
   }
 
-  String _generateChatRoomId(String id1, String id2) {
+  String _generateChatRoomId(
+      String customerId, String providerId, String orderId) {
+    return '${_generateChatRoomIdForUsers(customerId, providerId)}_$orderId';
+  }
+
+  String _generateChatRoomIdForUsers(String id1, String id2) {
     return id1.compareTo(id2) < 0 ? '${id1}_$id2' : '${id2}_$id1';
   }
 }

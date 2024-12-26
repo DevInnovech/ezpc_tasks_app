@@ -37,11 +37,14 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? _orderStatus; // Variable para almacenar el estado del pedido
+  bool _isChatBlocked = false; // Indica si el chat está bloqueado
 
   @override
   void initState() {
     super.initState();
     _initializeChat();
+    _checkOrderStatus(); // Verificar el estado del pedido
     _setUserOnlineStatus(true); // Marca como online al entrar
 
     // Listener para desconexión
@@ -50,6 +53,31 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
         _setUserOnlineStatus(false); // Marca como offline al salir
       }
     });
+  }
+
+  Future<void> _checkOrderStatus() async {
+    try {
+      final orderSnapshot = await _firestore
+          .collection('bookings') // Ajusta a tu colección de bookings
+          .doc(widget.orderId)
+          .get();
+
+      if (orderSnapshot.exists) {
+        setState(() {
+          _orderStatus = orderSnapshot.data()?['status']?.toLowerCase();
+          _isChatBlocked = _orderStatus == "pending" ||
+              _orderStatus == "completed" ||
+              _orderStatus == "cancelled";
+        });
+      }
+    } catch (e) {
+      print('Error fetching order status: $e');
+    }
+  }
+
+  bool _containsNumbers(String message) {
+    final numberRegex = RegExp(r'\d');
+    return numberRegex.hasMatch(message);
   }
 
   Map<String, dynamic>? _chatPartnerData;
@@ -224,7 +252,20 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   bool _isSending = false;
   void _handleSendPressed(String messageText) async {
+    if (_isChatBlocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chat is blocked due to order status.')),
+      );
+      return;
+    }
     if (messageText.isEmpty || _isSending) return;
+
+    if (_containsNumbers(messageText)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Messages cannot contain numbers.')),
+      );
+      return;
+    }
 
     setState(() {
       _isSending = true;
@@ -345,14 +386,6 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  'Order: ${widget.orderId}', // Mostrar el orderId
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
                 FutureBuilder<DocumentSnapshot>(
                   future: _firestore.collection('users').doc(otherUserId).get(),
                   builder: (context, snapshot) {
@@ -424,7 +457,6 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                       );
                     }
 
-                    // Obtiene datos del chat y verifica los usuarios en línea
                     final chatData =
                         snapshot.data!.data() as Map<String, dynamic>;
                     final onlineUsers =
@@ -456,24 +488,40 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                       ],
                     );
                   },
-                )
+                ),
               ],
             ),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: 35,
-                height: 35,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.more_vert,
-                  color: Colors.black,
-                  size: 25,
-                ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.black, size: 25),
+              position: PopupMenuPosition.under, // Coloca el menú hacia abajo
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16), // Esquinas redondeadas
               ),
+              color: Colors.white,
+              elevation: 4,
+              onSelected: (value) {
+                if (value == 'order') {
+                  _showOrderNumber(context);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'order',
+                  child: Row(
+                    children: const [
+                      Icon(Icons.receipt_long, color: Colors.black),
+                      SizedBox(width: 8),
+                      Text(
+                        'View Order Number',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -481,34 +529,98 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     );
   }
 
-  Widget _buildChatMessages() {
-    return ListView.builder(
-      reverse: true,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      itemCount: _messages.length,
-      itemBuilder: (context, index) {
-        final message = _messages[index] as types.TextMessage;
-
-        bool showDateHeader = false;
-        if (index == _messages.length - 1 ||
-            !_isSameDay(
-                DateTime.fromMillisecondsSinceEpoch(message.createdAt!),
-                DateTime.fromMillisecondsSinceEpoch(
-                    _messages[index + 1].createdAt!))) {
-          showDateHeader = true;
-        }
-
-        return Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: message.author.id == _currentUser.id
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          children: [
-            if (showDateHeader) _buildDateHeader(message.createdAt!),
-            _buildChatBubble(message),
+  void _showOrderNumber(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          title: const Center(
+            child: Text(
+              'Order Number',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          content: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Text(
+              'Order ID: ${widget.orderId}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          actions: [
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFF404C8C),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                ),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildChatMessages() {
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(30),
+        topRight: Radius.circular(30),
+      ),
+      child: ListView.builder(
+        reverse: true,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        itemCount: _messages.length,
+        itemBuilder: (context, index) {
+          final message = _messages[index] as types.TextMessage;
+
+          bool showDateHeader = false;
+          if (index == _messages.length - 1 ||
+              !_isSameDay(
+                  DateTime.fromMillisecondsSinceEpoch(message.createdAt!),
+                  DateTime.fromMillisecondsSinceEpoch(
+                      _messages[index + 1].createdAt!))) {
+            showDateHeader = true;
+          }
+
+          return Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: message.author.id == _currentUser.id
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            children: [
+              if (showDateHeader) _buildDateHeader(message.createdAt!),
+              _buildChatBubble(message),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -590,61 +702,75 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
 
   Widget _buildMessageInputField() {
     return Padding(
-      padding: const EdgeInsets.all(10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: _isChatBlocked
+          ? Container(
               decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                color: Colors.red[50], // Fondo suave para el estado bloqueado
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red, width: 1.5),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.lock,
+                    color: Colors.red,
+                    size: 30,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Chat is currently blocked due to the order status: $_orderStatus.',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.start,
+                    ),
                   ),
                 ],
               ),
-              child: TextField(
-                controller: _messageController,
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Colors.grey,
-                      width: 1.5,
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: InputDecoration(
+                      hintText: 'Type your message...',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
                     ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 2.0,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    _handleSendPressed(_messageController.text.trim());
+                  },
+                  child: CircleAvatar(
+                    backgroundColor: Colors.blue,
+                    radius: 25,
+                    child: const Icon(
+                      Icons.send,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 10),
-          CircleAvatar(
-            backgroundColor: Colors.blue,
-            child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white),
-              onPressed: () {
-                _handleSendPressed(_messageController.text.trim());
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

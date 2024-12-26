@@ -101,7 +101,12 @@ class ProviderTrackingScreen extends ConsumerWidget {
     );
   }
 
-  String _generateChatRoomId(String id1, String id2) {
+  String _generateChatRoomId(
+      String customerId, String providerId, String orderId) {
+    return '${_generateChatRoomIdForUsers(customerId, providerId)}_$orderId';
+  }
+
+  String _generateChatRoomIdForUsers(String id1, String id2) {
     return id1.compareTo(id2) < 0 ? '${id1}_$id2' : '${id2}_$id1';
   }
 
@@ -209,7 +214,8 @@ class ProviderTrackingScreen extends ConsumerWidget {
       }
 
       // Generar el ID único para la sala de chat
-      final chatRoomId = _generateChatRoomId(clientId, providerId);
+      final chatRoomId =
+          _generateChatRoomId(clientId, providerId, order.orderId);
 
       // Crear o actualizar la sala de chat
       final chatRoomRef =
