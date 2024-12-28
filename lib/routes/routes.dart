@@ -434,10 +434,12 @@ class RouteNames {
         );
       case RouteNames.companyProfileScreen:
         final company =
-            settings.arguments as Company; // Recibe el modelo de la compañía
+            settings.arguments as String; // Recibe el modelo de la compañía
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => CompanyProfileScreen(company: company),
+          builder: (_) => CompanyProfileScreen(
+            companyId: company,
+          ),
         );
       case RouteNames.twoFactorSetupScreen:
         return MaterialPageRoute(

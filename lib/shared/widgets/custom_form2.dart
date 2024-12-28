@@ -11,7 +11,8 @@ class CustomForm2 extends StatelessWidget {
   final bool obscureText;
   final Widget? suffixIcon;
   final TextInputType inputType;
-  final Function(String)? onChanged;
+  final void Function(String)? onChanged;
+  final void Function(DateTime?)? onChangeddate;
   final String? errorText;
   final bool isMandatory;
   final bool isDateField; // Nuevo campo para manejar fechas
@@ -27,6 +28,7 @@ class CustomForm2 extends StatelessWidget {
     this.suffixIcon,
     this.inputType = TextInputType.text,
     this.onChanged,
+    this.onChangeddate,
     this.errorText,
     this.isMandatory = false,
     this.isDateField = false, // Nuevo
@@ -73,6 +75,7 @@ class CustomForm2 extends StatelessWidget {
               ),
             ),
             validator: dateValidator, // Usa el validador de fecha
+            onChanged: onChangeddate,
           )
         else
           TextFormField(

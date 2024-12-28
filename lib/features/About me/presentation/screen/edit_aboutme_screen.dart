@@ -177,14 +177,20 @@ class _EditAboutMeScreenState extends ConsumerState<EditAboutMeScreen> {
               GestureDetector(
                 onTap: pickProfileImage,
                 child: CustomImage(
-                  path: profileImage,
+                  path: profileImage?.startsWith('/') == true
+                      ? null
+                      : profileImage == '' || profileImage!.isEmpty
+                          ? null
+                          : profileImage,
                   height: MediaQuery.of(context).size.width * 0.6,
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.cover,
                   isFile: profileImage != null && profileImage!.startsWith('/'),
                   url: profileImage?.startsWith('/') == true
                       ? null
-                      : profileImage,
+                      : profileImage == '' || profileImage!.isEmpty
+                          ? null
+                          : profileImage,
                 ),
               ),
               const SizedBox(height: 16),

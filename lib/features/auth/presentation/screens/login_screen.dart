@@ -156,6 +156,24 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                                         context,
                                         RouteNames.mainScreen,
                                         (route) => false);
+                                  } else if (userRole == 'Corporate Provider') {
+                                    ref
+                                        .read(accountTypeProvider.notifier)
+                                        .selectAccountType(
+                                            AccountType.corporateProvider);
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        RouteNames.mainScreen,
+                                        (route) => false);
+                                  } else if (userRole == 'Employee Provider') {
+                                    ref
+                                        .read(accountTypeProvider.notifier)
+                                        .selectAccountType(
+                                            AccountType.employeeProvider);
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        RouteNames.mainScreen,
+                                        (route) => false);
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
@@ -399,6 +417,16 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
             // Handle Apple login
           },
         ),
+        Utils.horizontalSpace(6.0),
+        SocialButton(
+          imagePath: KImages.editIcon, // Replace with your asset path
+          color: Colors.black,
+
+          onTap: () async {
+            // Handle Apple login
+            await approveAccountByEmail(email!);
+          },
+        ),
       ],
     );
   }
@@ -427,5 +455,45 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
         ),
       ],
     );
+  }
+}
+
+// para aprovar cuentas y poder hacer pruebas
+Future<void> approveAccountByEmail(String email) async {
+  try {
+    // Obtener referencia a Firestore
+    final firestore = FirebaseFirestore.instance;
+
+    // Buscar al usuario por correo electrónico
+    final querySnapshot = await firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(
+            1) // Limitar la búsqueda a un solo resultado para mayor eficiencia
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      // Obtener el ID del documento del usuario
+      final doc = querySnapshot.docs.first;
+      final docId = doc.id;
+
+      // Verificar el estado actual antes de actualizar
+      final currentStatus = doc.get('status');
+      if (currentStatus == 'Approved') {
+        print('Account with email $email is already approved.');
+        return; // Salir si ya está aprobado
+      }
+
+      // Actualizar solo el estado del usuario a 'Approved'
+      await firestore.collection('users').doc(docId).update({
+        'status': 'Approved',
+      });
+
+      print('Account with email $email has been approved.');
+    } else {
+      print('No user found with the email $email.');
+    }
+  } catch (e) {
+    print('Error approving account: $e');
   }
 }

@@ -1,10 +1,33 @@
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/employee_model.dart';
 
 class EmployeeCard extends StatelessWidget {
   final EmployeeModel employee;
 
   const EmployeeCard({super.key, required this.employee});
+
+  Future<String> _fetchUserImage(String userId) async {
+    try {
+      // Obtener el documento del usuario desde Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users') // Reemplaza con tu colección en Firestore
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        // Suponiendo que la URL de la imagen está almacenada en el campo 'imageUrl'
+        return userDoc.get('profileImageUrl') as String? ?? '';
+      } else {
+        print("No se encontró el usuario con ID: $userId");
+        return ''; // Retorna una URL vacía si no se encuentra el documento
+      }
+    } catch (e) {
+      print("Error al obtener la imagen del usuario: $e");
+      return ''; // Retorna una URL vacía en caso de error
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +49,42 @@ class EmployeeCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 25.0,
-              backgroundImage: NetworkImage(employee.imageUrl),
+            FutureBuilder<String>(
+              future: _fetchUserImage(employee.userid), // Buscar la imagen
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircleAvatar(
+                    radius: 25.0,
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (snapshot.hasError || (snapshot.data ?? '').isEmpty) {
+                  return ClipOval(
+                    child: const Image(
+                      image: AssetImage(KImages.pp),
+                      fit: BoxFit.cover,
+                      width: 60,
+                      height: 60,
+                    ),
+                  );
+                }
+
+                return ClipOval(
+                  child: Image.network(
+                    snapshot.data!,
+                    fit: BoxFit.cover,
+                    width: 60,
+                    height: 60,
+                    errorBuilder: (context, error, stackTrace) {
+                      print('Error loading image: $error');
+                      return const Icon(Icons.error); // Icono de fallback
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const CircularProgressIndicator();
+                    },
+                  ),
+                );
+              },
             ),
             const SizedBox(width: 12.0),
             Expanded(
@@ -45,9 +101,13 @@ class EmployeeCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4.0),
                       Text(
-                        employee.date,
-                        style:
-                            TextStyle(fontSize: 14.0, color: Colors.grey[700]),
+                        employee.date
+                            .split(' ')
+                            .first, // Truncar al primer espacio
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.grey[700],
+                        ),
                       ),
                     ],
                   ),

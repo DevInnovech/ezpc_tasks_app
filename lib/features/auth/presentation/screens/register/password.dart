@@ -26,17 +26,59 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
     final TextEditingController passwordController = TextEditingController();
     final TextEditingController confirmPasswordController =
         TextEditingController();
+    final accountType = ref.watch(accountTypeProvider);
+
+    String email;
+    String name;
+    String companyID;
+    String lastName;
+    //  DateTime dob = args['dob'];
+    String phoneNumber;
+    String address;
+    String description;
+    String employercode;
+    var dob;
 
     // Obtener los argumentos de la página anterior
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<dynamic, dynamic>;
-    String email = args['email'];
-    String name = args['name'];
-    String lastName = args['lastName'];
-    //  DateTime dob = args['dob'];
-    String phoneNumber = args['phoneNumber'];
+    print(args);
+    switch (accountType) {
+      case AccountType.employeeProvider:
+        email = args['email'];
+        name = args['name'];
+        companyID = '';
+        lastName = args['lastName'];
+        dob = args['dob'];
+        description = '';
+        phoneNumber = args['phoneNumber'];
+        employercode = args['employercode'];
+        address = args['address'];
 
-    String address = args['address'];
+        break;
+      case AccountType.corporateProvider:
+        email = args['email'];
+        name = args['businessName'];
+        companyID = args['companyID'];
+        employercode = args['employercode'];
+        lastName = '';
+        dob = args['dob'];
+        description = args['description'];
+        phoneNumber = args['phoneNumber'];
+        address = args['address'];
+
+        break;
+      default:
+        email = args['email'];
+        name = args['name'];
+        companyID = "";
+        description = "";
+        employercode = "";
+        dob = args['dob'];
+        lastName = args['lastName'];
+        phoneNumber = args['phoneNumber'];
+        address = args['address'];
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Create Account')),
@@ -111,8 +153,6 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                       String username = usernameController.text;
                       String password = passwordController.text;
 
-                      final accountType = ref.watch(accountTypeProvider);
-
                       // Crear instancia de AuthService
                       var authService =
                           AuthService(); // Instancia de AuthService
@@ -137,12 +177,21 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                                             AccountType.employeeProvider
                                         ? 'Employee Provider'
                                         : '',
-                        description: '',
+                        description: description,
                         communicationPreference: '',
                         experienceYears: 0,
                         languages: '',
                         preferredPaymentMethod: '',
                         profileImageUrl: '', accountType: '',
+                        companyID: accountType == AccountType.corporateProvider
+                            ? companyID
+                            : null,
+                        employeeCode:
+                            accountType == AccountType.corporateProvider
+                                ? employercode
+                                : accountType == AccountType.employeeProvider
+                                    ? employercode
+                                    : null,
                       );
 
                       if (user != null) {

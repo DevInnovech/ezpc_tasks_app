@@ -1,31 +1,69 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/my%20employe/models/employee_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/employee_repository.dart';
-import '../models/employee_model.dart';
 
-// Provider to fetch the list of employees from the repository
-final employeeListProvider = FutureProvider<List<EmployeeModel>>((ref) async {
-  final repository = ref.watch(employeeRepositoryProvider);
-  return repository.getEmployees();
-});
+final employeeSearchProvider =
+    StateProvider<String>((ref) => ''); // Estado para la búsqueda
 
-// State provider for managing the search query
-final employeeSearchProvider = StateProvider<String>((ref) => '');
+final filteredEmployeeListProvider =
+    FutureProvider.autoDispose<List<EmployeeModel>>((ref) async {
+  // Obtener el usuario autenticado
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    print("Usuario no autenticado");
+    throw Exception('User not authenticated');
+  }
+  print("Usuario autenticado: ${user.uid}");
 
-// Filtered employee list provider that watches the search query and employee list
-final filteredEmployeeListProvider = Provider<List<EmployeeModel>>((ref) {
-  final searchQuery = ref.watch(employeeSearchProvider).toLowerCase();
-  final employeeList = ref.watch(employeeListProvider).maybeWhen(
-        data: (employees) => employees,
-        orElse: () => <EmployeeModel>[], // Explicitly specify the type here
-      );
+  // Obtener el documento del proveedor usando el UID del usuario
+  final providerDoc = await FirebaseFirestore.instance
+      .collection('providers')
+      .doc(user.uid)
+      .get();
 
-  if (searchQuery.isEmpty) {
-    return employeeList;
+  if (!providerDoc.exists) {
+    print("Documento del proveedor no encontrado para UID: ${user.uid}");
+    throw Exception('Provider document not found');
   }
 
-  // Filtering employees based on the search query
-  return employeeList.where((employee) {
-    return employee.name.toLowerCase().contains(searchQuery) ||
-        employee.tasksCompleted.toString().contains(searchQuery);
+  // Obtener la lista de empleados del campo 'Employees'
+  final employeesData = providerDoc.data()?['Employees'] as List<dynamic>?;
+  print('Datos de empleados recuperados: $employeesData');
+
+  if (employeesData == null || employeesData.isEmpty) {
+    print("No hay empleados en el campo Employees");
+    return []; // No hay empleados en este proveedor
+  }
+
+  // Convertir la lista de datos en modelos de EmployeeModel
+  final employees = employeesData
+      .map((employeeData) {
+        try {
+          final model =
+              EmployeeModel.fromMap(employeeData as Map<String, dynamic>);
+          print("Empleado convertido: $model");
+          return model;
+        } catch (e) {
+          print('Error al convertir empleado: $e');
+          return null;
+        }
+      })
+      .whereType<EmployeeModel>()
+      .toList();
+
+  print('Modelos de empleados después de la conversión: $employees');
+
+  // Obtener el término de búsqueda
+  final query = ref.watch(employeeSearchProvider);
+  print('Término de búsqueda: $query');
+
+  // Filtrar empleados basados en el término de búsqueda
+  final filteredEmployees = employees.where((employee) {
+    return employee.name.toLowerCase().contains(query.toLowerCase());
   }).toList();
+
+  print('Empleados filtrados: $filteredEmployees');
+
+  return filteredEmployees;
 });

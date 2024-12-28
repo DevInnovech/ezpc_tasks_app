@@ -210,6 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         final userData = snapshot.data!.data() as Map<String, dynamic>;
         final currentRole = userData['currentRole'] ?? userData['role'] ?? '';
         final referralCode = userData['referralCode'] ?? '';
+        final employeeCode = userData['employeeCode'] ?? '';
 
         List<Widget> options = [
           _buildOption(
@@ -282,20 +283,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               context,
               Icons.apartment,
               'My Company',
-              ontap: () => Navigator.pushNamed(
-                context,
-                RouteNames.companyProfileScreen,
-                arguments: Company(
-                  image: KImages.d01,
-                  name: "Tech Solutions",
-                  fin: "12-3456789",
-                  email: "info@techsolutions.com",
-                  phone: "+1 123 456 7890",
-                  address: "Dominican Republic",
-                  description:
-                      "We provide cutting-edge software development and IT consultancy services to businesses worldwide.",
-                ),
-              ),
+              ontap: () =>
+                  _getCompanyIDAndNavigate(), // Llamar a la función aquí
             ),
           );
         }
@@ -310,10 +299,10 @@ class _SettingsScreenState extends State<SettingsScreen>
           if (accountType == AccountType.client ||
               accountType == AccountType.independentProvider &&
                   referralCode.isNotEmpty)
-            _buildCopyReferral(context, referralCode),
+            buildCopyReferral(context, referralCode, 'Referral Code'),
           if (accountType == AccountType.corporateProvider &&
               referralCode.isNotEmpty)
-            _buildCopyReferral(context, referralCode),
+            buildCopyReferral(context, referralCode, 'Referral Code'),
         ]);
 
         return Column(
@@ -323,40 +312,46 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
+  Future<void> _getCompanyIDAndNavigate() async {
+    try {
+      // Obtener el usuario actual
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Obtener el documento del usuario en Firestore
+      final providerDoc =
+          await _firestore.collection('providers').doc(currentUser.uid).get();
+      if (!providerDoc.exists) {
+        throw Exception('Provider document not found');
+      }
+
+      // Obtener el companyID desde el campo 'company' en el documento del proveedor
+      final companyID = providerDoc.get('Company');
+
+      if (companyID != null) {
+        // Navegar a la pantalla de perfil de la empresa con el companyID
+        Navigator.pushNamed(
+          context,
+          RouteNames.companyProfileScreen,
+          arguments: companyID,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error fetching company data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to fetch company data')),
+      );
+    }
+  }
+
   Widget _buildOption(BuildContext context, IconData icon, String text,
       {Function()? ontap}) {
     return ListTile(
       leading: Icon(icon, color: primaryColor),
       title: Text(text),
       onTap: ontap,
-    );
-  }
-
-  Widget _buildCopyReferral(BuildContext context, String referralCode) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: TextEditingController(text: referralCode),
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Referral Code',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.copy),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: referralCode));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Referral code copied')),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -694,4 +689,59 @@ class _SettingsScreenState extends State<SettingsScreen>
       },
     );
   }
+}
+
+Widget buildCopyReferral(
+  BuildContext context,
+  String referralCode,
+  String title, {
+  Color? backgroundColor = Colors.white, // Fondo personalizable
+  Color? textColor = Colors.black, // Color del texto
+  Color? iconColor = Colors.blue, // Color del icono
+  bool showTitle = true, // Decidir si mostrar el título
+  bool showBorder = true, // Decidir si mostrar el borde
+}) {
+  return Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: TextEditingController(text: referralCode),
+            readOnly: true,
+            style: TextStyle(color: textColor), // Color del texto
+            decoration: InputDecoration(
+              labelText: showTitle
+                  ? title
+                  : null, // Solo mostrar título si showTitle es true
+              labelStyle:
+                  TextStyle(color: textColor), // Color del texto del label
+              filled: true, // Rellenar el fondo
+              fillColor: backgroundColor, // Color de fondo
+              suffixIcon: IconButton(
+                icon: Icon(Icons.copy,
+                    color: iconColor), // Icono con color personalizable
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: referralCode));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Referral code copied')),
+                  );
+                },
+              ),
+              border: showBorder
+                  ? OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(8.0), // Bordes redondeados
+                      borderSide: BorderSide(
+                          color: textColor!, width: 1.0), // Borde del campo
+                    )
+                  : InputBorder.none, // No mostrar borde si showBorder es false
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
