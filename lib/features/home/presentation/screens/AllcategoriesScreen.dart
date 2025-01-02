@@ -20,7 +20,7 @@ final categoryProvider = FutureProvider<List<Category>>((ref) async {
         id: doc.id,
         name: doc['name'] ?? '',
         pathimage: doc['imageUrl'] ?? '',
-        subCategories: (doc['subcategories'] as List<dynamic>?)
+        subCategories: (doc['services'] as List<dynamic>?)
                 ?.map((sub) => SubCategory.fromMap(sub as Map<String, dynamic>))
                 .toList() ??
             [],

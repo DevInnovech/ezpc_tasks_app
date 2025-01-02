@@ -13,19 +13,19 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> {
   String? selectedCategory;
-  String? selectedSubCategory;
   String? selectedTaskName;
   int hours = 1;
-  double subCategoryPrice = 0.0;
   double baseTaskPrice = 0.0;
   double totalPrice = 0.0;
-  String? providerId; // Variable para almacenar el providerId
+  String? providerId;
 
   Map<String, dynamic> taskData = {};
+  Map<String, double> selectedServices = {};
+  Map<String, double> availableServices = {};
   bool isLoading = true;
 
   bool isCategoryExpanded = true;
-  bool isSubCategoryExpanded = true;
+  bool isServicesExpanded = true;
   bool isTaskNameExpanded = true;
 
   @override
@@ -45,11 +45,13 @@ class _BookingScreenState extends State<BookingScreen> {
         setState(() {
           taskData = taskDoc.data()!;
           selectedCategory = taskData['category'] as String?;
-          selectedSubCategory = taskData['subCategory'] as String?;
           selectedTaskName = taskData['taskName'] as String?;
-          subCategoryPrice = (taskData['subCategoryprice'] ?? 0.0).toDouble();
           baseTaskPrice = (taskData['price'] ?? 0.0).toDouble();
-          providerId = taskData['providerId'] as String?; // Obtener providerId
+          providerId = taskData['providerId'] as String?;
+          availableServices = (taskData['selectedTasks']
+                  as Map<String, dynamic>)
+              .map((key, value) => MapEntry(key, (value as num).toDouble()));
+          selectedServices = {selectedTaskName!: baseTaskPrice};
           isLoading = false;
           calculateTotalPrice();
         });
@@ -63,9 +65,10 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   void calculateTotalPrice() {
+    double servicesTotal = selectedServices.values.fold(0.0, (a, b) => a + b);
     double taxRate = 0.1; // 10% impuestos
-    double taxAmount = (baseTaskPrice + subCategoryPrice * hours) * taxRate;
-    totalPrice = baseTaskPrice + (subCategoryPrice * hours) + taxAmount;
+    double taxAmount = servicesTotal * hours * taxRate;
+    totalPrice = servicesTotal * hours + taxAmount;
   }
 
   @override
@@ -109,14 +112,14 @@ class _BookingScreenState extends State<BookingScreen> {
               child: _buildCategoryContent(),
             ),
             _buildExpandableCard(
-              title: "Subcategory",
-              isExpanded: isSubCategoryExpanded,
+              title: "Task(s)",
+              isExpanded: isServicesExpanded,
               onExpand: () {
                 setState(() {
-                  isSubCategoryExpanded = !isSubCategoryExpanded;
+                  isServicesExpanded = !isServicesExpanded;
                 });
               },
-              child: _buildSubcategoryContent(),
+              child: _buildServicesContent(),
             ),
             _buildExpandableCard(
               title: "Task Name",
@@ -162,23 +165,21 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             onPressed: () {
               if (selectedCategory != null &&
-                  selectedSubCategory != null &&
-                  selectedTaskName != null &&
+                  selectedServices.isNotEmpty &&
                   providerId != null) {
-                // Validar providerId
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AvailabilityScreen(
                       taskId: widget.taskId,
                       selectedCategory: selectedCategory!,
-                      selectedSubCategories: [selectedSubCategory!],
+                      selectedSubCategories: selectedServices.keys.toList(),
                       serviceSizes: {'Hours': hours},
                       totalPrice: totalPrice,
                       selectedTaskName: selectedTaskName!,
                       categoryPrice: baseTaskPrice,
-                      taskPrice: subCategoryPrice * hours,
-                      providerId: providerId!, // Pasar providerId
+                      taskPrice: totalPrice - baseTaskPrice,
+                      providerId: providerId!,
                     ),
                   ),
                 );
@@ -253,6 +254,33 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  Widget _buildServicesContent() {
+    return Column(
+      children: availableServices.entries.map((entry) {
+        final serviceName = entry.key;
+        final price = entry.value;
+
+        return CheckboxListTile(
+          title: Text(
+            "$serviceName (\$${price.toStringAsFixed(2)}/hour)",
+            style: const TextStyle(fontSize: 16),
+          ),
+          value: selectedServices.containsKey(serviceName),
+          onChanged: (isSelected) {
+            setState(() {
+              if (isSelected == true) {
+                selectedServices[serviceName] = price;
+              } else {
+                selectedServices.remove(serviceName);
+              }
+              calculateTotalPrice();
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildWhiteCard(Widget child) {
     return Card(
       color: Colors.white,
@@ -265,6 +293,52 @@ class _BookingScreenState extends State<BookingScreen> {
         padding: const EdgeInsets.all(16.0),
         child: child,
       ),
+    );
+  }
+
+  Widget _buildTaskNameContent() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.check_circle,
+          color: Color(0xFF404C8C),
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            selectedTaskName ?? "No task name selected",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryContent() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.check_circle,
+          color: Color(0xFF404C8C),
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            selectedCategory ?? "No category selected",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -323,14 +397,14 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildPriceBreakdown() {
+    double servicesTotal = selectedServices.values.fold(0.0, (a, b) => a + b);
     double taxRate = 0.1;
-    double taxAmount = (baseTaskPrice + subCategoryPrice * hours) * taxRate;
+    double taxAmount = servicesTotal * hours * taxRate;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPriceRow("Category Price:", baseTaskPrice),
-        _buildPriceRow("Tasks Price:", subCategoryPrice * hours),
+        _buildPriceRow("Tasks Price:", servicesTotal * hours),
         _buildPriceRow("Taxes (10%):", taxAmount),
         const Divider(
           height: 20,
@@ -363,75 +437,6 @@ class _BookingScreenState extends State<BookingScreen> {
             fontSize: 16,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             color: isBold ? const Color(0xFF404C8C) : Colors.black87,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryContent() {
-    return Row(
-      children: [
-        const Icon(
-          Icons.check_circle,
-          color: Color(0xFF404C8C),
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            selectedCategory ?? "No category selected",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSubcategoryContent() {
-    return Row(
-      children: [
-        const Icon(
-          Icons.check_circle,
-          color: Color(0xFF404C8C),
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            "${selectedSubCategory ?? "No subcategory selected"} (\$${subCategoryPrice.toStringAsFixed(2)} per hour)",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTaskNameContent() {
-    return Row(
-      children: [
-        const Icon(
-          Icons.check_circle,
-          color: Color(0xFF404C8C),
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            selectedTaskName ?? "No task name selected",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
           ),
         ),
       ],

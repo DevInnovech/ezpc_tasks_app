@@ -9,12 +9,19 @@ class AllServicesRepository {
       final querySnapshot = await _firestore
           .collection('tasks')
           .where('categoryId', isEqualTo: categoryId)
+          .where('status', isEqualTo: 1) // Only active services
           .get();
 
-      // Incluye el ID del documento como `taskId`
       return querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        data['taskId'] = doc.id; // Agrega el ID del documento
+        Map<String, dynamic> data = doc.data();
+        data['taskId'] = doc.id;
+
+        // Convert selectedTasks to proper format
+        if (data['selectedTasks'] != null) {
+          data['selectedTasks'] =
+              Map<String, dynamic>.from(data['selectedTasks']);
+        }
+
         return Task.fromMap(data);
       }).toList();
     } catch (e) {
