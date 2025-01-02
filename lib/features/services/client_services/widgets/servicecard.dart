@@ -147,8 +147,10 @@ class ServiceCard extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => BookingScreen(
-                            taskId:
-                                task.id), // Puedes ajustar esto si es necesario
+                          taskId: task.id,
+                          taskName: task
+                              .taskName, // Pasa el nombre de la tarea seleccionada
+                        ),
                       ),
                     );
                   },

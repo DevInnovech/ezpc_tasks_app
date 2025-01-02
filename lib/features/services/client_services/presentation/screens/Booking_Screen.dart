@@ -4,8 +4,10 @@ import 'AvailabilityScreen.dart';
 
 class BookingScreen extends StatefulWidget {
   final String taskId;
+  final String taskName; // Nuevo parámetro
 
-  const BookingScreen({super.key, required this.taskId});
+  const BookingScreen(
+      {super.key, required this.taskId, required this.taskName});
 
   @override
   _BookingScreenState createState() => _BookingScreenState();
@@ -45,13 +47,23 @@ class _BookingScreenState extends State<BookingScreen> {
         setState(() {
           taskData = taskDoc.data()!;
           selectedCategory = taskData['category'] as String?;
-          selectedTaskName = taskData['taskName'] as String?;
+          selectedTaskName = widget.taskName; // Usa el taskName pasado
           baseTaskPrice = (taskData['price'] ?? 0.0).toDouble();
           providerId = taskData['providerId'] as String?;
+
+          // Cargar servicios disponibles
           availableServices = (taskData['selectedTasks']
                   as Map<String, dynamic>)
               .map((key, value) => MapEntry(key, (value as num).toDouble()));
-          selectedServices = {selectedTaskName!: baseTaskPrice};
+
+          // Seleccionar automáticamente la tarea predeterminada
+          if (selectedTaskName != null &&
+              availableServices.containsKey(selectedTaskName)) {
+            selectedServices = {
+              selectedTaskName!: availableServices[selectedTaskName!]!
+            };
+          }
+
           isLoading = false;
           calculateTotalPrice();
         });

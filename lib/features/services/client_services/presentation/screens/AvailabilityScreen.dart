@@ -79,26 +79,26 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     }
   }
 
-  List<String> generateTimeSlots(Map<String, dynamic> taskData) {
+  List<String> generateTimeSlots(Map<String, dynamic> workingHours) {
     final timeSlots = <String>[];
-    final workingDays = taskData['workingDays'] as List<dynamic>? ?? [];
-    final workingHours = taskData['workingHours'] as Map<String, dynamic>?;
 
-    final selectedDay =
-        DateFormat('EEEE').format(selectedDate); // Ejemplo: "Monday"
-    if (!workingDays.contains(selectedDay)) {
-      debugPrint("Selected day $selectedDay is not in workingDays.");
+    // Obtener el día seleccionado (e.g., "Monday")
+    final selectedDay = DateFormat('EEEE').format(selectedDate);
+
+    // Verificar si el día está en el mapa de workingHours
+    if (!workingHours.containsKey(selectedDay)) {
+      debugPrint("Selected day $selectedDay is not in workingHours.");
       return timeSlots;
     }
 
-    final hours = workingHours?[selectedDay];
-    if (hours == null) {
-      debugPrint("Working hours not found for $selectedDay.");
+    final hours = workingHours[selectedDay];
+    if (hours == null || !(hours is Map<String, dynamic>)) {
+      debugPrint("Invalid working hours for $selectedDay.");
       return timeSlots;
     }
 
-    final start = _parseTime(hours['start']); // Ejemplo: "00:00"
-    final end = _parseTime(hours['end']); // Ejemplo: "12:00"
+    final start = _parseTime(hours['start']);
+    final end = _parseTime(hours['end']);
     if (start == null || end == null) {
       debugPrint("Invalid start or end time for $selectedDay.");
       return timeSlots;
@@ -106,7 +106,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
     var currentTime = start;
     while (currentTime.isBefore(end)) {
-      final formattedTime = DateFormat('HH:mm').format(currentTime); // 24 horas
+      final formattedTime =
+          DateFormat('hh:mm a').format(currentTime); // Formato AM/PM
       timeSlots.add(formattedTime);
 
       currentTime = currentTime.add(const Duration(minutes: 30));
@@ -118,7 +119,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   DateTime? _parseTime(String? time) {
     if (time == null) return null;
     try {
-      return DateFormat('hh:mm a').parse(time); // Parse AM/PM desde Firebase
+      return DateFormat('hh:mm a').parse(time); // Formato AM/PM
     } catch (e) {
       debugPrint("Error parsing time: $e");
       return null;
@@ -173,7 +174,11 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     final firstName = taskData['firstName'] ?? 'Unknown';
     final lastName = taskData['lastName'] ?? 'Provider';
     final providerName = '$firstName $lastName';
-    final timeSlots = generateTimeSlots(taskData);
+
+    // Generar time slots basados en workingHours
+    final workingHours =
+        taskData['workingHours'] as Map<String, dynamic>? ?? {};
+    final timeSlots = generateTimeSlots(workingHours);
 
     return Card(
       elevation: 4,
@@ -210,7 +215,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        taskData['subCategory'] ?? 'Task',
+                        taskData['services'] ?? 'Task',
                         style: const TextStyle(
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
