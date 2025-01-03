@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class OrderDetailsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> order;
@@ -535,6 +536,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ),
 
             const SizedBox(height: 16),
+            // Extra Time Information Card
+            _buildExtraTimeInfoCard(context, ref),
 
             // Conditional Buttons
 
@@ -553,61 +556,111 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   }
 
   Widget _buildButtonSection(BuildContext context, WidgetRef ref) {
-    final extraTimeRequested = ref.watch(extraTimeRequestedProvider);
+    final extraTimeRequested =
+        ref.watch(extraTimeRequestedProvider(widget.order['bookingId']));
 
     // Ocultar botones si la tarea está en estado "pending" o "completed"
     if (taskStatus == 'pending' || taskStatus == 'completed') {
       return const SizedBox.shrink(); // Retorna un espacio vacío
     }
 
-    return Column(
-      children: [
-        // Botón de "Technical Support"
-        EstadoButton(
-          text: 'Technical Support',
-          icon: Icons.support_agent,
-          onPressed: () => _showTechnicalSupportOptions(context),
-          enabled: true, // El botón está habilitado
-          isActive: false, // El botón no tiene estado visual activo
-          normalColor: const Color.fromARGB(255, 18, 139, 237),
-          //  activeColor: Colors.green,
-          normalBorderColor: const Color.fromARGB(255, 15, 121, 208),
-          // activeBorderColor: Colors.greenAccent,
-        ),
+    return extraTimeRequested.when(
+      loading: () =>
+          const Center(child: CircularProgressIndicator()), // Mostrar cargando
+      error: (error, stackTrace) => Column(
+        children: [
+          const Text('Error loading extra time status'),
+          const SizedBox(height: 10),
+        ],
+      ), // Manejar errores
+      data: (isRequested) => Column(
+        children: [
+          // Botón de "Technical Support"
+          EstadoButton(
+            text: 'Technical Support',
+            icon: Icons.support_agent,
+            onPressed: () => _showTechnicalSupportOptions(context),
+            enabled: true, // El botón está habilitado
+            isActive: false, // El botón no tiene estado visual activo
+            normalColor: const Color.fromARGB(255, 18, 139, 237),
+            normalBorderColor: const Color.fromARGB(255, 15, 121, 208),
+          ),
 
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-        // Botón de "Extra Time" con dos estados visuales
-        EstadoButton(
-          text: 'Extra Time',
-          icon: Icons.access_time,
-          onPressed: () => _handleExtraTimeRequest(context, ref),
-          enabled: true, // El botón está habilitado
-          isActive:
-              extraTimeRequested, // Cambia el estado visual si ya se ha solicitado extra time
-          normalColor: primaryColor,
-          //activeShadowColor: redColor,
-          activeColor: primaryColor, // Color si extraTimeRequested es true
-          normalBorderColor: primaryColor,
-          activeBorderColor: redColor, // Borde si extraTimeRequested es true
-        ),
+          // Botón de "Extra Time" con dos estados visuales
+          EstadoButton(
+            text: 'Extra Time',
+            icon: Icons.access_time,
+            onPressed: () => _handleExtraTimeRequest(
+                context, ref, widget.order["bookingId"]),
+            enabled: true, // El botón está habilitado
+            isActive:
+                isRequested, // Cambia el estado visual según el valor de isRequested
+            normalColor: primaryColor,
+            activeColor: primaryColor, // Color si extraTimeRequested es true
+            normalBorderColor: primaryColor,
+            activeBorderColor: redColor, // Borde si extraTimeRequested es true
+          ),
 
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-        // Botón de "Chat with Customer"
-        EstadoButton(
-          text: 'Chat with Customer',
-          icon: Icons.chat,
-          onPressed: () =>
-              _openChatWithCustomer(context), //deleteAllChatRooms(),
-          enabled: true, // El botón está habilitado
-          isActive: false, // No necesita estado visual activo
-          normalColor: primaryColor,
-          // activeColor: Colors.green,
-          normalBorderColor: primaryColor,
-          //   activeBorderColor: Colors.greenAccent,
-        ),
-      ],
+          // Botón de "Chat with Customer"
+          EstadoButton(
+            text: 'Chat with Customer',
+            icon: Icons.chat,
+            onPressed: () => _openChatWithCustomer(context),
+            enabled: true, // El botón está habilitado
+            isActive: false, // No necesita estado visual activo
+            normalColor: primaryColor,
+            normalBorderColor: primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExtraTimeInfoCard(BuildContext context, WidgetRef ref) {
+    final extraTimeDetails =
+        ref.watch(extraTimeDetailsProvider(widget.order['bookingId']));
+
+    return extraTimeDetails.when(
+      loading: () => const SizedBox.shrink(), // No muestra nada mientras carga
+      error: (error, stackTrace) =>
+          const SizedBox.shrink(), // No muestra errores aquí
+      data: (details) {
+        if (details.status == "Accepted") {
+          return Card(
+            color: Colors.white,
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Extra Time Details",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF404C8C),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildPriceRow('Selected Duration', details.selectedDuration),
+                  _buildPriceRow('Fee', '\$${details.fee.toStringAsFixed(2)}'),
+                  _buildPriceRow('Time Slot', details.selectedTimeSlot),
+                  _buildPriceRow('Reason', details.reason),
+                ],
+              ),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
@@ -621,35 +674,49 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   }
 
   // Handle Extra Time Request
-  void _handleExtraTimeRequest(BuildContext context, WidgetRef ref) {
-    final extraTimeRequested = ref.read(extraTimeRequestedProvider);
+  void _handleExtraTimeRequest(
+      BuildContext context, WidgetRef ref, String bookingId) async {
+    try {
+      // Fetch the booking data directly
+      final bookingData = await ref.read(bookingDataProvider(bookingId).future);
 
-    if (!extraTimeRequested) {
-      // Open the popup for choosing extra time
-      _openExtraTimeDialog(context, ref, widget.order);
-    } else {
-      // Show the status of the extra time request
-      _openExtraTimeStatusPopup(context, ref);
+      // Check if extra time is requested
+      final extraTimeRequested = bookingData['extraTime'] != null;
+
+      if (!extraTimeRequested) {
+        // Open the dialog for choosing extra time
+        _openExtraTimeDialog(context, ref, widget.order, bookingId);
+      } else {
+        // Show the status of the extra time request
+        _openExtraTimeStatusPopup(context, ref, bookingId);
+      }
+    } catch (e) {
+      debugPrint("Error handling extra time request: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Failed to fetch extra time request status.')),
+      );
     }
   }
 
-  // Dialog for requesting extra time
-  void _openExtraTimeDialog(
-      BuildContext context, WidgetRef ref, Map<String, dynamic> orderDetails) {
-    final extraTimeDetails = ref.read(extraTimeDetailsProvider);
+  void _openExtraTimeDialog(BuildContext context, WidgetRef ref,
+      Map<String, dynamic> orderDetails, String bookingId) {
+    final extraTimeDetails =
+        ref.watch(extraTimeDetailsProvider(bookingId)).valueOrNull ??
+            ExtraTimeDetails();
 
-    // Parsear timeSlot con el formato correcto
+    // Obtener subcategorías
+    final List<String> subCategories =
+        List<String>.from(orderDetails['selectedSubCategories'] ?? []);
+    final String taskId = orderDetails['taskId'];
+
+    // Calcular los horarios disponibles
     final DateFormat timeFormat = DateFormat('hh:mm a');
     final DateTime baseTimeSlot = timeFormat.parse(orderDetails['timeSlot']);
-
-    // Extraer las horas del mapa serviceSizes
     final Map<String, dynamic> serviceSizes =
         orderDetails['serviceSizes'] ?? {};
-    final int serviceDuration = serviceSizes.values
-        .whereType<int>() // Asegurarse de que sean números enteros
-        .reduce((a, b) => a + b); // Sumar las horas
-
-    // Calcular la hora estimada
+    final int serviceDuration =
+        serviceSizes.values.whereType<int>().reduce((a, b) => a + b);
     final DateTime estimatedTime =
         baseTimeSlot.add(Duration(hours: serviceDuration));
 
@@ -662,24 +729,25 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       },
     );
 
+    String selectedDuration = extraTimeDetails.selectedDuration;
+    String selectedTimeSlot = extraTimeDetails.selectedTimeSlot;
+    String selectedService = '';
+    String reason = extraTimeDetails.reason;
+    double fee = extraTimeDetails.fee;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String selectedDuration = extraTimeDetails.selectedDuration;
-        String selectedTimeSlot = extraTimeDetails.selectedTimeSlot;
-        String reason = extraTimeDetails.reason;
-
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Dialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0),
-              ),
+                  borderRadius: BorderRadius.circular(20.0)),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white, // Fondo blanco
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20.0),
-                  border: Border.all(color: primaryColor, width: 2), // Borde
+                  border: Border.all(color: primaryColor, width: 2),
                 ),
                 padding: const EdgeInsets.all(20.0),
                 child: SingleChildScrollView(
@@ -687,151 +755,152 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Choose Extra Time',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
+                      const Text('Choose Extra Time',
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor)),
+                      const SizedBox(height: 16),
+
+                      // Dropdown para servicios
+                      const Text('Select Service',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      FutureBuilder<Map<String, dynamic>>(
+                        future: _fetchTaskPrices(subCategories, taskId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (snapshot.hasError || !snapshot.hasData) {
+                            return const Text('Error fetching task prices',
+                                style: TextStyle(color: Colors.red));
+                          }
+
+                          final taskPrices = snapshot.data!;
+                          return DropdownButton<String>(
+                            value: selectedService.isNotEmpty
+                                ? selectedService
+                                : null,
+                            isExpanded: true,
+                            hint: const Text('Select Service'),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedService = value!;
+                                fee = taskPrices[selectedService] ?? 0.0;
+                              });
+                            },
+                            items: taskPrices.keys.map((String service) {
+                              return DropdownMenuItem<String>(
+                                value: service,
+                                child: Text(service,
+                                    style:
+                                        const TextStyle(color: Colors.black)),
+                              );
+                            }).toList(),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Select Duration',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: primaryColor, width: 1),
-                        ),
-                        child: DropdownButton<String>(
-                          value: selectedDuration.isNotEmpty
-                              ? selectedDuration
-                              : null,
-                          isExpanded: true,
-                          underline: const SizedBox(),
-                          hint: const Text('Select Duration'),
-                          dropdownColor:
-                              Colors.white, // Fondo blanco para opciones
-                          onChanged: (value) {
-                            setState(() {
-                              selectedDuration = value!;
-                            });
-                          },
-                          items: <String>['1 Hour', '2 Hours', '3 Hours']
-                              .map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: const TextStyle(color: Colors.black)),
-                            );
-                          }).toList(),
-                        ),
+
+                      // Dropdown para duración
+                      const Text('Select Duration',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                      DropdownButton<String>(
+                        value: selectedDuration.isNotEmpty
+                            ? selectedDuration
+                            : null,
+                        isExpanded: true,
+                        hint: const Text('Select Duration'),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedDuration = value!;
+                          });
+                        },
+                        items: ['1 Hour', '2 Hours', '3 Hours'].map((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value,
+                                style: const TextStyle(color: Colors.black)),
+                          );
+                        }).toList(),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Select Time Slot',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: primaryColor, width: 1),
-                        ),
-                        child: DropdownButton<String>(
-                          value: selectedTimeSlot.isNotEmpty
-                              ? selectedTimeSlot
-                              : null,
-                          isExpanded: true,
-                          underline: const SizedBox(),
-                          hint: const Text('Select Time Slot'),
-                          dropdownColor: Colors.white,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedTimeSlot = value!;
-                            });
-                          },
-                          items: availableTimeSlots.map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: const TextStyle(color: Colors.black)),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Reason',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+
+                      // Campo de texto para motivo
+                      const Text('Reason',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                       TextField(
                         onChanged: (value) => reason = value,
                         maxLines: 3,
                         decoration: InputDecoration(
                           hintText: 'Enter reason for extra time',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                BorderSide(color: primaryColor, width: 1.5),
-                          ),
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
+                      const SizedBox(height: 16),
+
+                      // Dropdown para seleccionar horario
+                      const Text('Select Time Slot',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                      DropdownButton<String>(
+                        value: selectedTimeSlot.isNotEmpty
+                            ? selectedTimeSlot
+                            : null,
+                        isExpanded: true,
+                        hint: const Text('Select Time Slot'),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedTimeSlot = value!;
+                          });
+                        },
+                        items: availableTimeSlots.map((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value,
+                                style: const TextStyle(color: Colors.black)),
+                          );
+                        }).toList(),
+                      ),
                       const SizedBox(height: 24),
-                      GestureDetector(
-                        onTap: () {
-                          extraTimeDetails.selectedDuration = selectedDuration;
-                          extraTimeDetails.selectedTimeSlot = selectedTimeSlot;
-                          extraTimeDetails.reason = reason;
 
-                          ref.read(extraTimeDetailsProvider.notifier).state =
-                              extraTimeDetails;
-                          ref.read(extraTimeRequestedProvider.notifier).state =
-                              true;
+                      // Botón de enviar solicitud
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (selectedDuration.isEmpty ||
+                              selectedTimeSlot.isEmpty ||
+                              selectedService.isEmpty ||
+                              reason.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Please fill all the fields')),
+                            );
+                            return;
+                          }
 
+                          final extraTimeRequest = ExtraTimeDetails(
+                            selectedDuration: selectedDuration,
+                            selectedTimeSlot: selectedTimeSlot,
+                            reason: reason,
+                            fee: fee,
+                          );
+                          await sendExtraTimeRequest(bookingId,
+                              extraTimeRequest, orderDetails['customerId']);
                           Navigator.pop(context);
                         },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          decoration: BoxDecoration(
-                            color: primaryColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Send Request',
-                              style: TextStyle(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor),
+                        child: const Text('Send Request',
+                            style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -844,60 +913,187 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     );
   }
 
+  Future<Map<String, dynamic>> _fetchTaskPrices(
+      List<String> subCategories, String taskid) async {
+    final Map<String, dynamic> taskPrices = {};
+    try {
+      final taskSnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(taskid)
+          .get();
+
+      if (taskSnapshot.exists) {
+        final taskData = taskSnapshot.data();
+
+        for (String subCategory in subCategories) {
+          if (taskData != null && taskData['selectedTasks'] != null) {
+            final selectedTasks =
+                taskData['selectedTasks'] as Map<String, dynamic>;
+            taskPrices[subCategory] = selectedTasks[subCategory] ?? 0.0;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching task prices: $e");
+    }
+    return taskPrices;
+  }
+
   String _formatTime(DateTime time) {
     final hour = time.hour > 12 ? time.hour - 12 : time.hour;
     final period = time.hour >= 12 ? 'PM' : 'AM';
     return '${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $period';
   }
 
+  Future<void> sendExtraTimeRequest(String bookingId,
+      ExtraTimeDetails extraTimeDetails, String clientId) async {
+    try {
+      // Actualizar la información de extra time en la reserva
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .update({
+        'extraTime': {
+          'selectedDuration': extraTimeDetails.selectedDuration,
+          'selectedTimeSlot': extraTimeDetails.selectedTimeSlot,
+          'reason': extraTimeDetails.reason,
+          'status': 'Pending',
+          'fee': extraTimeDetails.fee,
+        },
+      });
+
+      // Registrar la notificación interna en Firestore
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'type': 'extra_time_request',
+        'bookingId': bookingId,
+        'message': 'You have a new extra time request.',
+        'status': 'unread',
+        'clientId': clientId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint("Extra time request sent successfully.");
+    } catch (e) {
+      debugPrint("Error sending extra time request: $e");
+    }
+  }
+
   // Status Popup for extra time request
-  void _openExtraTimeStatusPopup(BuildContext context, WidgetRef ref) {
-    final extraTimeDetails = ref.watch(extraTimeDetailsProvider);
+  void _openExtraTimeStatusPopup(
+      BuildContext context, WidgetRef ref, String bookingId) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Extra Time'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      builder: (context) {
+        return FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('bookings')
+              .doc(bookingId)
+              .get(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (snapshot.hasError || !snapshot.hasData) {
+              return AlertDialog(
+                title: const Text('Error'),
+                content: const Text('Failed to load extra time status.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              );
+            }
+
+            final extraTimeData = (snapshot.data!.data()
+                    as Map<String, dynamic>?)?['extraTime'] ??
+                {};
+            final String selectedDuration =
+                extraTimeData['selectedDuration'] ?? 'Not specified';
+            final String selectedTimeSlot =
+                extraTimeData['selectedTimeSlot'] ?? 'Not specified';
+            final String status = extraTimeData['status'] ?? 'Pending';
+            final double fee = extraTimeData['fee']?.toDouble() ?? 0.0;
+
+            final bool isAccepted = status == 'Accepted';
+            final bool isDeclined = status == 'Declined';
+
+            return AlertDialog(
+              title: const Text('Extra Time Status'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Time Requested:'),
-                  Text(extraTimeDetails.selectedDuration),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Duration:'),
+                      Text(selectedDuration),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Time Slot:'),
+                      Text(selectedTimeSlot),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Fee:'),
+                      Text('\$$fee'),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Status:'),
+                      Text(status),
+                    ],
+                  ),
+                  if (isAccepted)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Your request has been accepted.',
+                        style: TextStyle(
+                            color: Colors.green, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  if (isDeclined)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Your request was declined.',
+                        style: TextStyle(
+                            color: Colors.red, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Status:'),
-                  Text(extraTimeDetails.status),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Fee:'),
-                  Text('\$${extraTimeDetails.fee}'),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Cancel extra time request
-                ref.read(extraTimeRequestedProvider.notifier).state = false;
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
+              actions: [
+                if (!isAccepted)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // Aquí puedes añadir lógica para cancelar la solicitud si es necesario
+                    },
+                    child: const Text('Cancel Request'),
+                  ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -1071,6 +1267,11 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   String _generateChatRoomIdForUsers(String id1, String id2) {
     return id1.compareTo(id2) < 0 ? '${id1}_$id2' : '${id2}_$id1';
+  }
+
+  double calculateFee(String selectedDuration, double prices) {
+    final hours = int.tryParse(selectedDuration.split(' ')[0]) ?? 0;
+    return hours * prices * 0.1;
   }
 }
 

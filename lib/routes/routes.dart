@@ -377,11 +377,11 @@ class RouteNames {
         final id = settings.arguments as String;
         return MaterialPageRoute(
             settings: settings, builder: (_) => BookingDetailsScreen(id: id));
-      case RouteNames.bookingTrackingScreen:
+      /*case RouteNames.bookingTrackingScreen: quite
         final id = settings.arguments as String;
         return MaterialPageRoute(
             settings: settings,
-            builder: (_) => BookingTrackingScreen(bookingId: id));
+            builder: (_) => BookingTrackingScreen(bookingId: id));*/
       case RouteNames.bookingScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const ProviderOrdersScreen());
