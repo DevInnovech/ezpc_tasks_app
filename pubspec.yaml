@@ -80,6 +80,7 @@ dependencies:
   webview_flutter: ^4.8.0
   share_plus: ^10.1.2
   geolocator: ^13.0.2
+  flutter_rating_bar: ^4.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

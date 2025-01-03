@@ -12,10 +12,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import "package:flutter_svg/flutter_svg.dart";
 
-class OrderDetails extends StatelessWidget {
+class OrderDetails extends StatefulWidget {
   const OrderDetails({super.key, required this.order});
 
   final OrderDetailsDto order;
+
+  @override
+  State<OrderDetails> createState() => _OrderDetailsState();
+}
+
+class _OrderDetailsState extends State<OrderDetails> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkExtraTimeRequest(context, widget.order.orderId);
+    });
+  }
 
   Future<void> _cancelOrder(BuildContext context, String orderId) async {
     try {
@@ -33,6 +46,117 @@ class OrderDetails extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to cancel order: $e')),
       );
+    }
+  }
+
+  Future<void> _checkExtraTimeRequest(
+      BuildContext context, String orderId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(orderId)
+          .get();
+
+      if (doc.exists && doc.data()?['extraTime'] != null) {
+        final extraTime = doc.data()?['extraTime'];
+        if (extraTime['status'] == 'Pending') {
+          _openExtraTimeApprovalDialog(context, orderId, extraTime);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching extra time details: $e");
+    }
+  }
+
+  void _openExtraTimeApprovalDialog(
+      BuildContext context, String orderId, Map<String, dynamic> extraTime) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Extra Time Request'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Duration:'),
+                  Text(extraTime['selectedDuration']),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Time Slot:'),
+                  Text(extraTime['selectedTimeSlot']),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Reason:'),
+                  Expanded(
+                    child: Text(extraTime['reason']),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Fee:'),
+                  Text('\$${extraTime['fee']}'),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _updateExtraTimeStatus(orderId, 'Declined');
+              },
+              child: const Text('Decline', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _updateExtraTimeStatus(orderId, 'Accepted');
+              },
+              child: const Text('Accept'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updateExtraTimeStatus(String orderId, String status) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(orderId)
+          .update({
+        'extraTime.status': status,
+      });
+
+      // Notificar al proveedor sobre la decisión
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'type': 'extra_time_response',
+        'bookingId': orderId,
+        'message': 'Your extra time request has been $status.',
+        'status': 'unread',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint("Extra time status updated to $status.");
+    } catch (e) {
+      debugPrint("Error updating extra time status: $e");
     }
   }
 
@@ -67,7 +191,7 @@ class OrderDetails extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: LoadedWidget(
-          data: order,
+          data: widget.order,
           onCancel: _showCancelConfirmation,
         ),
       ),
@@ -273,13 +397,13 @@ class LoadedWidget extends StatelessWidget {
 // Cancel Order Button
               PrimaryButton(
                 text: "Cancel Order",
-                onPressed: (data.status.toLowerCase() == "started" ||
+                onPressed: (data.status.toLowerCase() == "in progress" ||
                         data.status.toLowerCase() == "completed" ||
                         data.status.toLowerCase() == "cancelled")
                     ? null // Disabled if "started", "completed", or "cancelled"
                     : () => onCancel(
                         context, data.orderId), // Only active for other states
-                bgColor: (data.status.toLowerCase() == "started" ||
+                bgColor: (data.status.toLowerCase() == "in progress" ||
                         data.status.toLowerCase() == "completed" ||
                         data.status.toLowerCase() == "cancelled")
                     ? Colors.grey // Gray if disabled

@@ -1,5 +1,6 @@
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/booking_details_tasks_details.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,6 +24,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   void initState() {
     super.initState();
     _fetchUserBookings();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => checkPendingFeedback(context));
   }
 
   Color getStatusColor(String status) {

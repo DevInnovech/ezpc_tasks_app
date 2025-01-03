@@ -29,8 +29,13 @@ TrackingStatus _mapBookingStatusToTrackingStatus(String status) {
       return TrackingStatus.reserved;
     case 'on_the_way':
       return TrackingStatus.onTheWay;
+    case 'in_progress':
+      return TrackingStatus.atLocation;
+    case 'completed':
+      return TrackingStatus.atLocation;
     case 'arrived':
       return TrackingStatus.atLocation;
+
     default:
       return TrackingStatus.reserved;
   }

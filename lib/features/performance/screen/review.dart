@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ReviewOnTasksScreen extends StatelessWidget {
@@ -7,10 +9,12 @@ class ReviewOnTasksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: primaryColor, // Primary color for app theme
+        backgroundColor: primaryColor,
         elevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
@@ -24,55 +28,112 @@ class ReviewOnTasksScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'Customer Review By Tasks Name',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('reviews')
+              .doc(user!.uid)
+              .collection('reviews')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No reviews available.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
+              );
+            }
+
+            final reviews = snapshot.data!.docs;
+
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Customer Review By Tasks Name',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ...reviews.map((review) {
+                    final data = review.data() as Map<String, dynamic>;
+                    return FutureBuilder<Map<String, dynamic>>(
+                      future: _fetchAdditionalData(
+                        clientId: data['clientId'],
+                        bookingId: data['bookingId'],
+                      ),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        final additionalData = snapshot.data!;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: _buildReviewCard(
+                            name: additionalData['clientName'] ?? 'Unknown',
+                            username:
+                                '@${additionalData['username'] ?? 'USER'}',
+                            taskName: additionalData['taskName'] ?? 'N/A',
+                            rating: data['rating']?.toDouble() ?? 0.0,
+                            date: _formatDate(data['createdAt']),
+                            reviewText: data['review'] ?? '',
+                            avatar: additionalData['clientImage'] ?? KImages.pp,
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ],
               ),
-              const SizedBox(height: 20),
-              _buildReviewCard(
-                name: 'Donna Bins',
-                username: '@DONNABINS',
-                taskName: 'Painting',
-                rating: 4.5,
-                date: '25 Jan',
-                reviewText:
-                    'Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet.',
-                avatar: KImages.pp,
-              ),
-              const SizedBox(height: 20),
-              _buildReviewCard(
-                name: 'Donna Bins',
-                username: '@DONNABINS',
-                taskName: 'Painting',
-                rating: 4.5,
-                date: '25 Jan',
-                reviewText:
-                    'Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet.',
-                avatar: KImages.pp,
-              ),
-              const SizedBox(height: 20),
-              _buildReviewCard(
-                name: 'Donna Bins',
-                username: '@DONNABINS',
-                taskName: 'Painting',
-                rating: 4.5,
-                date: '25 Jan',
-                reviewText:
-                    'Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet.',
-                avatar: KImages.pp,
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
+  }
+
+  Future<Map<String, dynamic>> _fetchAdditionalData({
+    required String clientId,
+    required String bookingId,
+  }) async {
+    final clientSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(clientId)
+        .get();
+
+    final bookingSnapshot = await FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(bookingId)
+        .get();
+
+    final clientData = clientSnapshot.data() ?? {};
+    final bookingData = bookingSnapshot.data() ?? {};
+
+    return {
+      'clientName': clientData['name'] ?? 'Unknown',
+      'clientImage': clientData['profileImageUrl'] ?? KImages.pp,
+      'username': clientData['username'] ?? "USER",
+      'taskName': bookingData['selectedTaskName'] ?? 'N/A',
+    };
+  }
+
+  String _formatDate(Timestamp? timestamp) {
+    if (timestamp == null) return 'N/A';
+    final date = timestamp.toDate();
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   Widget _buildReviewCard({
@@ -104,7 +165,7 @@ class ReviewOnTasksScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundImage: AssetImage(avatar),
+                backgroundImage: NetworkImage(avatar),
               ),
               const SizedBox(width: 16),
               Column(
@@ -127,12 +188,12 @@ class ReviewOnTasksScreen extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              IconButton(
+              /*  IconButton(
                 icon: const Icon(Icons.delete, color: Colors.grey),
                 onPressed: () {
                   // Handle delete action
                 },
-              ),
+              ),*/
             ],
           ),
           const SizedBox(height: 16),

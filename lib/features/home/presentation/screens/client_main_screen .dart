@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/reviewpop.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_data_model.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/AllcategoriesScreen.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/booking_tasks_view.dart';
@@ -9,6 +11,7 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_bottom_
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/feedback_dialog.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,6 +44,8 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
     ref.read(serviceListProvider);
     ref.read(privacyPolicyProvider);
     ref.read(faqProvider);
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => checkPendingFeedback(context));
   }
 
   void exitPopUP(BuildContext context) {
@@ -148,5 +153,43 @@ class _MainScreenState extends ConsumerState<ClientMainScreen> {
       default:
         return const SizedBox();
     }
+  }
+}
+
+void checkPendingFeedback(BuildContext context1) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+  final clientId = user.uid; // Reemplaza con el ID del cliente autenticado
+
+  final feedbackSnapshot = await FirebaseFirestore.instance
+      .collection('pendingFeedbacks')
+      .doc(clientId)
+      .collection('feedbackList')
+      .limit(1) // Obtener la primera reserva pendiente
+      .get();
+
+  if (feedbackSnapshot.docs.isNotEmpty) {
+    final pendingFeedback = feedbackSnapshot.docs.first;
+    final bookingId = pendingFeedback.id;
+    final bookingData = pendingFeedback.data();
+
+    // Mostrar el diálogo de feedback
+    showCompletionReviewPopup(
+      context1,
+      {
+        'bookingId': bookingId,
+        'providerId': bookingData['providerId'],
+        'customerId': clientId,
+      },
+      isReviewingProvider: true,
+    ).then((_) async {
+      // Eliminar la reserva de feedback pendiente después de enviar
+      await FirebaseFirestore.instance
+          .collection('pendingFeedbacks')
+          .doc(clientId)
+          .collection('feedbackList')
+          .doc(bookingId)
+          .delete();
+    });
   }
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ezpc_tasks_app/features/booking/data/booking_provider.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/Map_Screen.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/reviewpop.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/single_expansion_tile.dart';
 import 'package:ezpc_tasks_app/features/chat/data/chat_repository.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
@@ -12,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
@@ -39,6 +41,20 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   void initState() {
     super.initState();
     taskStatus = widget.order['status']?.toLowerCase() ?? "pending";
+  }
+
+  Future<void> addPendingFeedback(String clientId, String bookingId,
+      Map<String, dynamic> bookingData) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('pendingFeedbacks')
+          .doc(clientId)
+          .collection('feedbackList')
+          .doc(bookingId)
+          .set(bookingData); // Agrega los datos necesarios de la booking
+    } catch (e) {
+      debugPrint("Error adding pending feedback: $e");
+    }
   }
 
   Future<void> _updateTaskStatus(String newStatus) async {
@@ -374,8 +390,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                 'ProviderStatus': 'completed',
                 'updatedAt': FieldValue.serverTimestamp(),
               });
-
-              _showCompletionReviewPopup(context);
+              addPendingFeedback(widget.order["customerId"],
+                  widget.order["bookingId"], widget.order);
+              showCompletionReviewPopup(context, widget.order,
+                  isReviewingProvider: false);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -593,26 +611,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     );
   }
 
-  // Method to show completion review popup
-  void _showCompletionReviewPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // Implement your review dialog here
-        return AlertDialog(
-          title: const Text('Task Completed'),
-          content: const Text('Please leave a review.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Submit'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   // Implement the expandable section method
   Widget _buildExpandableSection(BuildContext context,
       {required String title, required Widget child}) {
@@ -628,7 +626,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
     if (!extraTimeRequested) {
       // Open the popup for choosing extra time
-      _openExtraTimeDialog(context, ref);
+      _openExtraTimeDialog(context, ref, widget.order);
     } else {
       // Show the status of the extra time request
       _openExtraTimeStatusPopup(context, ref);
@@ -636,8 +634,34 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   }
 
   // Dialog for requesting extra time
-  void _openExtraTimeDialog(BuildContext context, WidgetRef ref) {
+  void _openExtraTimeDialog(
+      BuildContext context, WidgetRef ref, Map<String, dynamic> orderDetails) {
     final extraTimeDetails = ref.read(extraTimeDetailsProvider);
+
+    // Parsear timeSlot con el formato correcto
+    final DateFormat timeFormat = DateFormat('hh:mm a');
+    final DateTime baseTimeSlot = timeFormat.parse(orderDetails['timeSlot']);
+
+    // Extraer las horas del mapa serviceSizes
+    final Map<String, dynamic> serviceSizes =
+        orderDetails['serviceSizes'] ?? {};
+    final int serviceDuration = serviceSizes.values
+        .whereType<int>() // Asegurarse de que sean números enteros
+        .reduce((a, b) => a + b); // Sumar las horas
+
+    // Calcular la hora estimada
+    final DateTime estimatedTime =
+        baseTimeSlot.add(Duration(hours: serviceDuration));
+
+    final List<String> availableTimeSlots = List.generate(
+      5,
+      (index) {
+        final startTime = estimatedTime.add(Duration(hours: index));
+        final endTime = startTime.add(const Duration(hours: 1));
+        return '${_formatTime(startTime)} - ${_formatTime(endTime)}';
+      },
+    );
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -645,68 +669,185 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         String selectedTimeSlot = extraTimeDetails.selectedTimeSlot;
         String reason = extraTimeDetails.reason;
 
-        return AlertDialog(
-          title: const Text('Choose Extra Time'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButton<String>(
-                value: selectedDuration.isNotEmpty ? selectedDuration : null,
-                hint: const Text('Select Duration'),
-                onChanged: (value) {
-                  selectedDuration = value!;
-                },
-                items: <String>['1 Hour', '2 Hours', '3 Hours']
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
               ),
-              DropdownButton<String>(
-                value: selectedTimeSlot.isNotEmpty ? selectedTimeSlot : null,
-                hint: const Text('Select Time Slot'),
-                onChanged: (value) {
-                  selectedTimeSlot = value!;
-                },
-                items: <String>['2:00 PM - 3:00 PM', '4:00 PM - 5:00 PM']
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-              TextField(
-                onChanged: (value) => reason = value,
-                decoration: const InputDecoration(
-                  labelText: 'Reason',
-                  hintText: 'Enter reason for extra time',
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white, // Fondo blanco
+                  borderRadius: BorderRadius.circular(20.0),
+                  border: Border.all(color: primaryColor, width: 2), // Borde
+                ),
+                padding: const EdgeInsets.all(20.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Choose Extra Time',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Select Duration',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: primaryColor, width: 1),
+                        ),
+                        child: DropdownButton<String>(
+                          value: selectedDuration.isNotEmpty
+                              ? selectedDuration
+                              : null,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          hint: const Text('Select Duration'),
+                          dropdownColor:
+                              Colors.white, // Fondo blanco para opciones
+                          onChanged: (value) {
+                            setState(() {
+                              selectedDuration = value!;
+                            });
+                          },
+                          items: <String>['1 Hour', '2 Hours', '3 Hours']
+                              .map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: const TextStyle(color: Colors.black)),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Select Time Slot',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: primaryColor, width: 1),
+                        ),
+                        child: DropdownButton<String>(
+                          value: selectedTimeSlot.isNotEmpty
+                              ? selectedTimeSlot
+                              : null,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          hint: const Text('Select Time Slot'),
+                          dropdownColor: Colors.white,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedTimeSlot = value!;
+                            });
+                          },
+                          items: availableTimeSlots.map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: const TextStyle(color: Colors.black)),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Reason',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        onChanged: (value) => reason = value,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Enter reason for extra time',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                                BorderSide(color: primaryColor, width: 1.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      GestureDetector(
+                        onTap: () {
+                          extraTimeDetails.selectedDuration = selectedDuration;
+                          extraTimeDetails.selectedTimeSlot = selectedTimeSlot;
+                          extraTimeDetails.reason = reason;
+
+                          ref.read(extraTimeDetailsProvider.notifier).state =
+                              extraTimeDetails;
+                          ref.read(extraTimeRequestedProvider.notifier).state =
+                              true;
+
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Send Request',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Save extra time details and mark request as made
-                extraTimeDetails.selectedDuration = selectedDuration;
-                extraTimeDetails.selectedTimeSlot = selectedTimeSlot;
-                extraTimeDetails.reason = reason;
-
-                ref.read(extraTimeDetailsProvider.notifier).state =
-                    extraTimeDetails;
-                ref.read(extraTimeRequestedProvider.notifier).state = true;
-
-                Navigator.pop(context);
-              },
-              child: const Text('Send Request'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
+  }
+
+  String _formatTime(DateTime time) {
+    final hour = time.hour > 12 ? time.hour - 12 : time.hour;
+    final period = time.hour >= 12 ? 'PM' : 'AM';
+    return '${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $period';
   }
 
   // Status Popup for extra time request

@@ -255,6 +255,10 @@ class Utils {
         return 'Cancelled';
       case 'decliened':
         return 'Cancelled';
+      case 'in_progress':
+        return 'In progress';
+      case 'in progress':
+        return 'In progress';
       case '0':
         return 'In-active';
       case '1':
@@ -282,6 +286,9 @@ class Utils {
         return const Color(0xff00BF8C).withOpacity(0.2);
       case "success":
         return const Color(0xff00BF8C).withOpacity(0.2);
+      case "in progress":
+        return const Color(0xff378FFF).withOpacity(0.2);
+
       case "1":
         return const Color(0xff00BF8C).withOpacity(1);
       case "0":
