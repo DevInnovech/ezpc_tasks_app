@@ -13,45 +13,70 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
-class ProviderTrackingScreen extends ConsumerWidget {
+class ProviderTrackingScreen extends ConsumerStatefulWidget {
   final OrderDetailsDto order;
+  const ProviderTrackingScreen({super.key, required this.order});
+
+  @override
+  ConsumerState<ProviderTrackingScreen> createState() =>
+      _ProviderTrackingScreenState();
+}
+
+class _ProviderTrackingScreenState
+    extends ConsumerState<ProviderTrackingScreen> {
   final MapController _mapController = MapController(); // Add MapController
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  ProviderTrackingScreen({super.key, required this.order});
+  @override
+  void initState() {
+    super.initState();
+    // Invalida/Refresca el provider SOLO una vez al montar
+    // ref.invalidate(providerTrackingProvider(widget.order.orderId));
+    ref.refresh(providerTrackingProvider(widget.order.orderId).future);
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final trackingState = ref.watch(providerTrackingProvider(order.orderId));
-
+  Widget build(BuildContext context) {
+    final trackingState =
+        ref.watch(providerTrackingProvider(widget.order.orderId));
     return Scaffold(
       appBar: AppBar(title: const Text("Tracking Provider")),
       body: trackingState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (trackingData) {
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildHeader(trackingData, context),
-                _buildOrderInfo(trackingData),
-                // Usar `order.providerId` directamente aquí
-                _buildMap(order.providerId, context),
-                _buildProcessIndicator(trackingData.status),
-                ExpandableStatusDescription(status: trackingData.status),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                  child: PrimaryButton(
-                    text: "Report a problem",
-                    onPressed: () {},
-                    bgColor: Colors.red,
-                  ),
+          return RefreshIndicator(
+              onRefresh: () async {
+                // "Refresca" el provider para forzar que cargue de nuevo.
+                // Opción 1: invalidate
+                // ref.invalidate(providerTrackingProvider(order.orderId));
+                //
+                // Opción 2: refrescar y esperar su futuro
+                await ref.refresh(
+                    providerTrackingProvider(widget.order.orderId).future);
+              },
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildHeader(trackingData, context),
+                    _buildOrderInfo(trackingData),
+                    // Usar `order.providerId` directamente aquí
+                    _buildMap(widget.order.providerId, context),
+                    _buildProcessIndicator(trackingData.status),
+                    ExpandableStatusDescription(status: trackingData.status),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 24),
+                      child: PrimaryButton(
+                        text: "Report a problem",
+                        onPressed: () {},
+                        bgColor: Colors.red,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
+              ));
         },
       ),
     );
@@ -192,7 +217,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
       // Consulta la orden en Firebase para obtener el providerId
       final orderSnapshot = await FirebaseFirestore.instance
           .collection('bookings') // Cambiar según tu colección de bookings
-          .doc(order.orderId) // Usa el orderId del pedido actual
+          .doc(widget.order.orderId) // Usa el orderId del pedido actual
           .get();
 
       if (!orderSnapshot.exists) {
@@ -215,7 +240,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
 
       // Generar el ID único para la sala de chat
       final chatRoomId =
-          _generateChatRoomId(clientId, providerId, order.orderId);
+          _generateChatRoomId(clientId, providerId, widget.order.orderId);
 
       // Crear o actualizar la sala de chat
       final chatRoomRef =
@@ -227,7 +252,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
         await chatRoomRef.set({
           'customerId': clientId,
           'providerId': providerId,
-          'orderId': order.orderId, // Agregar orderId a la sala
+          'orderId': widget.order.orderId, // Agregar orderId a la sala
           'createdAt': FieldValue.serverTimestamp(),
           'unreadCounts': {}, // Inicializar contadores de no leídos
           'onlineUsers': [], // Inicializar lista de usuarios en línea
@@ -236,7 +261,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
         // Verificar y actualizar el campo `orderId` si está ausente
         final chatRoomData = chatRoomSnapshot.data() as Map<String, dynamic>;
         if (!chatRoomData.containsKey('orderId')) {
-          await chatRoomRef.update({'orderId': order.orderId});
+          await chatRoomRef.update({'orderId': widget.order.orderId});
         }
       }
 
@@ -252,7 +277,7 @@ class ProviderTrackingScreen extends ConsumerWidget {
             customerId: clientId,
             providerId: providerId,
             isFakeData: false,
-            orderId: order.orderId,
+            orderId: widget.order.orderId,
           ),
         ),
       );

@@ -69,20 +69,38 @@ class _MapScreenState extends State<MapScreen> {
     });
 
     try {
-      final googleMapsUrl =
-          'google.navigation:q=${widget.latitude},${widget.longitude}&mode=d';
-      final appleMapsUrl =
-          'http://maps.apple.com/?daddr=${widget.latitude},${widget.longitude}&dirflg=d';
+      // Construimos los URIs para cada plataforma
+      final googleMapsUri = Uri.parse(
+        'google.navigation:q=${widget.latitude},${widget.longitude}&mode=d',
+      );
+      final appleMapsUri = Uri.parse(
+        'http://maps.apple.com/?daddr=${widget.latitude},${widget.longitude}&dirflg=d',
+      );
 
-      if (await canLaunch(googleMapsUrl)) {
-        await launch(googleMapsUrl);
-      } else if (await canLaunch(appleMapsUrl)) {
-        await launch(appleMapsUrl);
-      } else {
-        throw 'Could not launch maps';
+      bool launched = false;
+
+      // Intentamos Google Maps primero
+      if (await canLaunchUrl(googleMapsUri)) {
+        launched = await launchUrl(googleMapsUri,
+            mode: LaunchMode.externalApplication);
+      }
+      // Si no se pudo Google Maps, intentamos Apple Maps
+      else if (await canLaunchUrl(appleMapsUri)) {
+        launched =
+            await launchUrl(appleMapsUri, mode: LaunchMode.externalApplication);
+      }
+      // Si ninguno de los dos pudo abrirse, lanzamos un error
+      else {
+        throw 'Could not launch maps.';
       }
 
-      // Update Firestore with the new ProviderStatus
+      // Verificamos si realmente se lanzó la app de mapas
+      if (!launched) {
+        throw 'Maps did not launch successfully.';
+      }
+
+      // Si llegamos aquí, significa que la app de mapas sí se abrió
+      // Entonces actualizamos Firestore
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(widget.bookingId)
@@ -91,7 +109,7 @@ class _MapScreenState extends State<MapScreen> {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      // Update local state after successful Firestore write
+      // Y finalmente reflejamos el nuevo estado en la UI
       setState(() {
         _currentStatus = 'on_the_way';
         _isLoading = false;
@@ -99,6 +117,7 @@ class _MapScreenState extends State<MapScreen> {
 
       debugPrint('ProviderStatus updated to "on_the_way"');
     } catch (e) {
+      // Si algo falla (lanzar o actualizar Firestore), liberamos el loading
       setState(() {
         _isLoading = false;
       });

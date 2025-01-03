@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -180,11 +181,21 @@ class TaskNotifier extends StateNotifier<TaskState> {
 */
   Future<void> _loadTasks() async {
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      print("object");
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final userId = currentUser?.uid;
 
+      if (userId == null) {
+        throw Exception('No hay usuario logueado.');
+      }
+
+      state = state.copyWith(isLoading: true, error: null);
+      print("estas es la $userId");
       // Obtener las tareas desde Firestore
-      final snapshot =
-          await FirebaseFirestore.instance.collection('tasks').get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .where("providerId", isEqualTo: userId)
+          .get();
       final tasks = snapshot.docs.map((doc) {
         final data = doc.data();
         return TaskModel.Task.fromMap(data);

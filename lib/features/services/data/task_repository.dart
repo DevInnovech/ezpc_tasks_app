@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,7 +44,18 @@ class TaskRepository {
   // Método para cargar todas las tareas desde Firebase
   Future<List<Task>> getTasks() async {
     try {
-      final snapshot = await _firestore.collection('tasks').get();
+      print("object2");
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final userId = currentUser?.uid;
+
+      if (userId == null) {
+        throw Exception('No hay usuario logueado.');
+      }
+      print("estas es la $userId");
+      final snapshot = await _firestore
+          .collection('tasks')
+          .where("providerId", isEqualTo: userId)
+          .get();
       return snapshot.docs.map((doc) => Task.fromMap(doc.data())).toList();
     } catch (e) {
       print('Error getting tasks from Firebase: $e');

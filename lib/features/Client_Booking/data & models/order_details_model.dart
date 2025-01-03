@@ -11,6 +11,7 @@ class OrderDetailsDto {
   final double tax;
   final double total;
   final String status;
+  final String providerStatus;
   final String address;
   final String providerEmail;
   final String providerPhone;
@@ -30,6 +31,7 @@ class OrderDetailsDto {
     required this.tax,
     required this.total,
     required this.status,
+    required this.providerStatus,
     required this.address,
     required this.providerEmail,
     required this.providerPhone,
@@ -52,6 +54,7 @@ class OrderDetailsDto {
       tax: map['tax']?.toDouble() ?? 0.0,
       total: map['totalPrice']?.toDouble() ?? 0.0,
       status: map['status'] ?? '',
+      providerStatus: map['ProviderStatus'] ?? '',
       address: map['address'] ?? '',
       providerEmail: map['providerEmail'] ?? '',
       providerPhone: map['providerPhone'] ?? '',
@@ -75,6 +78,7 @@ class OrderDetailsDto {
       'tax': tax,
       'total': total,
       'status': status,
+      'ProviderStatus': providerStatus,
       'address': address,
       'providerEmail': providerEmail,
       'providerPhone': providerPhone,

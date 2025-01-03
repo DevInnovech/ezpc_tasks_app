@@ -26,13 +26,10 @@ class TrackingData {
 TrackingStatus _mapBookingStatusToTrackingStatus(String status) {
   switch (status.toLowerCase()) {
     case 'pending':
-    case 'accepted':
       return TrackingStatus.reserved;
-    case 'started':
-    case 'on the way':
+    case 'on_the_way':
       return TrackingStatus.onTheWay;
-    case 'atlocation':
-    case 'at location':
+    case 'arrived':
       return TrackingStatus.atLocation;
     default:
       return TrackingStatus.reserved;
@@ -91,7 +88,7 @@ final providerTrackingProvider =
   }
 
   // Suponiendo que el estado de la reserva se almacena en 'status' del booking
-  final bookingStatus = bookingData['status'] ?? 'pending';
+  final bookingStatus = bookingData['ProviderStatus'] ?? 'pending';
   final trackingStatus = _mapBookingStatusToTrackingStatus(bookingStatus);
 
   // 4. Devolver TrackingData con los datos reales

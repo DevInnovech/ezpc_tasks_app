@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
@@ -9,14 +10,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen>
+class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -370,6 +371,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
+                ref.invalidate(taskProvider);
                 await _auth.signOut();
                 Navigator.pushNamedAndRemoveUntil(
                   context,

@@ -129,88 +129,104 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             ),
           ),
           Expanded(
-            child: filteredBookings.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No bookings found.',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    itemCount: filteredBookings.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final booking = filteredBookings[index];
-                      return InkWell(
-                        onTap: () {
-                          try {
-                            // Crea el objeto OrderDetailsDto a partir de los datos de booking
-                            final orderDetails = OrderDetailsDto(
-                              orderId:
-                                  booking['bookingId']?.toString() ?? 'N/A',
-                              providerId:
-                                  booking['providerId']?.toString() ?? 'N/A',
-                              taskName:
-                                  booking['selectedTaskName']?.toString() ??
-                                      'N/A',
-                              providerName:
-                                  booking['providerName']?.toString() ?? 'N/A',
-                              providerImageUrl:
-                                  booking['providerImageUrl']?.toString() ?? '',
-                              date: booking['date']?.toString() ?? 'N/A',
-                              time: booking['timeSlot']?.toString() ?? 'N/A',
-                              price: double.tryParse(
-                                      booking['taskPrice']?.toString() ??
-                                          '0.0') ??
-                                  0.0,
-                              discount: double.tryParse(
-                                      booking['discount']?.toString() ??
-                                          '0.0') ??
-                                  0.0,
-                              tax: double.tryParse(
-                                      booking['tax']?.toString() ?? '0.0') ??
-                                  0.0,
-                              total: double.tryParse(
-                                      booking['totalPrice']?.toString() ??
-                                          '0.0') ??
-                                  0.0,
-                              status: booking['status']?.toString() ?? 'N/A',
-                              address:
-                                  booking['clientAddress']?.toString() ?? 'N/A',
-                              providerEmail:
-                                  booking['providerEmail']?.toString() ?? 'N/A',
-                              providerPhone:
-                                  booking['providerPhone']?.toString() ?? 'N/A',
-                              rating: double.tryParse(
-                                      booking['rating']?.toString() ?? '0.0') ??
-                                  0.0,
-                              paymentStatus:
-                                  booking['paymentStatus']?.toString() ?? 'N/A',
-                            );
+            child: RefreshIndicator(
+              // Esta función se llama cuando el usuario arrastra hacia abajo
+              onRefresh: () async {
+                // Llamamos de nuevo a `_fetchUserBookings`
+                await _fetchUserBookings();
+              },
+              child: filteredBookings.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No bookings found.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      itemCount: filteredBookings.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final booking = filteredBookings[index];
+                        return InkWell(
+                          onTap: () {
+                            try {
+                              // Crea el objeto OrderDetailsDto a partir de los datos de booking
+                              final orderDetails = OrderDetailsDto(
+                                orderId:
+                                    booking['bookingId']?.toString() ?? 'N/A',
+                                providerId:
+                                    booking['providerId']?.toString() ?? 'N/A',
+                                taskName:
+                                    booking['selectedTaskName']?.toString() ??
+                                        'N/A',
+                                providerName:
+                                    booking['providerName']?.toString() ??
+                                        'N/A',
+                                providerImageUrl:
+                                    booking['providerImageUrl']?.toString() ??
+                                        '',
+                                date: booking['date']?.toString() ?? 'N/A',
+                                time: booking['timeSlot']?.toString() ?? 'N/A',
+                                price: double.tryParse(
+                                        booking['taskPrice']?.toString() ??
+                                            '0.0') ??
+                                    0.0,
+                                discount: double.tryParse(
+                                        booking['discount']?.toString() ??
+                                            '0.0') ??
+                                    0.0,
+                                tax: double.tryParse(
+                                        booking['tax']?.toString() ?? '0.0') ??
+                                    0.0,
+                                total: double.tryParse(
+                                        booking['totalPrice']?.toString() ??
+                                            '0.0') ??
+                                    0.0,
+                                status: booking['status']?.toString() ?? 'N/A',
+                                providerStatus:
+                                    booking['ProviderStatus']?.toString() ??
+                                        'N/A',
+                                address: booking['clientAddress']?.toString() ??
+                                    'N/A',
+                                providerEmail:
+                                    booking['providerEmail']?.toString() ??
+                                        'N/A',
+                                providerPhone:
+                                    booking['providerPhone']?.toString() ??
+                                        'N/A',
+                                rating: double.tryParse(
+                                        booking['rating']?.toString() ??
+                                            '0.0') ??
+                                    0.0,
+                                paymentStatus:
+                                    booking['paymentStatus']?.toString() ??
+                                        'N/A',
+                              );
 
-                            // Navega al ProviderTrackingScreen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    OrderDetails(order: orderDetails),
-                              ),
-                            );
-                          } catch (e) {
-                            // Muestra un mensaje de error si algo falla
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text('Error al cargar la orden: $e')),
-                            );
-                          }
-                        },
-                        child: _buildBookingCard(booking),
-                      );
-                    },
-                  ),
+                              // Navega al ProviderTrackingScreen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      OrderDetails(order: orderDetails),
+                                ),
+                              );
+                            } catch (e) {
+                              // Muestra un mensaje de error si algo falla
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content:
+                                        Text('Error al cargar la orden: $e')),
+                              );
+                            }
+                          },
+                          child: _buildBookingCard(booking),
+                        );
+                      },
+                    ),
+            ),
           ),
         ],
       ),

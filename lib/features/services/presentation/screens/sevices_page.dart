@@ -100,21 +100,35 @@ class ServiceScreen extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: taskState.isLoading
-                ? const LoadingWidget()
-                : taskState.error != null
-                    ? FetchErrorText(text: taskState.error!)
-                    : (taskState.tasks.isEmpty ?? true)
-                        ? _buildEmptyState()
-                        : ListView.builder(
-                            itemCount: taskState.tasks.length ?? 0,
-                            itemBuilder: (context, index) {
-                              final task = taskState.tasks[index];
-                              return task != null
-                                  ? _buildTaskCard(task, taskNotifier, context)
-                                  : const SizedBox.shrink();
-                            },
-                          ),
+            // Envuelve *aquí* con RefreshIndicator
+            child: RefreshIndicator(
+              onRefresh: () async {
+                // Esperamos a que _loadTasks termine
+                await ref.refresh(taskProvider);
+              },
+              child: Builder(
+                builder: (context) {
+                  if (taskState.isLoading) {
+                    return const LoadingWidget();
+                  } else if (taskState.error != null) {
+                    return FetchErrorText(text: taskState.error!);
+                  } else if (taskState.tasks.isEmpty) {
+                    return _buildEmptyState();
+                  }
+                  // Retornamos la ListView para el RefreshIndicator
+                  return ListView.builder(
+                    // Para que el RefreshIndicator funcione,
+                    // el ListView debe poder hacer scroll.
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: taskState.tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = taskState.tasks[index];
+                      return _buildTaskCard(task, taskNotifier, context);
+                    },
+                  );
+                },
+              ),
+            ),
           ),
         ],
       ),

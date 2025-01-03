@@ -87,6 +87,63 @@ class LoadedWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final validStatusesSetA = <String>{
+      'started',
+      'in progress',
+    };
+
+    final validStatusesSetB = <String>{
+      'on_the_way',
+      'arrived',
+      // etc...
+    };
+
+    Color _determineColor() {
+      final status = data.status.toLowerCase();
+
+      final statusb = data.providerStatus.toLowerCase();
+
+      if (validStatusesSetA.contains(status) ||
+          validStatusesSetB.contains(statusb)) {
+        // Color si pertenece a setA
+        return const Color(0xFF404C8C);
+      } else {
+        // Color si no coincide con ninguno
+        return Colors.grey;
+      }
+    }
+
+    Function()? _determineOnPressed() {
+      final status = data.status.toLowerCase();
+
+      final statusb = data.providerStatus.toLowerCase();
+
+      if (validStatusesSetA.contains(status)) {
+        // Caso 1: está en el primer conjunto
+        return () {
+          // Acciones para setA
+          Navigator.pushNamed(
+            context,
+            RouteNames.providerTracking,
+            arguments: data,
+          );
+        };
+      } else if (validStatusesSetB.contains(statusb)) {
+        // Caso 2: está en el segundo conjunto
+        return () {
+          // Acciones para setB
+          Navigator.pushNamed(
+            context,
+            RouteNames.providerTracking,
+            arguments: data,
+          );
+        };
+      } else {
+        // Caso 3: no está en ninguno de los conjuntos => botón deshabilitado
+        return null;
+      }
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Column(
@@ -208,18 +265,8 @@ class LoadedWidget extends StatelessWidget {
               // Track Provider Button
               PrimaryButton(
                 text: "Track Provider",
-                onPressed: data.status.toLowerCase() == "started"
-                    ? () {
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.providerTracking,
-                          arguments: data,
-                        );
-                      }
-                    : null, // Disabled if not "started"
-                bgColor: data.status.toLowerCase() == "started"
-                    ? const Color(0xFF404C8C) // Active color
-                    : Colors.grey, // Gray if disabled
+                onPressed: _determineOnPressed(), // Disabled if not "started"
+                bgColor: _determineColor(), // Gray if disabled
               ),
               Utils.verticalSpace(10),
 
