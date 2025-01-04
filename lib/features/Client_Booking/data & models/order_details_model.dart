@@ -15,8 +15,9 @@ class OrderDetailsDto {
   final String address;
   final String providerEmail;
   final String providerPhone;
-  final double rating; // Nuevo campo para la calificación del proveedor
+  final double rating; // Calificación del proveedor
   final String paymentStatus;
+  final Map<String, dynamic>? extraTime; // Mapa consolidado para ExtraTime
 
   OrderDetailsDto({
     required this.orderId,
@@ -35,8 +36,9 @@ class OrderDetailsDto {
     required this.address,
     required this.providerEmail,
     required this.providerPhone,
-    required this.rating, // Inicialización del nuevo campo
+    required this.rating,
     required this.paymentStatus,
+    this.extraTime, // ExtraTime opcional
   });
 
   // Método para convertir un Map a una instancia de OrderDetailsDto
@@ -58,8 +60,10 @@ class OrderDetailsDto {
       address: map['address'] ?? '',
       providerEmail: map['providerEmail'] ?? '',
       providerPhone: map['providerPhone'] ?? '',
-      rating: map['rating']?.toDouble() ?? 0.0, // Conversión del nuevo campo
+      rating: map['rating']?.toDouble() ?? 0.0,
       paymentStatus: map['paymentStatus'] ?? '',
+      extraTime:
+          map['extraTime'], // Asignar el mapa completo de extraTime si existe
     );
   }
 
@@ -82,8 +86,9 @@ class OrderDetailsDto {
       'address': address,
       'providerEmail': providerEmail,
       'providerPhone': providerPhone,
-      'rating': rating, // Conversión del nuevo campo al mapa
+      'rating': rating,
       'paymentStatus': paymentStatus,
+      'extraTime': extraTime, // Convertir el mapa de extraTime si existe
     };
   }
 }

@@ -1,4 +1,4 @@
-import 'package:ezpc_tasks_app/features/booking/models/booking_details_dto.dart';
+/*import 'package:ezpc_tasks_app/features/booking/models/booking_details_dto.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/tracking/open_maps.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/booking_details_component.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/single_expansion_tile.dart';
@@ -153,7 +153,7 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
 
   // Building the buttons below
 // Actualización de los botones utilizando EstadoButton
-
+/*
   Widget _buildButtonSection(BuildContext context, WidgetRef ref) {
     final extraTimeRequested = ref.watch(extraTimeRequestedProvider);
 
@@ -206,7 +206,7 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
       ],
     );
   }
-
+*/
   // Function to build booking details with the additional sections
   Widget _buildTrackingDetails(
       BuildContext context, WidgetRef ref, BookingDetailsDto bookingDetails) {
@@ -243,10 +243,10 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
             child: _buildServiceState(ref),
           ),
 
-          Padding(
+          /* Padding(
             padding: const EdgeInsets.all(10.0),
             child: _buildButtonSection(context, ref),
-          ),
+          ),*/
         ],
       ),
     );
@@ -346,6 +346,7 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
     );
   }
 
+/*
   // Handle Extra Time Request
   void _handleExtraTimeRequest(BuildContext context, WidgetRef ref) {
     final extraTimeRequested = ref.read(extraTimeRequestedProvider);
@@ -485,7 +486,7 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
       },
     );
   }
-
+*/
   // Show Technical Support Options
   void _showTechnicalSupportOptions(BuildContext context) {
     showModalBottomSheet(
@@ -605,3 +606,4 @@ class _BookingTrackingScreenState extends ConsumerState<BookingTrackingScreen>
     }
   }
 }
+*/

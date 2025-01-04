@@ -206,6 +206,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                 paymentStatus:
                                     booking['paymentStatus']?.toString() ??
                                         'N/A',
+                                extraTime: booking['extraTime'],
                               );
 
                               // Navega al ProviderTrackingScreen

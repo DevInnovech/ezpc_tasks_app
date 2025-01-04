@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:ezpc_tasks_app/features/services/client_services/data/PaymentKeys.dart';
 import 'package:ezpc_tasks_app/shared/widgets/purchase_info_text.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
@@ -11,6 +14,8 @@ import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import "package:flutter_svg/flutter_svg.dart";
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:http/http.dart' as http;
 
 class OrderDetails extends StatefulWidget {
   const OrderDetails({super.key, required this.order});
@@ -50,7 +55,7 @@ class _OrderDetailsState extends State<OrderDetails> {
   }
 
   Future<void> _checkExtraTimeRequest(
-      BuildContext context, String orderId) async {
+      BuildContext context1, String orderId) async {
     try {
       final doc = await FirebaseFirestore.instance
           .collection('bookings')
@@ -60,7 +65,7 @@ class _OrderDetailsState extends State<OrderDetails> {
       if (doc.exists && doc.data()?['extraTime'] != null) {
         final extraTime = doc.data()?['extraTime'];
         if (extraTime['status'] == 'Pending') {
-          _openExtraTimeApprovalDialog(context, orderId, extraTime);
+          _openExtraTimeApprovalDialog(context1, orderId, extraTime);
         }
       }
     } catch (e) {
@@ -69,71 +74,161 @@ class _OrderDetailsState extends State<OrderDetails> {
   }
 
   void _openExtraTimeApprovalDialog(
-      BuildContext context, String orderId, Map<String, dynamic> extraTime) {
+      BuildContext context1, String orderId, Map<String, dynamic> extraTime) {
     showDialog(
-      context: context,
-      barrierDismissible: false,
+      context: context1,
+      barrierDismissible: false, // No permite cerrar el diálogo tocando fuera
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Extra Time Request'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Duration:'),
-                  Text(extraTime['selectedDuration']),
-                ],
+        return WillPopScope(
+          onWillPop: () async => false, // Bloquea el botón de retroceso
+          child: AlertDialog(
+            title: const Text('Extra Time Request'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Duration:'),
+                    Text(extraTime['selectedDuration']),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Time Slot:'),
+                    Text(extraTime['selectedTimeSlot']),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Reason:'),
+                    Expanded(
+                      child: Text(extraTime['reason']),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Fee:'),
+                    Text('\$${extraTime['fee']}'),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _updateExtraTimeStatus(orderId, 'Declined');
+                },
+                child:
+                    const Text('Decline', style: TextStyle(color: Colors.red)),
               ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Time Slot:'),
-                  Text(extraTime['selectedTimeSlot']),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Reason:'),
-                  Expanded(
-                    child: Text(extraTime['reason']),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Fee:'),
-                  Text('\$${extraTime['fee']}'),
-                ],
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context); // Cerrar el diálogo antes de proceder
+
+                  final extraTimeFee = extraTime['fee'] ?? 0.0;
+
+                  // Iniciar el flujo de pago
+                  final isPaymentSuccessful =
+                      await _processPayment(extraTimeFee, orderId);
+
+                  if (isPaymentSuccessful) {
+                    // Actualizar el estado de `Extra Time` a "Accepted"
+                    await _updateExtraTimeStatus(orderId, 'Accepted');
+
+                    ScaffoldMessenger.of(context1).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text("Payment successful. Extra Time Accepted."),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Payment failed. Please try again."),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Accept'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _updateExtraTimeStatus(orderId, 'Declined');
-              },
-              child: const Text('Decline', style: TextStyle(color: Colors.red)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _updateExtraTimeStatus(orderId, 'Accepted');
-              },
-              child: const Text('Accept'),
-            ),
-          ],
         );
       },
     );
+  }
+
+  Future<bool> _processPayment(double fee, String orderId) async {
+    try {
+      // Crear intención de pago
+      final intentPaymentData =
+          await makeIntentForPayment(fee.toString(), "USD");
+
+      // Verificar si el client_secret existe
+      if (intentPaymentData?["client_secret"] == null) {
+        throw Exception("Payment intent failed to generate.");
+      }
+
+      // Inicializar el Payment Sheet
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
+          paymentIntentClientSecret: intentPaymentData["client_secret"],
+          merchantDisplayName: "Ezpc Tasks",
+        ),
+      );
+
+      // Mostrar el Payment Sheet
+      await stripe.Stripe.instance.presentPaymentSheet();
+
+      // Actualizar estado del pago en Firestore
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(orderId)
+          .update({'extraTime.paymentStatus': 'Paid'});
+
+      return true; // Retornar éxito
+    } catch (e) {
+      debugPrint("Payment error: $e");
+      return false; // Retornar fallo
+    }
+  }
+
+  Future<Map<String, dynamic>> makeIntentForPayment(
+      String amount, String currency) async {
+    try {
+      final int amountInCents = (double.parse(amount) * 100).toInt();
+
+      final response = await http.post(
+        Uri.parse("https://api.stripe.com/v1/payment_intents"),
+        headers: {
+          "Authorization": "Bearer $SecretKey",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: {
+          "amount": amountInCents.toString(),
+          "currency": currency,
+          "payment_method_types[]": "card",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to create payment intent: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error creating payment intent: $e");
+    }
   }
 
   Future<void> _updateExtraTimeStatus(String orderId, String status) async {
@@ -209,8 +304,35 @@ class LoadedWidget extends StatelessWidget {
   final OrderDetailsDto data;
   final Function(BuildContext, String) onCancel;
 
+  Widget _buildExtraTimeCard(Map<String, dynamic> extraTime) {
+    return Card(
+      color: Colors.white,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Extra Time Details",
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            Text("Duration: ${extraTime['selectedDuration']}"),
+            Text("Time Slot: ${extraTime['selectedTimeSlot']}"),
+            Text("Reason: ${extraTime['reason']}"),
+            Text("Fee: \$${extraTime['fee']}"),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final extraTime = data.extraTime;
+    print(data.extraTime);
     final validStatusesSetA = <String>{
       'started',
       'in progress',
@@ -384,6 +506,10 @@ class LoadedWidget extends StatelessWidget {
                   trailText: data.status,
                 ),
               ),
+
+              if (extraTime != null && extraTime['status'] == 'Accepted')
+                _buildExtraTimeCard(extraTime), // Mostrar solo si está aceptado
+
               Utils.verticalSpace(20),
               // Tracking Button
               // Track Provider Button
