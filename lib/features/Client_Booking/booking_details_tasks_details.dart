@@ -332,7 +332,7 @@ class LoadedWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final extraTime = data.extraTime;
-
+    print(data.extraTime);
     final validStatusesSetA = <String>{
       'started',
       'in progress',

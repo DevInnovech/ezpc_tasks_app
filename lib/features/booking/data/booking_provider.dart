@@ -39,22 +39,35 @@ enum ServiceState {
   completed,
 }
 
-// State provider to track if extra time was requested
-final extraTimeRequestedProvider =
-    FutureProvider.family<bool, String>((ref, bookingId) async {
+final bookingDataProvider = StreamProvider.family<Map<String, dynamic>, String>(
+    (ref, bookingId) async* {
   try {
-    final booking = await ref.watch(bookingDataProvider(bookingId).future);
-    return booking['extraTime'] != null;
+    final stream = FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(bookingId)
+        .snapshots();
+    await for (final snapshot in stream) {
+      if (snapshot.exists) {
+        yield snapshot.data() as Map<String, dynamic>;
+      } else {
+        yield {};
+      }
+    }
   } catch (e) {
-    debugPrint("Error checking extra time requested: $e");
-    return false;
+    debugPrint("Error fetching booking data: $e");
+    yield {};
   }
 });
 
-// Provider to store and manage the extra time details (duration, fee, etc.)
+final extraTimeRequestedProvider =
+    Provider.family<bool, String>((ref, bookingId) {
+  final booking = ref.watch(bookingDataProvider(bookingId)).value;
+  return booking?['extraTime'] != null;
+});
+
 final extraTimeDetailsProvider =
-    FutureProvider.family<ExtraTimeDetails, String>((ref, bookingId) async {
-  final booking = await ref.watch(bookingDataProvider(bookingId).future);
+    Provider.family<ExtraTimeDetails, String>((ref, bookingId) {
+  final booking = ref.watch(bookingDataProvider(bookingId)).value;
   if (booking != null && booking['extraTime'] != null) {
     final extraTime = booking['extraTime'] as Map<String, dynamic>;
     return ExtraTimeDetails(
@@ -85,17 +98,20 @@ class ExtraTimeDetails {
   });
 }
 
-// Booking data provider to fetch the booking details
-final bookingDataProvider =
-    FutureProvider.family<Map<String, dynamic>, String>((ref, bookingId) async {
-  try {
-    final doc = await FirebaseFirestore.instance
-        .collection('bookings')
-        .doc(bookingId)
-        .get();
-    return doc.exists ? doc.data() as Map<String, dynamic> : {};
-  } catch (e) {
-    debugPrint("Error fetching booking data: $e");
-    return {};
+final extraTimeLocalProvider =
+    StateNotifierProvider.family<ExtraTimeNotifier, ExtraTimeDetails, String>(
+        (ref, bookingId) => ExtraTimeNotifier());
+
+class ExtraTimeNotifier extends StateNotifier<ExtraTimeDetails> {
+  ExtraTimeNotifier() : super(ExtraTimeDetails());
+
+  void update(ExtraTimeDetails details) {
+    state = details;
   }
-});
+}
+
+// Llama a este método al enviar una solicitud de tiempo extra
+void optimisticUpdate(
+    String bookingId, ExtraTimeDetails details, WidgetRef ref) {
+  ref.read(extraTimeLocalProvider(bookingId).notifier).update(details);
+}

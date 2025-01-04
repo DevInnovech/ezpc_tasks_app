@@ -564,59 +564,50 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       return const SizedBox.shrink(); // Retorna un espacio vacío
     }
 
-    return extraTimeRequested.when(
-      loading: () =>
-          const Center(child: CircularProgressIndicator()), // Mostrar cargando
-      error: (error, stackTrace) => Column(
-        children: [
-          const Text('Error loading extra time status'),
-          const SizedBox(height: 10),
-        ],
-      ), // Manejar errores
-      data: (isRequested) => Column(
-        children: [
-          // Botón de "Technical Support"
-          EstadoButton(
-            text: 'Technical Support',
-            icon: Icons.support_agent,
-            onPressed: () => _showTechnicalSupportOptions(context),
-            enabled: true, // El botón está habilitado
-            isActive: false, // El botón no tiene estado visual activo
-            normalColor: const Color.fromARGB(255, 18, 139, 237),
-            normalBorderColor: const Color.fromARGB(255, 15, 121, 208),
-          ),
+    // Si no es nulo, mostrar los botones correspondientes
+    return Column(
+      children: [
+        // Botón de "Technical Support"
+        EstadoButton(
+          text: 'Technical Support',
+          icon: Icons.support_agent,
+          onPressed: () => _showTechnicalSupportOptions(context),
+          enabled: true, // El botón está habilitado
+          isActive: false, // El botón no tiene estado visual activo
+          normalColor: const Color.fromARGB(255, 18, 139, 237),
+          normalBorderColor: const Color.fromARGB(255, 15, 121, 208),
+        ),
 
-          const SizedBox(height: 10),
+        const SizedBox(height: 10),
 
-          // Botón de "Extra Time" con dos estados visuales
-          EstadoButton(
-            text: 'Extra Time',
-            icon: Icons.access_time,
-            onPressed: () => _handleExtraTimeRequest(
-                context, ref, widget.order["bookingId"]),
-            enabled: true, // El botón está habilitado
-            isActive:
-                isRequested, // Cambia el estado visual según el valor de isRequested
-            normalColor: primaryColor,
-            activeColor: primaryColor, // Color si extraTimeRequested es true
-            normalBorderColor: primaryColor,
-            activeBorderColor: redColor, // Borde si extraTimeRequested es true
-          ),
+        // Botón de "Extra Time" con dos estados visuales
+        EstadoButton(
+          text: 'Extra Time',
+          icon: Icons.access_time,
+          onPressed: () =>
+              _handleExtraTimeRequest(context, ref, widget.order["bookingId"]),
+          enabled: true, // El botón está habilitado
+          isActive:
+              extraTimeRequested, // Cambia el estado visual según el valor de isRequested
+          normalColor: primaryColor,
+          activeColor: primaryColor, // Color si extraTimeRequested es true
+          normalBorderColor: primaryColor,
+          activeBorderColor: redColor, // Borde si extraTimeRequested es true
+        ),
 
-          const SizedBox(height: 10),
+        const SizedBox(height: 10),
 
-          // Botón de "Chat with Customer"
-          EstadoButton(
-            text: 'Chat with Customer',
-            icon: Icons.chat,
-            onPressed: () => _openChatWithCustomer(context),
-            enabled: true, // El botón está habilitado
-            isActive: false, // No necesita estado visual activo
-            normalColor: primaryColor,
-            normalBorderColor: primaryColor,
-          ),
-        ],
-      ),
+        // Botón de "Chat with Customer"
+        EstadoButton(
+          text: 'Chat with Customer',
+          icon: Icons.chat,
+          onPressed: () => _openChatWithCustomer(context),
+          enabled: true, // El botón está habilitado
+          isActive: false, // No necesita estado visual activo
+          normalColor: primaryColor,
+          normalBorderColor: primaryColor,
+        ),
+      ],
     );
   }
 
@@ -624,44 +615,41 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     final extraTimeDetails =
         ref.watch(extraTimeDetailsProvider(widget.order['bookingId']));
 
-    return extraTimeDetails.when(
-      loading: () => const SizedBox.shrink(), // No muestra nada mientras carga
-      error: (error, stackTrace) =>
-          const SizedBox.shrink(), // No muestra errores aquí
-      data: (details) {
-        if (details.status == "Accepted") {
-          return Card(
-            color: Colors.white,
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Extra Time Details",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF404C8C),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildPriceRow('Selected Duration', details.selectedDuration),
-                  _buildPriceRow('Fee', '\$${details.fee.toStringAsFixed(2)}'),
-                  _buildPriceRow('Time Slot', details.selectedTimeSlot),
-                  _buildPriceRow('Reason', details.reason),
-                ],
+    if (extraTimeDetails.status == "Accepted") {
+      return Card(
+        color: Colors.white,
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Extra Time Details",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF404C8C),
+                ),
               ),
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
+              const SizedBox(height: 8),
+              _buildPriceRow(
+                  'Selected Duration', extraTimeDetails.selectedDuration),
+              _buildPriceRow(
+                  'Fee', '\$${extraTimeDetails.fee.toStringAsFixed(2)}'),
+              _buildPriceRow('Time Slot', extraTimeDetails.selectedTimeSlot),
+              _buildPriceRow('Reason', extraTimeDetails.reason),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Devuelve un espacio vacío si no está aceptado
+    return const SizedBox.shrink();
   }
 
   // Implement the expandable section method
@@ -701,9 +689,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   void _openExtraTimeDialog(BuildContext context, WidgetRef ref,
       Map<String, dynamic> orderDetails, String bookingId) {
-    final extraTimeDetails =
-        ref.watch(extraTimeDetailsProvider(bookingId)).valueOrNull ??
-            ExtraTimeDetails();
+    final extraTimeDetails = ref.watch(extraTimeDetailsProvider(bookingId));
 
     // Obtener subcategorías
     final List<String> subCategories =
@@ -738,6 +724,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        String errorMessage = ''; // Variable para el mensaje de error
+
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Dialog(
@@ -830,22 +818,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                         }).toList(),
                       ),
                       const SizedBox(height: 16),
-
-                      // Campo de texto para motivo
-                      const Text('Reason',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
-                      TextField(
-                        onChanged: (value) => reason = value,
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          hintText: 'Enter reason for extra time',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
                       // Dropdown para seleccionar horario
                       const Text('Select Time Slot',
                           style: TextStyle(
@@ -869,6 +841,34 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                           );
                         }).toList(),
                       ),
+                      // Campo de texto para motivo
+                      const Text('Reason',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                      TextField(
+                        onChanged: (value) => reason = value,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Enter reason for extra time',
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Mensaje de error (si existe)
+                      if (errorMessage.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            errorMessage,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+
                       const SizedBox(height: 24),
 
                       // Botón de enviar solicitud
@@ -878,10 +878,22 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                               selectedTimeSlot.isEmpty ||
                               selectedService.isEmpty ||
                               reason.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Please fill all the fields')),
-                            );
+                            setState(() {
+                              if (selectedDuration.isEmpty &&
+                                  selectedTimeSlot.isEmpty &&
+                                  selectedService.isEmpty &&
+                                  reason.isEmpty) {
+                                errorMessage = 'All fields are required.';
+                              } else if (selectedDuration.isEmpty) {
+                                errorMessage = 'Please select a duration.';
+                              } else if (selectedTimeSlot.isEmpty) {
+                                errorMessage = 'Please select a time slot.';
+                              } else if (selectedService.isEmpty) {
+                                errorMessage = 'Please select a service.';
+                              } else if (reason.isEmpty) {
+                                errorMessage = 'Please provide a reason.';
+                              }
+                            });
                             return;
                           }
 
@@ -971,7 +983,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         'clientId': clientId,
         'createdAt': FieldValue.serverTimestamp(),
       });
-
+      ref.refresh(bookingDataProvider(bookingId));
       debugPrint("Extra time request sent successfully.");
     } catch (e) {
       debugPrint("Error sending extra time request: $e");
@@ -991,10 +1003,16 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               .get(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                child: const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
               );
             }
+
             if (snapshot.hasError || !snapshot.hasData) {
               return AlertDialog(
                 title: const Text('Error'),
@@ -1019,73 +1037,61 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             final double fee = extraTimeData['fee']?.toDouble() ?? 0.0;
 
             final bool isAccepted = status == 'Accepted';
+            final bool isCancelled = status == 'Cancelled';
             final bool isDeclined = status == 'Declined';
+            final bool canCancel = !isAccepted && !isCancelled && !isDeclined;
 
             return AlertDialog(
-              title: const Text('Extra Time Status'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              title: const Text(
+                'Extra Time Status',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Duration:'),
-                      Text(selectedDuration),
-                    ],
-                  ),
+                  _buildStatusRow('Duration:', selectedDuration),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Time Slot:'),
-                      Text(selectedTimeSlot),
-                    ],
-                  ),
+                  _buildStatusRow('Time Slot:', selectedTimeSlot),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Fee:'),
-                      Text('\$$fee'),
-                    ],
-                  ),
+                  _buildStatusRow('Fee:', '\$$fee'),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Status:'),
-                      Text(status),
-                    ],
-                  ),
+                  _buildStatusRow('Status:', status),
+                  const SizedBox(height: 12),
                   if (isAccepted)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Your request has been accepted.',
-                        style: TextStyle(
-                            color: Colors.green, fontWeight: FontWeight.bold),
+                    const Text(
+                      'Your request has been accepted.',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  if (isDeclined)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Your request was declined.',
-                        style: TextStyle(
-                            color: Colors.red, fontWeight: FontWeight.bold),
+                  if (isCancelled)
+                    const Text(
+                      'Your request was cancelled.',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                 ],
               ),
               actions: [
-                if (!isAccepted)
+                if (canCancel)
                   TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      // Aquí puedes añadir lógica para cancelar la solicitud si es necesario
+                    onPressed: () async {
+                      await _cancelExtraTimeRequest(context, bookingId);
                     },
-                    child: const Text('Cancel Request'),
+                    child: const Text(
+                      'Cancel Request',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -1097,6 +1103,50 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         );
       },
     );
+  }
+
+  Widget _buildStatusRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(color: Colors.black54),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _cancelExtraTimeRequest(
+      BuildContext context, String bookingId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .update({
+        'extraTime.status': 'Cancelled',
+        'extraTime.cancelledAt': FieldValue.serverTimestamp(),
+      });
+
+      Navigator.pop(context); // Cierra el popup actual
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Extra time request has been cancelled.')),
+      );
+    } catch (e) {
+      debugPrint('Error cancelling extra time request: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to cancel extra time request.'),
+        ),
+      );
+    }
   }
 
   Future<void> deleteAllChatRooms() async {
