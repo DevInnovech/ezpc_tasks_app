@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'payment_model.dart';
 
 class PaymentScreen extends StatelessWidget {
@@ -10,13 +9,17 @@ class PaymentScreen extends StatelessWidget {
   const PaymentScreen({
     super.key,
     required this.paymentModel,
-    required String userName,
-    required String timeSlot,
-    required String taskId,
   });
 
-  Future<void> processPayment() async {
-    const String apiUrl = "https://api.yourserver.com/payment-intent";
+  Future<void> processPayment(BuildContext context) async {
+    const String apiUrl =
+        "https://stripepaymentintentrequest-kdtiuzlqjq-uc.a.run.app";
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
 
     try {
       final response = await http.post(
@@ -27,14 +30,26 @@ class PaymentScreen extends StatelessWidget {
         body: jsonEncode(paymentModel.toJson()),
       );
 
+      Navigator.of(context).pop(); // Cierra el indicador de carga
+
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         debugPrint("Payment processed successfully: $responseData");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Payment processed successfully")),
+        );
       } else {
         debugPrint("Failed to process payment: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: ${response.body}")),
+        );
       }
     } catch (e) {
+      Navigator.of(context).pop(); // Cierra el indicador de carga
       debugPrint("Error processing payment: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
   }
 
@@ -73,10 +88,7 @@ class PaymentScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                await processPayment();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Payment process initiated")),
-                );
+                await processPayment(context);
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
