@@ -1,7 +1,9 @@
+import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/features/services/data/CreateCategoryScreen.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/task_details_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
@@ -17,6 +19,7 @@ class ServiceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final accountType = ref.watch(accountTypeProvider);
     final taskState = ref.watch(taskProvider);
     final taskNotifier = ref.read(taskProvider.notifier);
 
@@ -117,17 +120,184 @@ class ServiceScreen extends ConsumerWidget {
                   }
                   // Retornamos la ListView para el RefreshIndicator
                   return ListView.builder(
-                    // Para que el RefreshIndicator funcione,
-                    // el ListView debe poder hacer scroll.
                     physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: taskState.tasks.length,
                     itemBuilder: (context, index) {
                       final task = taskState.tasks[index];
-                      return _buildTaskCard(task, taskNotifier, context);
+                      if (accountType == AccountType.employeeProvider) {
+                        return _buildEmployeeTaskCard(task, context);
+                      } else {
+                        return _buildTaskCard(task, taskNotifier, context);
+                      }
                     },
                   );
                 },
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tarjeta para empleados
+  Widget _buildEmployeeTaskCard(Task task, BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    // Verificar asignación
+    final isAssigned = task.assignments?.containsKey(userId) ?? false;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              // Imagen de la tarea
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10.0),
+                  topRight: Radius.circular(10.0),
+                ),
+                child: CustomImage(
+                  url: null,
+                  height: 150.0,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  path: task.imageUrl.isNotEmpty
+                      ? task.imageUrl
+                      : KImages.emptyBookingImage, // Usa imagen por defecto
+                ),
+              ),
+              // Estado de la tarea
+              Positioned(
+                top: 10.0,
+                left: 10.0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: task.status == 1 ? Colors.green : Colors.red,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Text(
+                    task.status == 1 ? 'Active' : 'Inactive',
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              // Indicador "Assigned" o "Not Assigned" en lugar del botón de eliminación
+              Positioned(
+                top: 10.0,
+                right: 10.0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: isAssigned ? Colors.green : Colors.orange,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Text(
+                    isAssigned ? 'Assigned' : 'Not Assigned',
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCategoryTag(task.category),
+                const SizedBox(height: 8.0),
+                // Nombre de la tarea
+                CustomText(
+                  text: task.taskName,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w700,
+                ),
+                const SizedBox(height: 4.0),
+                // Fecha de creación
+                CustomText(
+                  text: DateFormat.yMMMMd().format(
+                      DateTime.tryParse(task.issueDate) ?? DateTime.now()),
+                  fontSize: 14.0,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 4.0),
+                // Precio total de la tarea
+
+                // Mostrar servicios seleccionados y sus precios
+                if (task.selectedTasks.isNotEmpty) ...[
+                  const Text(
+                    "Selected Services:",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  ...task.selectedTasks.entries.map((entry) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          entry.key,
+                          style: const TextStyle(fontSize: 14.0),
+                        ),
+                        Text(
+                          '\$${entry.value.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ],
+                const SizedBox(height: 10.0),
+                // Botón de detalles siempre habilitado
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskDetailsScreen(task: task),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 16.0,
+                      ),
+                    ),
+                    child: const Text(
+                      'View Details',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

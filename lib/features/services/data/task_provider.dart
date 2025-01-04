@@ -117,6 +117,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
         clientLastName: '',
         questions: {},
         selectedTasks: {},
+        assignments: {},
       );
 
       state = state.copyWith(currentTask: emptyTask);
@@ -181,7 +182,6 @@ class TaskNotifier extends StateNotifier<TaskState> {
 */
   Future<void> _loadTasks() async {
     try {
-      print("object");
       final currentUser = FirebaseAuth.instance.currentUser;
       final userId = currentUser?.uid;
 
@@ -190,18 +190,78 @@ class TaskNotifier extends StateNotifier<TaskState> {
       }
 
       state = state.copyWith(isLoading: true, error: null);
-      print("estas es la $userId");
-      // Obtener las tareas desde Firestore
+
+      // Obtener el tipo de cuenta directamente desde Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception('No se encontró el documento del usuario.');
+      }
+
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final accountType = userData['accountType'] ?? '';
+
+      String providerUserId =
+          userId; // Por defecto usamos el ID del usuario actual
+
+      if (accountType == 'Employee Provider') {
+        print("aqui");
+        // El usuario es de tipo empleado, buscar su proveedor corporativo
+        final employeeDoc = await FirebaseFirestore.instance
+            .collection('providers')
+            .doc(userId)
+            .get();
+
+        if (!employeeDoc.exists) {
+          throw Exception(
+              'El documento del empleado no existe en la colección providers.');
+        }
+
+        final employeeData = employeeDoc.data() as Map<String, dynamic>;
+        final myCompanyId = employeeData['Company'];
+
+        if (myCompanyId == null || myCompanyId.isEmpty) {
+          throw Exception(
+              'El campo "Company" no está definido para este empleado.');
+        }
+
+        // Buscar el proveedor corporativo con el companyId igual a myCompanyId
+        final companyQuery = await FirebaseFirestore.instance
+            .collection('providers')
+            .where('companyID', isEqualTo: myCompanyId)
+            .limit(1)
+            .get();
+
+        if (companyQuery.docs.isEmpty) {
+          throw Exception(
+              'No se encontró ningún proveedor corporativo con el companyID: $myCompanyId.');
+        }
+
+        final companyData = companyQuery.docs.first.id;
+        providerUserId = companyData;
+
+        if (providerUserId == null || providerUserId.isEmpty) {
+          throw Exception(
+              'El proveedor corporativo no tiene definido un "userId".');
+        }
+      }
+
+      // Buscar las tareas en Firestore para el usuario o proveedor corporativo
       final snapshot = await FirebaseFirestore.instance
           .collection('tasks')
-          .where("providerId", isEqualTo: userId)
+          .where("providerId", isEqualTo: providerUserId)
           .get();
+
       final tasks = snapshot.docs.map((doc) {
         final data = doc.data();
         return TaskModel.Task.fromMap(data);
       }).toList();
 
       state = state.copyWith(tasks: tasks, isLoading: false);
+      debugPrint('Tareas cargadas correctamente.');
     } catch (e) {
       state = state.copyWith(tasks: [], isLoading: false, error: e.toString());
       debugPrint('Error al cargar las tareas: $e');
@@ -358,7 +418,8 @@ class TaskNotifier extends StateNotifier<TaskState> {
         clientName: task.clientName,
         clientLastName: task.clientLastName,
         questions: task.questions, // Asegurarse de guardar preguntas
-        selectedTasks: task.selectedTasks, // Guardar tareas seleccionadas
+        selectedTasks: task.selectedTasks,
+        assignments: {}, // Guardar tareas seleccionadas
       );
 
       // Save the task in the repository
