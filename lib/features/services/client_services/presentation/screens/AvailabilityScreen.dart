@@ -60,18 +60,54 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         final provider =
             taskData['providerId'] as String?; // Obtener providerId
 
-        // Obtener tareas relacionadas por categoría
-        final relatedTasksSnapshot = await FirebaseFirestore.instance
-            .collection('tasks')
-            .where('category', isEqualTo: category)
-            .get();
+        // Inicializar la lista de tareas relacionadas
+        List<Map<String, dynamic>> fetchedTasks = [];
 
+        if (taskData.containsKey('assignments')) {
+          // Caso de tareas corporativas con `assignments`
+          final assignments = taskData['assignments'] as Map<String, dynamic>;
+
+          // Filtrar empleados activos
+          final activeProviders = assignments.entries
+              .where((entry) => entry.value == true) // Solo empleados activos
+              .map((entry) => entry.key) // IDs de empleados
+              .toList();
+
+          for (String providerId in activeProviders) {
+            print("id:$providerId");
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(providerId)
+                .get();
+
+            if (userDoc.exists) {
+              fetchedTasks.add({
+                'id': taskDoc.id,
+                ...taskData, // Datos de la tarea original
+                'providerId': providerId,
+                'providerName': userDoc.data()?['name'] ?? 'Unknown',
+                'lastName': userDoc.data()?['name'] ?? 'Unknown',
+                'providerPhoto': userDoc.data()?['profileImageUrl'] ?? '',
+              });
+            }
+          }
+        } else {
+          // Caso de tareas no corporativas
+          final relatedTasksSnapshot = await FirebaseFirestore.instance
+              .collection('tasks')
+              .where('category', isEqualTo: category)
+              .get();
+
+          fetchedTasks = relatedTasksSnapshot.docs
+              .map((doc) => {'id': doc.id, ...doc.data()})
+              .toList();
+        }
+
+        // Actualizar el estado con la información obtenida
         setState(() {
           selectedTask = taskData;
           providerId = provider; // Asignar el providerId extraído
-          relatedTasks = relatedTasksSnapshot.docs
-              .map((doc) => {'id': doc.id, ...doc.data()})
-              .toList();
+          relatedTasks = fetchedTasks;
         });
       }
     } catch (e) {
@@ -266,6 +302,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                     onTap: () {
                       setState(() {
                         selectedTimeSlot = slot;
+                        providerId = taskData['providerId'];
                       });
                     },
                     child: Container(
