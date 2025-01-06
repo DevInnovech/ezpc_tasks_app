@@ -95,7 +95,7 @@ class ReviewOnTasksScreen extends StatelessWidget {
                         );
                       },
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             );

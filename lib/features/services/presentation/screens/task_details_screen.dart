@@ -383,7 +383,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -456,7 +456,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                             ),
                             child: Text(
                               isActive ? 'Active' : 'Inactive',
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 16.0,
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold),
@@ -558,7 +558,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       )
                     else
@@ -611,12 +611,10 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                           children:
                               currentTask.workingHours.entries.map((entry) {
                             Map<String, String> hours = {};
-                            if (entry.value is Map) {
-                              hours = (entry.value as Map).map(
-                                (key, value) =>
-                                    MapEntry(key.toString(), value.toString()),
-                              );
-                            }
+                            hours = (entry.value as Map).map(
+                              (key, value) =>
+                                  MapEntry(key.toString(), value.toString()),
+                            );
 
                             return Padding(
                               padding:
@@ -725,7 +723,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                           ? 'Unassign'
                           : 'Assign Task'
                       : 'Edit Task',
-                  style: TextStyle(fontSize: 16.0, color: Colors.white),
+                  style: const TextStyle(fontSize: 16.0, color: Colors.white),
                 ),
               ),
             ),

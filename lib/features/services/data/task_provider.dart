@@ -243,7 +243,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
         final companyData = companyQuery.docs.first.id;
         providerUserId = companyData;
 
-        if (providerUserId == null || providerUserId.isEmpty) {
+        if (providerUserId.isEmpty) {
           throw Exception(
               'El proveedor corporativo no tiene definido un "userId".');
         }

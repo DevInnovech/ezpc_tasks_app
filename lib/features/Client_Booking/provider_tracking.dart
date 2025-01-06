@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/provider_tracking_provider.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/expandable_status.dart';
-import 'package:ezpc_tasks_app/features/chat/data/chat_repository.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
