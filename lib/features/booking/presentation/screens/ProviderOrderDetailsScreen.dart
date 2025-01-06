@@ -98,13 +98,13 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
           FirebaseFirestore.instance.collection('providers').doc(providerId);
 
       // Actualizar el estado de la reserva
-      /*await FirebaseFirestore.instance
-        .collection('bookings')
-        .doc(bookingId)
-        .update({
-      'status': newStatus,
-      'updatedAt': Timestamp.now(),
-    });*/
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .update({
+        'status': newStatus,
+        'updatedAt': Timestamp.now(),
+      });
 
       // Obtener el nombre del día y la fecha formateada
       final String dayName =

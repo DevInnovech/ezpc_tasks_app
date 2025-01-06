@@ -1,5 +1,6 @@
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/GeneralInformation.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -209,8 +210,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     while (currentTime.isBefore(end)) {
       final nextTime = currentTime.add(const Duration(minutes: 30));
       intervals.add({
-        "start": DateFormat('h:mm a').format(currentTime),
-        "end": DateFormat('h:mm a').format(nextTime),
+        "start": DateFormat('hh:mm a').format(currentTime),
+        "end": DateFormat('hh:mm a').format(nextTime),
         "status": "free", // Por defecto libre
       });
       currentTime = nextTime;
@@ -257,7 +258,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       // No hay intervalos para este día, retorna los intervalos por defecto
       return _generateDefaultIntervals(workingHours);
     }
-    print(dayAvailability);
+    // print(dayAvailability);
     // Acceder a la disponibilidad específica de la fecha
     final dateAvailability = dayAvailability[formattedDate];
     if (dateAvailability == null || !(dateAvailability is List)) {
@@ -265,7 +266,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       return _generateDefaultIntervals(workingHours);
     }
 
-    print(dateAvailability);
+    // print(dateAvailability);
 
     final List<Map<String, dynamic>> dayIntervals =
         List<Map<String, dynamic>>.from(dateAvailability);
@@ -277,8 +278,10 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     for (var interval in dayIntervals) {
       final index = allIntervals.indexWhere((slot) =>
           slot['start'] == interval['start'] && slot['end'] == interval['end']);
+      print(index);
       if (index != -1) {
         //aqui quede
+
         allIntervals[index]['status'] =
             interval['status']; // Ocupado o Bloqueado
         if (interval.containsKey('taskId')) {
@@ -434,6 +437,32 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         final slot = timeSlots[index];
         final isSelected = slot['isSelected'] ?? false;
 
+        // Determinar el color basado en el estado del slot
+        Color slotColor;
+        Color borderColor;
+        Color textColor = Colors.black;
+
+        switch (slot['status']) {
+          case 'free':
+            slotColor = Colors.transparent;
+            borderColor = primaryColor;
+            textColor = primaryColor;
+            break;
+          case 'occupied':
+            slotColor = Colors.grey.shade300;
+            borderColor = Colors.grey.shade300;
+            textColor = Colors.grey;
+            break;
+          case 'blocked':
+            slotColor = Colors.grey.shade400;
+            borderColor = Colors.grey.shade300;
+            textColor = Colors.grey;
+            break;
+          default:
+            slotColor = Colors.grey.shade200;
+            borderColor = Colors.grey;
+        }
+
         // Resaltar solo los slots seleccionados de la tarjeta activa
         final shouldHighlight =
             selectedCard != null && selectedCard!['id'] == taskId && isSelected;
@@ -447,8 +476,9 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                       // Reiniciar la selección de la tarjeta previa
                       if (selectedCard != null) {
                         final previousTaskId = selectedCard!['id'];
-                        for (var slot in taskSlots[previousTaskId] ?? []) {
-                          slot['isSelected'] = false;
+                        for (var previousSlot
+                            in taskSlots[previousTaskId] ?? []) {
+                          previousSlot['isSelected'] = false;
                         }
                       }
 
@@ -474,22 +504,24 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                   // Seleccionar el slot en la tarjeta activa
                   handleSlotSelection(slot, taskId);
                 }
-              : null,
+              : null, // Deshabilitar onTap para 'occupied' y 'blocked'
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: shouldHighlight ? Colors.blue : Colors.grey.shade200,
+              color: shouldHighlight ? primaryColor : slotColor,
               borderRadius: BorderRadius.circular(6.0),
               border: Border.all(
-                color: shouldHighlight ? Colors.blue : Colors.grey,
+                color: shouldHighlight ? primaryColor : borderColor,
+                width: 1.5,
               ),
             ),
             child: Text(
               slot['start'] ?? "",
               style: TextStyle(
-                color: shouldHighlight ? Colors.white : Colors.black,
+                color: shouldHighlight ? Colors.white : textColor,
                 fontSize: 14.0,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.bold,
               ),
             ),
           ),
