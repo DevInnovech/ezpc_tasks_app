@@ -153,6 +153,7 @@ class HomeLoadedData extends StatelessWidget {
             ClientTitleAndNavigator(
               title: data.categorySection.title,
               press: () {
+                //aqui alam
                 Navigator.pushNamed(context, RouteNames.clientCategoryScreen);
               },
             ),

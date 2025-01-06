@@ -25,10 +25,10 @@ import 'package:ezpc_tasks_app/features/booking/presentation/screens/tracking/bo
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/SupportChatScreen.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/AllcategoriesScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_category_screen.dart';
 import 'package:ezpc_tasks_app/features/leaning/presentations/screnn/video_screen.dart';
 import 'package:ezpc_tasks_app/features/my%20employe/presentation/screen/employee_screen.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
