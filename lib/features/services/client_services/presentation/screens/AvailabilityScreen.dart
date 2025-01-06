@@ -66,47 +66,108 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         final provider =
             taskData['providerId'] as String?; // Obtener providerId
 
+        // Extraer las selectedTasks de la tarea original
+        final Map<String, dynamic> selectedTasks =
+            Map<String, dynamic>.from(taskData['selectedTasks'] ?? {});
+
+        // Obtener las selectedSubCategories desde el widget
+        final List<String> selectedSubCategories =
+            List<String>.from(widget.selectedSubCategories);
+
         // Inicializar la lista de tareas relacionadas
         List<Map<String, dynamic>> fetchedTasks = [];
 
-        if (taskData.containsKey('assignments')) {
-          // Caso de tareas corporativas con `assignments`
-          final assignments = taskData['assignments'] as Map<String, dynamic>;
+        // Obtener todas las tareas en la misma categoría
+        final relatedTasksSnapshot = await FirebaseFirestore.instance
+            .collection('tasks')
+            .where('category', isEqualTo: category)
+            .get();
 
-          // Filtrar empleados activos
-          final activeProviders = assignments.entries
-              .where((entry) => entry.value == true) // Solo empleados activos
-              .map((entry) => entry.key) // IDs de empleados
-              .toList();
+        // Filtrar tareas que cumplen con selectedSubCategories
+        final filteredTasks = relatedTasksSnapshot.docs
+            .map((doc) => {'id': doc.id, ...doc.data()})
+            .where((task) {
+          final Map<String, dynamic> taskSelectedTasks =
+              Map<String, dynamic>.from(task['selectedTasks'] ?? {});
+          print(widget.selectedSubCategories);
+          print(taskSelectedTasks);
+          // Verificar si la tarea relacionada contiene al menos los mismos selectedSubCategories
+          return widget.selectedSubCategories.every((entry) {
+            return taskSelectedTasks.containsKey(entry);
+          });
+        }).toList();
 
-          for (String providerId in activeProviders) {
-            print("id:$providerId");
+        // Procesar cada tarea filtrada
+        for (var task in filteredTasks) {
+          if (task.containsKey('assignments')) {
+            // **Tarea Corporativa**
+            final assignments = task['assignments'] as Map<String, dynamic>;
+
+            // Filtrar empleados activos
+            final activeProviders = assignments.entries
+                .where((entry) => entry.value == true) // Solo empleados activos
+                .map((entry) => entry.key) // IDs de empleados
+                .toList();
+
+            for (String providerId in activeProviders) {
+              print("id:$providerId");
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(providerId)
+                  .get();
+
+              if (userDoc.exists) {
+                final relatedTask = {
+                  'id': task['id'],
+                  ...task, // Datos de la tarea original
+                  'providerId': providerId,
+                  'providerName': userDoc.data()?['name'] ?? 'Unknown',
+                  'lastName': userDoc.data()?['name'] ??
+                      'Unknown', // Corregido a 'lastName'
+                  'providerPhoto': userDoc.data()?['profileImageUrl'] ?? '',
+                };
+
+                // Extraer selectedTasks de la tarea relacionada
+                final Map<String, dynamic> relatedSelectedTasks =
+                    Map<String, dynamic>.from(task['selectedTasks'] ?? {});
+
+                // Verificar si la tarea relacionada contiene al menos los mismos selectedTasks
+                bool matchesSelectedTasks =
+                    widget.selectedSubCategories.every((entry) {
+                  return relatedSelectedTasks.containsKey(entry);
+                });
+                print(matchesSelectedTasks);
+                if (matchesSelectedTasks) {
+                  fetchedTasks.add(relatedTask);
+                }
+              }
+            }
+          } else {
+            // **Tarea No Corporativa**
             final userDoc = await FirebaseFirestore.instance
                 .collection('users')
                 .doc(providerId)
                 .get();
+            final task2 = {
+              'id': task['id'],
+              ...task, // Datos de la tarea original
+              'providerPhoto': userDoc.data()?['profileImageUrl'] ?? '',
+            };
 
-            if (userDoc.exists) {
-              fetchedTasks.add({
-                'id': taskDoc.id,
-                ...taskData, // Datos de la tarea original
-                'providerId': providerId,
-                'providerName': userDoc.data()?['name'] ?? 'Unknown',
-                'lastName': userDoc.data()?['name'] ?? 'Unknown',
-                'providerPhoto': userDoc.data()?['profileImageUrl'] ?? '',
-              });
+            final relatedSelectedTasks =
+                Map<String, dynamic>.from(task2['selectedTasks'] ?? {});
+            print(widget.selectedSubCategories);
+            print(relatedSelectedTasks);
+            // Verificar si la tarea relacionada contiene al menos los mismos selectedTasks
+            bool matchesSelectedTasks =
+                widget.selectedSubCategories.every((entry) {
+              return relatedSelectedTasks.containsKey(entry);
+            });
+            print(matchesSelectedTasks);
+            if (matchesSelectedTasks) {
+              fetchedTasks.add(task2);
             }
           }
-        } else {
-          // Caso de tareas no corporativas
-          final relatedTasksSnapshot = await FirebaseFirestore.instance
-              .collection('tasks')
-              .where('category', isEqualTo: category)
-              .get();
-
-          fetchedTasks = relatedTasksSnapshot.docs
-              .map((doc) => {'id': doc.id, ...doc.data()})
-              .toList();
         }
 
         // Actualizar el estado con la información obtenida
@@ -157,20 +218,27 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     return intervals;
   }
 
-  Future<void> getAvailableIntervalsForTask(String providerId, String day,
-      Map<String, dynamic> workingHours, String taskId) async {
+  Future<void> getAvailableIntervalsForTask(
+      String providerId,
+      String dayName,
+      String formattedDate,
+      Map<String, dynamic> workingHours,
+      String taskId) async {
     if (taskSlots.containsKey(taskId))
       return; // Evitar recarga si ya se cargaron
 
-    final intervals =
-        await getAvailableIntervals(providerId, day, workingHours);
+    final intervals = await getAvailableIntervals(
+        providerId, dayName, formattedDate, workingHours);
     setState(() {
       taskSlots[taskId] = intervals;
     });
   }
 
   Future<List<Map<String, dynamic>>> getAvailableIntervals(
-      String providerId, String day, Map<String, dynamic> workingHours) async {
+      String providerId,
+      String dayName,
+      String formattedDate,
+      Map<String, dynamic> workingHours) async {
     final firestore = FirebaseFirestore.instance;
     final docRef = firestore.collection('providers').doc(providerId);
 
@@ -182,8 +250,25 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
     final data = snapshot.data()!;
     final availability = Map<String, dynamic>.from(data['availability'] ?? {});
-    final dayIntervals =
-        List<Map<String, dynamic>>.from(availability[day] ?? []);
+
+    // Acceder a la disponibilidad específica del día
+    final dayAvailability = availability[dayName];
+    if (dayAvailability == null || !(dayAvailability is Map<String, dynamic>)) {
+      // No hay intervalos para este día, retorna los intervalos por defecto
+      return _generateDefaultIntervals(workingHours);
+    }
+    print(dayAvailability);
+    // Acceder a la disponibilidad específica de la fecha
+    final dateAvailability = dayAvailability[formattedDate];
+    if (dateAvailability == null || !(dateAvailability is List)) {
+      // No hay intervalos para esta fecha, retorna los intervalos por defecto
+      return _generateDefaultIntervals(workingHours);
+    }
+
+    print(dateAvailability);
+
+    final List<Map<String, dynamic>> dayIntervals =
+        List<Map<String, dynamic>>.from(dateAvailability);
 
     // Generar todos los intervalos posibles según las horas de trabajo
     final allIntervals = _generateDefaultIntervals(workingHours);
@@ -193,11 +278,15 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       final index = allIntervals.indexWhere((slot) =>
           slot['start'] == interval['start'] && slot['end'] == interval['end']);
       if (index != -1) {
+        //aqui quede
         allIntervals[index]['status'] =
             interval['status']; // Ocupado o Bloqueado
+        if (interval.containsKey('taskId')) {
+          allIntervals[index]['taskId'] = interval['taskId'];
+        }
       }
     }
-
+    print(allIntervals);
     return allIntervals;
   }
 
@@ -418,9 +507,15 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     final isSelected = selectedCard == taskData;
     print(ProviderId);
     if (!taskSlots.containsKey(taskId)) {
+      String dayName =
+          DateFormat('EEEE').format(selectedDate); // e.g., "Monday"
+      String formattedDate =
+          DateFormat('M-d-yyyy').format(selectedDate); // e.g., "1-7-2025"
+
       getAvailableIntervalsForTask(
         ProviderId,
-        DateFormat('EEEE').format(selectedDate),
+        dayName,
+        formattedDate,
         taskData['workingHours'] ?? {},
         taskId,
       );
