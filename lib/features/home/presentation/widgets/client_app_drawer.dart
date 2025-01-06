@@ -309,7 +309,7 @@ class ClientAppDrawer extends ConsumerWidget {
   void navigatePage(BuildContext context, int index) {
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, RouteNames.clientCategoryScreen);
+        Navigator.popAndPushNamed(context, RouteNames.clientCategoryScreen);
         break;
       case 1:
         Navigator.popAndPushNamed(context, RouteNames.chatListScreen);

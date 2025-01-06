@@ -296,9 +296,9 @@ class ClientCategoryItem extends StatelessWidget {
         Navigator.pushNamed(
           context,
           RouteNames.clientCategoryScreen,
-          arguments: {
+          /*   arguments: {
             'category': item, // Pasa la información de la categoría
-          },
+          },*/
         );
       },
       child: Column(
