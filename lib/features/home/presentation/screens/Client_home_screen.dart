@@ -153,6 +153,7 @@ class HomeLoadedData extends StatelessWidget {
             ClientTitleAndNavigator(
               title: data.categorySection.title,
               press: () {
+                //aqui alam
                 Navigator.pushNamed(context, RouteNames.clientCategoryScreen);
               },
             ),
@@ -295,9 +296,9 @@ class ClientCategoryItem extends StatelessWidget {
         Navigator.pushNamed(
           context,
           RouteNames.clientCategoryScreen,
-          arguments: {
+          /*   arguments: {
             'category': item, // Pasa la información de la categoría
-          },
+          },*/
         );
       },
       child: Column(
