@@ -58,18 +58,135 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
   }
 
-  Future<void> _updateTaskStatus(String newStatus) async {
+  Future<void> _updateTaskStatus(
+    String newStatus, {
+    String? slot, // Opcional
+    String? endSlot, // Opcional
+  }) async {
     try {
+      // Convertir la fecha del widget a un objeto DateTime
+      final String dateStr = widget.order['date'];
+      final DateTime currentDate = DateTime.parse(dateStr);
+
+      final bookingId = widget.order['bookingId'];
+      final providerId = widget.order['providerId'];
+
+      DateTime? startTime;
+      DateTime? endTime;
+
+      // Procesar los slots solo si están disponibles
+      if (slot != null) {
+        startTime = _parseTime(slot);
+      }
+
+      if (startTime != null && endSlot != null) {
+        endTime = _parseTime(endSlot);
+      } else if (startTime != null &&
+          widget.order.containsKey('taskDuration')) {
+        endTime = startTime.add(
+            Duration(minutes: (widget.order['taskDuration'] * 60).toInt()));
+      }
+
+      final providerRef =
+          FirebaseFirestore.instance.collection('providers').doc(providerId);
+
       await FirebaseFirestore.instance
           .collection('bookings')
-          .doc(widget.order['bookingId'])
-          .update({'status': newStatus, 'updatedAt': Timestamp.now()});
+          .doc(bookingId)
+          .update({
+        'status': newStatus,
+        'updatedAt': Timestamp.now(),
+      });
+
+      if (newStatus == "accepted" && startTime != null && endTime != null) {
+        // Generar intervalos ocupados y bloqueados
+        final intervals = _generateIntervals(startTime, endTime);
+        final blockedIntervals = _generateIntervals(
+          endTime,
+          endTime.add(
+              Duration(minutes: (widget.order['taskDuration'] * 60).toInt())),
+        );
+
+        await providerRef.update({
+          'availability.${DateFormat('yyyy-MM-dd').format(currentDate)}':
+              FieldValue.arrayUnion([
+            ...intervals.map((interval) => {
+                  'start': interval['start'],
+                  'end': interval['end'],
+                  'status': 'occupied'
+                }),
+            ...blockedIntervals.map((interval) => {
+                  'start': interval['start'],
+                  'end': interval['end'],
+                  'status': 'blocked'
+                }),
+          ]),
+        });
+      } else if ((newStatus == "completed" || newStatus == "canceled") &&
+          startTime != null &&
+          endTime != null) {
+        // Eliminar intervalos ocupados y bloqueados
+        final intervals = _generateIntervals(startTime, endTime);
+        final blockedIntervals = _generateIntervals(
+          endTime,
+          endTime.add(
+              Duration(minutes: (widget.order['taskDuration'] * 60).toInt())),
+        );
+
+        await providerRef.update({
+          'availability.${DateFormat('yyyy-MM-dd').format(currentDate)}':
+              FieldValue.arrayRemove([
+            ...intervals.map((interval) => {
+                  'start': interval['start'],
+                  'end': interval['end'],
+                  'status': 'occupied'
+                }),
+            ...blockedIntervals.map((interval) => {
+                  'start': interval['start'],
+                  'end': interval['end'],
+                  'status': 'blocked'
+                }),
+          ]),
+        });
+      }
 
       setState(() {
         taskStatus = newStatus.toLowerCase();
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task status updated to $newStatus')),
+      );
     } catch (e) {
       debugPrint("Error updating task status: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update task status')),
+      );
+    }
+  }
+
+  List<Map<String, dynamic>> _generateIntervals(DateTime start, DateTime end) {
+    final intervals = <Map<String, dynamic>>[];
+
+    var currentTime = start;
+    while (currentTime.isBefore(end)) {
+      final nextTime = currentTime.add(const Duration(minutes: 30));
+      intervals.add({
+        'start': DateFormat('h:mm a').format(currentTime),
+        'end': DateFormat('h:mm a').format(nextTime),
+      });
+      currentTime = nextTime;
+    }
+
+    return intervals;
+  }
+
+  DateTime? _parseTime(String time) {
+    try {
+      return DateFormat('hh:mm a').parse(time);
+    } catch (e) {
+      debugPrint("Error parsing time: $e");
+      return null;
     }
   }
 
@@ -275,6 +392,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
         final bookingData = snapshot.data!.data() as Map<String, dynamic>;
         final taskStatus = bookingData['status']?.toLowerCase() ?? 'pending';
+        final String? slot = bookingData['timeslot'];
+        final String? endslot = bookingData['endSlot'];
         final providerStatus =
             bookingData['ProviderStatus']?.toLowerCase() ?? 'pending';
 
@@ -284,7 +403,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _updateTaskStatus("accepted"),
+                  onPressed: () => _updateTaskStatus("accepted",
+                      slot: slot, endSlot: endslot),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                   ),
@@ -382,7 +502,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
           // Botón para completar la tarea (Complete Task)
           return ElevatedButton(
             onPressed: () async {
-              await _updateTaskStatus("completed");
+              await _updateTaskStatus("completed",
+                  slot: slot, endSlot: endslot);
 
               await FirebaseFirestore.instance
                   .collection('bookings')

@@ -62,24 +62,42 @@ class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
               return const Center(child: Text('No tasks available.'));
             }
 
-            return GridView.builder(
-              padding: const EdgeInsets.all(16.0),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _isGrid ? 2 : 1,
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
-                // Ajustar este aspecto para dar más espacio vertical
-                childAspectRatio: _isGrid ? 0.6 : 1,
-              ),
-              itemCount: services.length,
-              itemBuilder: (context, index) {
-                final task = services[index];
-                return ServiceCard(
-                  task: task,
-                  imageHeight: imageHeight,
-                );
-              },
-            );
+            if (_isGrid) {
+              // Modo Grid
+              return GridView.builder(
+                padding: const EdgeInsets.all(16.0),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 5.0,
+                  mainAxisSpacing: 10.0,
+                  childAspectRatio: 0.3, // Ajusta según tus necesidades
+                ),
+                itemCount: services.length,
+                itemBuilder: (context, index) {
+                  final task = services[index];
+                  return ServiceCard(
+                    task: task,
+                    imageHeight: 120.0, // Imagen más pequeña en grid
+                  );
+                },
+              );
+            } else {
+              // Modo Lista
+              return ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: services.length,
+                itemBuilder: (context, index) {
+                  final task = services[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: ServiceCard(
+                      task: task,
+                      imageHeight: 160.0, // Imagen más grande en lista
+                    ),
+                  );
+                },
+              );
+            }
           } else {
             return const Center(child: Text('No services found.'));
           }

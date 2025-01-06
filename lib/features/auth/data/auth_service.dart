@@ -154,6 +154,8 @@ class AuthService {
             'userID': uniqueCode,
             'createdAt': FieldValue.serverTimestamp(),
             'acceptedTerms': true,
+            'onDemand': false, // Desactivado inicialmente
+            'availability': {}, // Sin intervalos al inicio
           };
 
           // Agregar campos específicos para `Corporate Provider`
