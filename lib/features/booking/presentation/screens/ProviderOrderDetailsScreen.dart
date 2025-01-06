@@ -57,18 +57,179 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
   }
 
-  Future<void> _updateTaskStatus(String newStatus) async {
+  Future<void> _updateTaskStatus(
+    String newStatus, {
+    String? slot, // Opcional
+    String? endSlot, // Opcional
+  }) async {
     try {
+      // Convertir la fecha del widget a un objeto DateTime
+      final String dateStr = widget.order['date'];
+      final DateTime currentDate = DateTime.parse(dateStr);
+
+      final String bookingId = widget.order['bookingId'];
+      final String providerId = widget.order['providerId'];
+
+      DateTime? startTime;
+      DateTime? endTime;
+
+      print("Procesando actualización de estado...");
+      print("Slot de inicio: $slot");
+      print("Slot de fin: $endSlot");
+
+      // Procesar los slots solo si están disponibles
+      if (slot != null) {
+        startTime = _parseTime(slot);
+        print("Hora de inicio parseada: $startTime");
+      }
+
+      if (startTime != null && endSlot != null) {
+        endTime = _parseTime(endSlot);
+        print("Hora de fin parseada: $endTime");
+      } else if (startTime != null &&
+          widget.order.containsKey('serviceSizes')) {
+        endTime = startTime.add(Duration(
+            minutes: (widget.order['serviceSizes']['Hours'] * 60).toInt()));
+        print("Hora de fin calculada: $endTime");
+      }
+
+      final DocumentReference providerRef =
+          FirebaseFirestore.instance.collection('providers').doc(providerId);
+
+      // Actualizar el estado de la reserva
       await FirebaseFirestore.instance
           .collection('bookings')
-          .doc(widget.order['bookingId'])
-          .update({'status': newStatus, 'updatedAt': Timestamp.now()});
+          .doc(bookingId)
+          .update({
+        'status': newStatus,
+        'updatedAt': Timestamp.now(),
+      });
 
+      // Obtener el nombre del día y la fecha formateada
+      final String dayName =
+          DateFormat('EEEE').format(currentDate); // e.g., "Monday"
+      final String formattedDate =
+          DateFormat('M-d-yyyy').format(currentDate); // e.g., "1/7/2025"
+
+      if (newStatus == "accepted" && startTime != null && endTime != null) {
+        print("Actualizando disponibilidad para estado 'accepted'...");
+
+        // Generar intervalos ocupados con taskId
+        final List<Map<String, dynamic>> occupiedIntervals =
+            _generateIntervals(startTime, endTime).map((interval) {
+          return {
+            'start': interval['start'],
+            'end': interval['end'],
+            'status': 'occupied',
+            'taskId': bookingId, // Añadir taskId
+          };
+        }).toList();
+        print(occupiedIntervals);
+
+        // Generar intervalos bloqueados con taskId
+        final List<Map<String, dynamic>> blockedIntervals = _generateIntervals(
+          endTime,
+          endTime.add(Duration(
+              minutes: (widget.order['serviceSizes']['Hours'] * 60).toInt())),
+        ).map((interval) {
+          return {
+            'start': interval['start'],
+            'end': interval['end'],
+            'status': 'blocked',
+            'taskId': bookingId, // Añadir taskId
+          };
+        }).toList();
+        print(blockedIntervals);
+
+        // Actualizar la disponibilidad del proveedor con la clave específica del día y fecha
+        await providerRef.update({
+          'availability.$dayName.$formattedDate': FieldValue.arrayUnion([
+            ...occupiedIntervals,
+            ...blockedIntervals,
+          ]),
+        });
+      } else if ((newStatus == "completed" || newStatus == "canceled") &&
+          startTime != null &&
+          endTime != null) {
+        print("Actualizando disponibilidad para estado '$newStatus'...");
+
+        // Generar intervalos ocupados y bloqueados para eliminar
+        final List<Map<String, dynamic>> occupiedIntervalsToRemove =
+            _generateIntervals(startTime, endTime).map((interval) {
+          return {
+            'start': interval['start'],
+            'end': interval['end'],
+            'status': 'occupied',
+            'taskId': bookingId, // Añadir taskId para eliminar correctamente
+          };
+        }).toList();
+
+        final List<Map<String, dynamic>> blockedIntervalsToRemove =
+            _generateIntervals(
+          endTime,
+          endTime.add(Duration(
+              minutes: (widget.order['serviceSizes']['Hours'] * 60).toInt())),
+        ).map((interval) {
+          return {
+            'start': interval['start'],
+            'end': interval['end'],
+            'status': 'blocked',
+            'taskId': bookingId, // Añadir taskId
+          };
+        }).toList();
+        print(
+            "Intervalos a eliminar: $occupiedIntervalsToRemove y $blockedIntervalsToRemove");
+
+        // Actualizar la disponibilidad del proveedor con la clave específica del día y fecha
+        await providerRef.update({
+          'availability.$dayName.$formattedDate': FieldValue.arrayRemove([
+            ...occupiedIntervalsToRemove,
+            ...blockedIntervalsToRemove,
+          ]),
+        });
+      }
+
+      // Actualizar el estado local de la tarea
       setState(() {
         taskStatus = newStatus.toLowerCase();
       });
+
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task status updated to $newStatus')),
+      );
     } catch (e) {
       debugPrint("Error updating task status: $e");
+      // Mostrar mensaje de error al usuario
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update task status')),
+      );
+    }
+  }
+
+  List<Map<String, dynamic>> _generateIntervals(DateTime start, DateTime end) {
+    final intervals = <Map<String, dynamic>>[];
+
+    var currentTime = start;
+    while (currentTime.isBefore(end)) {
+      final nextTime = currentTime.add(const Duration(minutes: 30));
+      intervals.add({
+        'start':
+            DateFormat('hh:mm a').format(currentTime), // Cambio a 'hh:mm a'
+        'end': DateFormat('hh:mm a').format(nextTime), // Cambio a 'hh:mm a'
+      });
+      currentTime = nextTime;
+    }
+
+    return intervals;
+  }
+
+  DateTime? _parseTime(String time) {
+    try {
+      return DateFormat('hh:mm a').parse(time);
+    } catch (e) {
+      debugPrint("Error parsing time: $e");
+      return null;
     }
   }
 
@@ -274,6 +435,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
         final bookingData = snapshot.data!.data() as Map<String, dynamic>;
         final taskStatus = bookingData['status']?.toLowerCase() ?? 'pending';
+        final String? slot = bookingData['timeSlot'];
+        final String? endslot = bookingData['endSlot'];
         final providerStatus =
             bookingData['ProviderStatus']?.toLowerCase() ?? 'pending';
 
@@ -283,7 +446,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _updateTaskStatus("accepted"),
+                  onPressed: () => _updateTaskStatus("accepted",
+                      slot: slot, endSlot: endslot),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                   ),
@@ -381,7 +545,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
           // Botón para completar la tarea (Complete Task)
           return ElevatedButton(
             onPressed: () async {
-              await _updateTaskStatus("completed");
+              await _updateTaskStatus("completed",
+                  slot: slot, endSlot: endslot);
 
               await FirebaseFirestore.instance
                   .collection('bookings')
@@ -495,7 +660,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Date: ${widget.order['date'] ?? 'N/A'}"),
-                  Text("Time: ${widget.order['timeSlot'] ?? 'N/A'}"),
+                  Text(
+                      "Time: ${widget.order['timeSlot'] ?? 'N/A'}-${widget.order['endSlot'] ?? ''}"),
                 ],
               ),
             ),

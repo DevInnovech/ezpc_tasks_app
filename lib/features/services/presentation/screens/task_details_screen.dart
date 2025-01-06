@@ -1,4 +1,6 @@
+import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/edit_service_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,11 +18,15 @@ class TaskDetailsScreen extends ConsumerStatefulWidget {
 class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
   late Task currentTask;
   bool isLoading = false;
+  List<Map<String, dynamic>> assignedEmployees = [];
 
   @override
   void initState() {
     super.initState();
     currentTask = widget.task; // Inicializamos con el `task` inicial
+    if (ref.read(accountTypeProvider) == AccountType.corporateProvider) {
+      _fetchAssignedEmployees(); // Cargar los empleados asignados
+    }
   }
 
   Future<void> _toggleTaskStatus() async {
@@ -79,8 +85,320 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
     }
   }
 
+  Future<void> _toggleAssignmentStatus() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .where('taskId', isEqualTo: currentTask.taskId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception('Task not found in Firestore');
+      }
+
+      final taskDoc = querySnapshot.docs.first;
+
+      // Obtener el estado actual del usuario asignado
+      final currentAssignments =
+          (taskDoc.data()['assignments'] as Map<String, dynamic>? ?? {});
+      final currentStatus = currentAssignments[userId] ?? false;
+
+      // Alternar el estado (true -> false o false -> true)
+      final newStatus = !currentStatus;
+
+      // Actualizar el campo `assignments` en Firestore
+      await FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(taskDoc.id)
+          .update({
+        'assignments.$userId': newStatus,
+      });
+
+      setState(() {
+        currentTask = Task.fromMap({
+          ...taskDoc.data(),
+          'taskId': currentTask.taskId,
+          'assignments': {
+            ...(currentTask.assignments ?? {}),
+            userId: newStatus,
+          },
+        });
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newStatus
+                ? 'Assignment activated successfully'
+                : 'Assignment deactivated successfully',
+          ),
+          backgroundColor: newStatus ? Colors.green : Colors.red,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error toggling assignment status'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      debugPrint('Error toggling assignment status: $e');
+    }
+  }
+
+  Future<void> _unassignTask() async {
+    print("objet");
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .where('taskId', isEqualTo: currentTask.taskId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception('Task not found in Firestore');
+      }
+
+      final taskDoc = querySnapshot.docs.first;
+
+      // Eliminar al usuario del campo `assignments` en Firestore
+      await FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(taskDoc.id)
+          .update({
+        'assignments.$userId': FieldValue.delete(),
+      });
+
+      setState(() {
+        currentTask = Task.fromMap({
+          ...taskDoc.data(),
+          'taskId': currentTask.taskId,
+          'assignments': {
+            ...(currentTask.assignments ?? {})..remove(userId),
+          },
+        });
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task unassigned successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error unassigning task'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      debugPrint('Error unassigning task: $e');
+    }
+  }
+
+  Future<void> _assignTask() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .where('taskId', isEqualTo: currentTask.taskId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception('Task not found in Firestore');
+      }
+
+      final taskDoc = querySnapshot.docs.first;
+
+      // Actualizar el campo `assignments` con el ID del empleado
+      await FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(taskDoc.id)
+          .update({
+        'assignments.$userId': true,
+      });
+
+      setState(() {
+        currentTask = Task.fromMap({
+          ...taskDoc.data(),
+          'taskId': currentTask.taskId,
+          'assignments': {
+            ...(currentTask.assignments ?? {}),
+            userId: true,
+          },
+        });
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task assigned successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error assigning task'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      debugPrint('Error assigning task: $e');
+    }
+  }
+
+  Future<void> _fetchAssignedEmployees() async {
+    if (currentTask.assignments == null) return;
+
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      List<Map<String, dynamic>> employees = [];
+      for (String userId in currentTask.assignments!.keys) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
+
+        if (userDoc.exists) {
+          employees.add({
+            'id': userId,
+            'name': userDoc.data()?['name'] ?? 'Unknown',
+            'photoUrl': userDoc.data()?['profileImageUrl'] ?? '',
+            'active': currentTask.assignments![userId],
+          });
+        }
+      }
+
+      setState(() {
+        assignedEmployees = employees;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching assigned employees: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Widget _buildAssignedEmployeesWidget() {
+    if (assignedEmployees.isEmpty) {
+      return const Center(
+        child: Text(
+          'No employees assigned.',
+          style: TextStyle(fontSize: 16.0, color: Colors.black54),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Assigned Employees',
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF404C8C),
+          ),
+        ),
+        const SizedBox(height: 10.0),
+        ...assignedEmployees.map((employee) {
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundImage: employee['photoUrl'].isNotEmpty
+                    ? NetworkImage(employee['photoUrl'])
+                    : null,
+                backgroundColor: Colors.grey.shade300,
+                child: employee['photoUrl'].isEmpty
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              ),
+              title: Text(
+                employee['name'],
+                style: const TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              subtitle: Text(
+                employee['active'] == 'true' ? 'Active' : 'Inactive',
+                style: TextStyle(
+                  fontSize: 14.0,
+                  color:
+                      employee['active'] == 'true' ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final accountType = ref.watch(accountTypeProvider);
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    final isAssigned = currentTask.assignments != null &&
+        currentTask.assignments!.containsKey(userId);
+
+    final isActive = currentTask.assignments![userId] == 'true';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -102,22 +420,49 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12.0),
-                      child: Image.network(
-                        currentTask.imageUrl.isNotEmpty
-                            ? currentTask.imageUrl
-                            : 'https://via.placeholder.com/200',
-                        width: double.infinity,
-                        height: 200.0,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                          Icons.image_not_supported,
-                          size: 50,
-                          color: Colors.grey,
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12.0),
+                          child: Image.network(
+                            currentTask.imageUrl.isNotEmpty
+                                ? currentTask.imageUrl
+                                : 'https://via.placeholder.com/200',
+                            width: double.infinity,
+                            height: 200.0,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                              Icons.image_not_supported,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
+                          ),
                         ),
-                      ),
+                        if (accountType == AccountType.employeeProvider &&
+                            isAssigned)
+                          Container(
+                            padding: const EdgeInsets.all(12.0),
+                            margin: const EdgeInsets.all(10.0),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? Colors.green.withOpacity(0.8)
+                                  : Colors.orange.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(10.0),
+                              /* border: Border.all(
+                                color: isActive ? Colors.green : Colors.orange,
+                                width: 1.5,
+                              ),*/
+                            ),
+                            child: Text(
+                              isActive ? 'Active' : 'Inactive',
+                              style: TextStyle(
+                                  fontSize: 16.0,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 16.0),
                     Column(
@@ -294,6 +639,8 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                     else
                       const Text('No working hours available.'),
                     const SizedBox(height: 20.0),
+                    if (accountType == AccountType.corporateProvider)
+                      _buildAssignedEmployeesWidget(),
                   ],
                 ),
               ),
@@ -317,17 +664,34 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: isLoading ? null : _toggleTaskStatus,
+                onPressed: isLoading
+                    ? null
+                    : accountType == AccountType.employeeProvider
+                        ? isAssigned
+                            ? _toggleAssignmentStatus
+                            : null
+                        : _toggleTaskStatus,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      currentTask.status == 1 ? Colors.red : Colors.green,
+                  backgroundColor: accountType == AccountType.employeeProvider
+                      ? isActive
+                          ? Colors.red
+                          : Colors.green
+                      : currentTask.status == 1
+                          ? Colors.red
+                          : Colors.green,
                   padding: const EdgeInsets.symmetric(vertical: 14.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
                 child: Text(
-                  currentTask.status == 1 ? 'Deactivate' : 'Activate',
+                  accountType == AccountType.employeeProvider
+                      ? isActive
+                          ? 'Deactivate'
+                          : 'Activate'
+                      : currentTask.status == 1
+                          ? 'Deactivate'
+                          : 'Activate',
                   style: const TextStyle(fontSize: 16.0, color: Colors.white),
                 ),
               ),
@@ -335,15 +699,19 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
             const SizedBox(width: 16.0),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          EditServiceScreen(task: currentTask),
-                    ),
-                  );
-                },
+                onPressed: accountType == AccountType.employeeProvider
+                    ? isAssigned
+                        ? _unassignTask
+                        : _assignTask
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                EditServiceScreen(task: currentTask),
+                          ),
+                        );
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF404C8C),
                   padding: const EdgeInsets.symmetric(vertical: 14.0),
@@ -351,8 +719,12 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                child: const Text(
-                  'Edit Task',
+                child: Text(
+                  accountType == AccountType.employeeProvider
+                      ? isAssigned
+                          ? 'Unassign'
+                          : 'Assign Task'
+                      : 'Edit Task',
                   style: TextStyle(fontSize: 16.0, color: Colors.white),
                 ),
               ),

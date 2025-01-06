@@ -3,6 +3,7 @@ class Task {
   final String taskId;
   final String taskName;
   final Map<String, double> selectedTasks; // NUEVO CAMPO
+  final Map<String, String>? assignments; // NUEVO CAMPO
   final String firstName;
   final String lastName;
   final String slug;
@@ -47,7 +48,8 @@ class Task {
     required this.id,
     required this.taskId,
     required this.taskName,
-    required this.selectedTasks, // NUEVO CAMPO
+    required this.selectedTasks,
+    required this.assignments,
     required this.firstName,
     required this.lastName,
     required this.slug,
@@ -95,6 +97,7 @@ class Task {
     String? taskId,
     String? taskName,
     Map<String, double>? selectedTasks, // NUEVO PARÁMETRO
+    Map<String, String>? assignments,
     String? firstName,
     String? lastName,
     String? slug,
@@ -140,6 +143,7 @@ class Task {
       taskId: taskId ?? this.taskId,
       taskName: taskName ?? this.taskName,
       selectedTasks: selectedTasks ?? this.selectedTasks, // NUEVO CAMPO
+      assignments: assignments ?? this.assignments,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       slug: slug ?? this.slug,
@@ -190,6 +194,7 @@ class Task {
       'taskId': taskId,
       'taskName': taskName,
       'selectedTasks': selectedTasks, // NUEVO CAMPO
+      'assignments': assignments,
       'firstName': firstName,
       'lastName': lastName,
       'slug': slug,
@@ -244,6 +249,14 @@ class Task {
                   .map((key, value) => MapEntry(key, value.toDouble())),
             )
           : {}, // Ensure default is an empty map if not present or invalid
+
+      assignments: map['assignments'] != null && map['assignments'] is Map
+          ? Map<String, String>.from(
+              map['assignments']
+                  .map((key, value) => MapEntry(key, value.toString())),
+            )
+          : {}, // Ensure default is an empty map if not present or invalid
+
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
       slug: map['slug'] ?? '',

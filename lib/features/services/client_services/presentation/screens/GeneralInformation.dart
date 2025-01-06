@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class GeneralInformationScreen extends StatefulWidget {
   final String taskId;
   final String timeSlot;
+  final String endSlot;
   final DateTime date;
   final String selectedCategory;
   final List<String> selectedSubCategories;
@@ -22,6 +23,7 @@ class GeneralInformationScreen extends StatefulWidget {
     super.key,
     required this.taskId,
     required this.timeSlot,
+    required this.endSlot,
     required this.date,
     required this.selectedCategory,
     required this.selectedSubCategories,
@@ -419,6 +421,7 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
                       bookingData: {
                         'taskId': widget.taskId,
                         'timeSlot': widget.timeSlot,
+                        'endSlot': widget.endSlot,
                         'date': DateFormat('yyyy-MM-dd')
                             .format(widget.date), // Solo la fecha
                         'selectedCategory': widget.selectedCategory,

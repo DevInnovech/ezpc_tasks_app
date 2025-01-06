@@ -192,6 +192,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       categoryPrice: baseTaskPrice,
                       taskPrice: totalPrice - baseTaskPrice,
                       providerId: providerId!,
+                      taskDuration: hours.toDouble(),
                     ),
                   ),
                 );
