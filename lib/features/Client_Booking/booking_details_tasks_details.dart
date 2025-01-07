@@ -175,7 +175,7 @@ class _OrderDetailsState extends State<OrderDetails> {
           await makeIntentForPayment(fee.toString(), "USD");
 
       // Verificar si el client_secret existe
-      if (intentPaymentData?["client_secret"] == null) {
+      if (intentPaymentData["client_secret"] == null) {
         throw Exception("Payment intent failed to generate.");
       }
 
@@ -344,7 +344,7 @@ class LoadedWidget extends StatelessWidget {
       // etc...
     };
 
-    Color _determineColor() {
+    Color determineColor() {
       final status = data.status.toLowerCase();
 
       final statusb = data.providerStatus.toLowerCase();
@@ -359,7 +359,7 @@ class LoadedWidget extends StatelessWidget {
       }
     }
 
-    Function()? _determineOnPressed() {
+    Function()? determineOnPressed() {
       final status = data.status.toLowerCase();
 
       final statusb = data.providerStatus.toLowerCase();
@@ -515,8 +515,8 @@ class LoadedWidget extends StatelessWidget {
               // Track Provider Button
               PrimaryButton(
                 text: "Track Provider",
-                onPressed: _determineOnPressed(), // Disabled if not "started"
-                bgColor: _determineColor(), // Gray if disabled
+                onPressed: determineOnPressed(), // Disabled if not "started"
+                bgColor: determineColor(), // Gray if disabled
               ),
               Utils.verticalSpace(10),
 

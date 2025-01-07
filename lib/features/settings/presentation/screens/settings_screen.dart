@@ -3,7 +3,6 @@ import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
-import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/services.dart';

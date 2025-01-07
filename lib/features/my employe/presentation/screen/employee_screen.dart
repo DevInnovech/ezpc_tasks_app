@@ -58,7 +58,7 @@ class EmployeeScreen extends ConsumerWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CustomAppBar(
+              const CustomAppBar(
                 title: 'Employers',
               ),
               Expanded(

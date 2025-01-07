@@ -6,8 +6,10 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 class StripeService implements StripeBaseService {
   static final StripeService instance = StripeService._internal();
 
-  final String _publishableKey = "your-publishable-key";
-  final String _secretKey = "your-secret-key";
+  final String _publishableKey =
+      "pk_test_51Q42mfP1yXF5VqY3vOeUXSmBWzUJLvNkV9KZ4e1c9jHCJ70iM3faFYkDmHHrBnTjcU2ROd7bNo49b3OxxYygC6pK00NbTtDUpE";
+  final String _secretKey =
+      "sk_test_51Q42mfP1yXF5VqY3ssNk9Q1GLw63m5UUFpRGmJK6Ok42EdA2oJUwt3dGrQrE1sOFKaweDV0ZMMU2rXZPx1niPUZ7009SI4zwNO";
   final String _baseUrl = "https://api.stripe.com/v1";
 
   StripeService._internal();

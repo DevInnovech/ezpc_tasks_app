@@ -230,7 +230,7 @@ class RouteNames {
 
       case RouteNames.signUpBusinessAccountScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => BusinessAccountScreen());
+            settings: settings, builder: (_) => const BusinessAccountScreen());
 
       case RouteNames.clientRegistrationExistingScreen:
         return MaterialPageRoute(
@@ -239,7 +239,8 @@ class RouteNames {
 
       case RouteNames.signUpWithBusinessCodeScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => SignUpWithBusinessCodeScreen());
+            settings: settings,
+            builder: (_) => const SignUpWithBusinessCodeScreen());
 
       case RouteNames.passwordAccountpage:
         return MaterialPageRoute(

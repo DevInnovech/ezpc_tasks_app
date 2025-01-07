@@ -252,71 +252,88 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
 
   Map<String, dynamic>? intentPaymentData;
 
-  makeIntentForPayment(String amountToBeCharged, String currency) async {
+  Future<Map<String, dynamic>> makeIntentForPayment(
+      String amountToBeCharged, String currency, bool saveCard) async {
     try {
       // Convertir el monto a centavos
       final int amountInCents = (double.parse(amountToBeCharged) * 100).toInt();
 
-      // Crear los datos de la intención de pago
-      Map<String, dynamic> paymentInfo = {
-        "amount": amountInCents.toString(), // Cantidad en centavos
-        "currency": currency, // Moneda
-        "payment_method_types[]":
-            "card", // Este debe enviarse como un parámetro con `[]`
+      // Obtener el usuario autenticado
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception("User not authenticated.");
+      }
+
+      // Crear los datos para enviar al backend
+      Map<String, dynamic> requestData = {
+        "amount": amountInCents,
+        "currency": currency,
+        "email": user.email,
+        "userId": user.uid,
+        "taskId": widget.bookingData['taskId'],
+        "saveCard": saveCard, // Indica si se desea guardar la tarjeta
       };
 
-      // Realizar la solicitud a Stripe
-      var responseFromStripeAPI = await http.post(
-        Uri.parse("https://api.stripe.com/v1/payment_intents"),
-        body: paymentInfo,
+      // Realizar la solicitud POST al endpoint de la Firebase Function
+      var response = await http.post(
+        Uri.parse('https://stripepaymentintentrequest-kdtiuzlqjq-uc.a.run.app'),
         headers: {
-          "Authorization": "Bearer $SecretKey",
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
         },
+        body: jsonEncode(requestData),
       );
 
-      if (responseFromStripeAPI.statusCode == 200) {
-        // Parsear la respuesta
-        return jsonDecode(responseFromStripeAPI.body);
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (!responseData.containsKey('paymentIntent')) {
+          throw Exception("paymentIntent not found in response");
+        }
+        return responseData;
       } else {
         throw Exception(
-            "Error from Stripe: ${responseFromStripeAPI.statusCode} - ${responseFromStripeAPI.body}");
+            "Failed to create payment intent: ${response.statusCode} - ${response.body}");
       }
-    } catch (errorMsg) {
-      if (kDebugMode) {
-        print(errorMsg);
-      }
-      throw Exception("Failed to create payment intent: $errorMsg");
+    } catch (error) {
+      debugPrint("Error creating payment intent: $error");
+      throw Exception("Failed to create payment intent: $error");
     }
   }
 
-  paymentSheetInitialization(double amountToBeCharged, String currency) async {
+  Future<void> paymentSheetInitialization(
+      double amountToBeCharged, String currency, bool saveCard) async {
     try {
-      // Convertir el monto a String y llamar al Intent
-      intentPaymentData =
-          await makeIntentForPayment(amountToBeCharged.toString(), currency);
+      // Llamar a la Firebase Function para obtener el PaymentIntent
+      final intentPaymentData = await makeIntentForPayment(
+        amountToBeCharged.toString(),
+        currency,
+        saveCard,
+      );
 
       // Verificar si el intent contiene el client_secret
-      if (intentPaymentData?["client_secret"] == null) {
+      if (intentPaymentData["paymentIntent"] == null) {
         throw Exception("Client secret not found in payment intent");
       }
 
       // Inicializar el Payment Sheet
       await stripe.Stripe.instance.initPaymentSheet(
         paymentSheetParameters: stripe.SetupPaymentSheetParameters(
-          allowsDelayedPaymentMethods: true,
-          paymentIntentClientSecret: intentPaymentData!["client_secret"],
-          style: ThemeMode.dark,
+          paymentIntentClientSecret: intentPaymentData["paymentIntent"],
+          style: ThemeMode.light,
           merchantDisplayName: "Ezpc Tasks",
+          allowsDelayedPaymentMethods: true,
         ),
       );
 
       // Mostrar el Payment Sheet
-      await showPaymentSheet();
+      await stripe.Stripe.instance.presentPaymentSheet();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Payment successful!")),
+      );
+
+      // Aquí puedes llamar a una función para guardar los datos de la reserva
+      await saveBookingToFirestoreAfterPayment();
     } catch (error) {
-      if (kDebugMode) {
-        print('Error initializing payment sheet: $error');
-      }
+      debugPrint('Error initializing payment sheet: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Payment failed: $error")),
       );
@@ -374,19 +391,22 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       setState(() {
         intentPaymentData = null; // Reiniciar el intent después del éxito
       });
-    } on stripe.StripeException catch (error) {
-      if (kDebugMode) {
-        print("StripeException: $error");
+    } on stripe.StripeException catch (e) {
+      // Validar si el código de error es por cancelación del flujo de pago
+      if (e.error?.localizedMessage?.contains("canceled") ?? false) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Payment cancelled.")),
+        );
+      } else {
+        // Otro error de Stripe
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Payment failed.")),
+        );
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Payment cancelled.")),
-      );
     } catch (error) {
-      if (kDebugMode) {
-        print("Error showing payment sheet: $error");
-      }
+      // Manejo de cualquier otro tipo de error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Payment failed: $error")),
+        const SnackBar(content: Text("Payment failed.")),
       );
     }
   }
@@ -454,10 +474,14 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       onPressed: isLoading
           ? null
           : () async {
-              final double totalPrice = widget.bookingData['totalPrice'] ??
-                  0.0; // Extraer el totalPrice
+              final double totalPrice = widget.bookingData['totalPrice'] ?? 0.0;
+
+              // Llamar la función con los argumentos requeridos
               await paymentSheetInitialization(
-                  totalPrice, "USD"); // Llamar la función con totalPrice
+                totalPrice, // Monto total
+                "USD", // Moneda
+                true, // Guardar tarjeta para uso futuro
+              );
             },
       style: ElevatedButton.styleFrom(
         minimumSize: const Size.fromHeight(50),

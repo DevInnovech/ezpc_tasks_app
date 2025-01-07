@@ -505,10 +505,10 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                 }
               },
               itemBuilder: (context) => [
-                PopupMenuItem(
+                const PopupMenuItem(
                   value: 'order',
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.receipt_long, color: Colors.black),
                       SizedBox(width: 8),
                       Text(
@@ -760,10 +760,10 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                   onTap: () {
                     _handleSendPressed(_messageController.text.trim());
                   },
-                  child: CircleAvatar(
+                  child: const CircleAvatar(
                     backgroundColor: Colors.blue,
                     radius: 25,
-                    child: const Icon(
+                    child: Icon(
                       Icons.send,
                       color: Colors.white,
                     ),

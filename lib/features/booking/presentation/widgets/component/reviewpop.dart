@@ -71,7 +71,7 @@ Future<void> showCompletionReviewPopup(
                         color: primaryColor.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Icon(
                           Icons.check,
                           size: 40,
@@ -143,7 +143,7 @@ Future<void> showCompletionReviewPopup(
                       itemCount: 5,
                       itemSize: 40.0, // Estrellas grandes
                       itemPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      itemBuilder: (context, _) => Icon(
+                      itemBuilder: (context, _) => const Icon(
                         Icons.star,
                         color: primaryColor,
                       ),
@@ -175,15 +175,15 @@ Future<void> showCompletionReviewPopup(
                         hintStyle: const TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: primaryColor),
+                          borderSide: const BorderSide(color: primaryColor),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: primaryColor),
+                          borderSide: const BorderSide(color: primaryColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: primaryColor),
+                          borderSide: const BorderSide(color: primaryColor),
                         ),
                       ),
                       onChanged: (text) {

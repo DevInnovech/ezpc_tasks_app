@@ -109,7 +109,7 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
 
     // Obtén las horas de trabajo actuales o inicializa un mapa vacío
     final Map<String, Map<String, String>> workingHours =
-        currentTask?.workingHours?.map((key, value) =>
+        currentTask?.workingHours.map((key, value) =>
                 MapEntry(key, Map<String, String>.from(value))) ??
             {};
 

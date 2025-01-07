@@ -194,7 +194,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     }
 
     final hours = workingHours[selectedDay];
-    if (hours == null || !(hours is Map<String, dynamic>)) {
+    if (hours == null || hours is! Map<String, dynamic>) {
       debugPrint("Invalid working hours for $selectedDay.");
       return intervals;
     }
@@ -257,14 +257,14 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
     // Acceder a la disponibilidad específica del día
     final dayAvailability = availability[dayName];
-    if (dayAvailability == null || !(dayAvailability is Map<String, dynamic>)) {
+    if (dayAvailability == null || dayAvailability is! Map<String, dynamic>) {
       // No hay intervalos para este día, retorna los intervalos por defecto
       return _generateDefaultIntervals(workingHours);
     }
     // print(dayAvailability);
     // Acceder a la disponibilidad específica de la fecha
     final dateAvailability = dayAvailability[formattedDate];
-    if (dateAvailability == null || !(dateAvailability is List)) {
+    if (dateAvailability == null || dateAvailability is! List) {
       // No hay intervalos para esta fecha, retorna los intervalos por defecto
       return _generateDefaultIntervals(workingHours);
     }
@@ -558,13 +558,13 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         taskData['workingHours'] ?? {},
         taskId,
       );
-      return Card(
+      return const Card(
         elevation: 4,
-        margin: const EdgeInsets.only(bottom: 16.0),
+        margin: EdgeInsets.only(bottom: 16.0),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Column(
-            children: const [
+            children: [
               Center(child: CircularProgressIndicator()),
               SizedBox(height: 8.0),
               Text("Loading availability..."),

@@ -8,6 +8,7 @@ class PaymentModel {
   final double totalPrice;
   final String userId;
   final String userName;
+  final String userEmail;
 
   PaymentModel({
     required this.taskId,
@@ -19,6 +20,7 @@ class PaymentModel {
     required this.totalPrice,
     required this.userId,
     required this.userName,
+    required this.userEmail,
   });
 
   Map<String, dynamic> toJson() {
@@ -32,6 +34,7 @@ class PaymentModel {
       'totalPrice': totalPrice,
       'userId': userId,
       'userName': userName,
+      'email': userEmail,
     };
   }
 }

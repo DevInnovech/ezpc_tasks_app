@@ -58,8 +58,8 @@ class EmployeeCard extends StatelessWidget {
                     child: CircularProgressIndicator(),
                   );
                 } else if (snapshot.hasError || (snapshot.data ?? '').isEmpty) {
-                  return ClipOval(
-                    child: const Image(
+                  return const ClipOval(
+                    child: Image(
                       image: AssetImage(KImages.pp),
                       fit: BoxFit.cover,
                       width: 60,
