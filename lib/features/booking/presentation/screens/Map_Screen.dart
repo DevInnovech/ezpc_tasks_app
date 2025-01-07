@@ -159,7 +159,8 @@ class _MapScreenState extends State<MapScreen> {
       });
 
       // Navegar a OrderDetailsScreen con toda la información del booking
-      Navigator.push(
+      Navigator.pop(context);
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => OrderDetailsScreen(

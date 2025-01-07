@@ -748,8 +748,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         EstadoButton(
           text: 'Extra Time',
           icon: Icons.access_time,
-          onPressed: () =>
-              _handleExtraTimeRequest(context, ref, widget.order["bookingId"]),
+          onPressed: () => taskStatus == 'in progress'
+              ? _handleExtraTimeRequest(context, ref, widget.order["bookingId"])
+              : null,
           enabled: true, // El botón está habilitado
           isActive:
               extraTimeRequested, // Cambia el estado visual según el valor de isRequested
@@ -867,21 +868,31 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         orderDetails['serviceSizes'] ?? {};
     final int serviceDuration =
         serviceSizes.values.whereType<int>().reduce((a, b) => a + b);
-    final DateTime estimatedTime =
-        baseTimeSlot.add(Duration(hours: serviceDuration));
+    final int maxHours =
+        serviceDuration; // Valor máximo de horas basado en la orden
 
+    // Generar duraciones dinámicas (1 hora hasta el máximo de horas)
+    final List<String> availableDurations = List.generate(
+      maxHours,
+      (index) => '${index + 1} Hour${index + 1 > 1 ? 's' : ''}',
+    );
+
+    // Generar slots de tiempo dinámicos
     final List<String> availableTimeSlots = List.generate(
-      5,
+      maxHours,
       (index) {
-        final startTime = estimatedTime.add(Duration(hours: index));
+        final startTime =
+            baseTimeSlot.add(Duration(hours: serviceDuration + index));
         final endTime = startTime.add(const Duration(hours: 1));
         return '${_formatTime(startTime)} - ${_formatTime(endTime)}';
       },
     );
 
+    // Seleccionar automáticamente la subcategoría si es única
+    String selectedService =
+        subCategories.length == 1 ? subCategories.first : '';
     String selectedDuration = extraTimeDetails.selectedDuration;
     String selectedTimeSlot = extraTimeDetails.selectedTimeSlot;
-    String selectedService = '';
     String reason = extraTimeDetails.reason;
     double fee = extraTimeDetails.fee;
 
@@ -939,12 +950,14 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                                 : null,
                             isExpanded: true,
                             hint: const Text('Select Service'),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedService = value!;
-                                fee = taskPrices[selectedService] ?? 0.0;
-                              });
-                            },
+                            onChanged: subCategories.length == 1
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      selectedService = value!;
+                                      fee = taskPrices[selectedService] ?? 0.0;
+                                    });
+                                  },
                             items: taskPrices.keys.map((String service) {
                               return DropdownMenuItem<String>(
                                 value: service,
@@ -973,7 +986,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                             selectedDuration = value!;
                           });
                         },
-                        items: ['1 Hour', '2 Hours', '3 Hours'].map((value) {
+                        items: availableDurations.map((value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value,
@@ -982,6 +995,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                         }).toList(),
                       ),
                       const SizedBox(height: 16),
+
                       // Dropdown para seleccionar horario
                       const Text('Select Time Slot',
                           style: TextStyle(
@@ -1005,6 +1019,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                           );
                         }).toList(),
                       ),
+                      const SizedBox(height: 16),
+
                       // Campo de texto para motivo
                       const Text('Reason',
                           style: TextStyle(
@@ -1019,6 +1035,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                         ),
                       ),
                       const SizedBox(height: 16),
+
                       // Mensaje de error (si existe)
                       if (errorMessage.isNotEmpty)
                         Padding(
@@ -1032,7 +1049,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                             ),
                           ),
                         ),
-
                       const SizedBox(height: 24),
 
                       // Botón de enviar solicitud
@@ -1043,20 +1059,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                               selectedService.isEmpty ||
                               reason.isEmpty) {
                             setState(() {
-                              if (selectedDuration.isEmpty &&
-                                  selectedTimeSlot.isEmpty &&
-                                  selectedService.isEmpty &&
-                                  reason.isEmpty) {
-                                errorMessage = 'All fields are required.';
-                              } else if (selectedDuration.isEmpty) {
-                                errorMessage = 'Please select a duration.';
-                              } else if (selectedTimeSlot.isEmpty) {
-                                errorMessage = 'Please select a time slot.';
-                              } else if (selectedService.isEmpty) {
-                                errorMessage = 'Please select a service.';
-                              } else if (reason.isEmpty) {
-                                errorMessage = 'Please provide a reason.';
-                              }
+                              errorMessage = 'All fields are required.';
                             });
                             return;
                           }
