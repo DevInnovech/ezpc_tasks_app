@@ -171,44 +171,47 @@ class ClientHomeHeader extends ConsumerWidget {
             left: 0,
             right: 0,
             child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  // Navegar a la pantalla de búsqueda de servicios
-                },
-                child: Container(
-                  width: double.infinity,
-                  height: 52.h,
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    shadows: const [
-                      BoxShadow(
-                        color: Color(0x0A000000),
-                        blurRadius: 40,
-                        offset: Offset(0, 2),
-                        spreadRadius: 10,
-                      )
-                    ],
+              child: Container(
+                width: double.infinity,
+                height: 52.h,
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: ShapeDecoration(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: ListTile(
-                    title: const Text(
-                      'Search Services or Providers',
-                      style: TextStyle(
-                        color: Color(0xFF686873),
-                        fontSize: 14,
-                        fontFamily: 'DM Sans',
-                        fontWeight: FontWeight.w400,
-                      ),
+                  shadows: const [
+                    BoxShadow(
+                      color: Color(0x0A000000),
+                      blurRadius: 40,
+                      offset: Offset(0, 2),
+                      spreadRadius: 10,
+                    )
+                  ],
+                ),
+                child: TextField(
+                  onTap: () {
+                    // Aquí puedes agregar lógica adicional, como abrir una nueva pantalla o expandir el TextField.
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search Services or Providers',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF686873),
+                      fontSize: 14,
+                      fontFamily: 'DM Sans',
+                      fontWeight: FontWeight.w400,
                     ),
-                    trailing: GestureDetector(
-                      onTap: () {
-                        // Navegar a la pantalla de filtros
-                      },
-                      child: SvgPicture.asset(KImages.filterMenu),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.grey[600],
                     ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontFamily: 'DM Sans',
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
