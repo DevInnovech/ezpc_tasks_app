@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Card</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f5f5f5;
+      }
+      #card-form {
+        width: 400px;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      #submit-button {
+        width: 100%;
+        padding: 12px;
+        background-color: #5469d4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="card-form">
+      <div id="card-element"></div>
+      <button id="submit-button" type="button">Add Card</button>
+    </form>
+    <script>
+      const stripe = Stripe('pk_test_your_public_key');
+      const elements = stripe.elements();
+      const cardElement = elements.create('card');
+      cardElement.mount('#card-element');
+
+      document.getElementById('submit-button').addEventListener('click', async () => {
+        const { paymentMethod, error } = await stripe.createPaymentMethod({
+          type: 'card',
+          card: cardElement,
+        });
+
+        if (error) {
+          console.error('Error creating payment method:', error.message);
+          alert('Error: ' + error.message);
+        } else {
+          console.log('Payment Method created:', paymentMethod);
+          window.flutter_inappwebview.callHandler('onPaymentMethodCreated', paymentMethod.id);
+        }
+      });
+    </script>
+  </body>
+</html>

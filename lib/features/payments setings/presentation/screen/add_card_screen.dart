@@ -1,17 +1,105 @@
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../utils/stripe_service.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 
-class AddCardScreen extends ConsumerWidget {
+class AddCardScreen extends ConsumerStatefulWidget {
   const AddCardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AddCardScreen> createState() => _AddCardScreenState();
+}
+
+class _AddCardScreenState extends ConsumerState<AddCardScreen> {
+  bool _isLoading = false;
+  final CardFormEditController controller = CardFormEditController();
+
+  Future<void> addCard() async {
+    setState(() => _isLoading = true);
+
+    try {
+      print('Step 1: Initializing payment method creation');
+
+      // 1. Create payment method
+      final paymentMethod = await Stripe.instance.createPaymentMethod(
+        params: const PaymentMethodParams.card(
+          paymentMethodData: PaymentMethodData(
+            billingDetails: BillingDetails(
+              // Add these details for better backend validation
+              email: 'example@test.com', // Replace this with dynamic user data
+              name: 'Test User', // Replace this with dynamic user data
+            ),
+          ),
+        ),
+      );
+
+      print('Payment Method created: ${paymentMethod.id}');
+
+      // Get the currently logged-in user
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('No user is logged in.');
+      }
+
+      final email = user.email;
+      if (email == null || email.isEmpty) {
+        throw Exception('User email not found.');
+      }
+
+      print('User email: $email');
+
+      // 2. Send to your backend
+      print('Step 2: Sending payment method to backend');
+
+      final response = await http.post(
+        Uri.parse(
+            'https://addcard-kdtiuzlqjq-uc.a.run.app'), // Replace with your backend URL
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email, // Replace with the actual user email
+          'paymentMethodId': paymentMethod.id,
+        }),
+      );
+
+      print('Backend response status: ${response.statusCode}');
+      print('Backend response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+
+        if (result['success'] == true) {
+          print('Card added successfully on backend');
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Card added successfully!')),
+          );
+          Navigator.pop(context);
+        } else {
+          print('Error from backend: ${result['error']}');
+          throw Exception(result['error'] ?? 'Failed to add card.');
+        }
+      } else {
+        throw Exception(
+            'Failed to communicate with backend. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error occurred: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final accountType = ref.watch(accountTypeProvider);
 
-    // Restrict access to clients and providers only
     if (accountType != AccountType.client &&
         accountType != AccountType.independentProvider) {
       return Scaffold(
@@ -20,36 +108,6 @@ class AddCardScreen extends ConsumerWidget {
           child: Text('Access restricted to clients and providers only.'),
         ),
       );
-    }
-
-    final formKey = GlobalKey<FormState>();
-    final cardNumberController = TextEditingController();
-    final expMonthController = TextEditingController();
-    final expYearController = TextEditingController();
-    final cvcController = TextEditingController();
-    final zipCodeController = TextEditingController();
-    final countryController = TextEditingController(text: 'Dominican Republic');
-
-    Future<void> addCard() async {
-      if (formKey.currentState!.validate()) {
-        final result = await StripeService.instance.addCard(
-          cardNumber: cardNumberController.text,
-          expMonth: expMonthController.text,
-          expYear: expYearController.text,
-          cvc: cvcController.text,
-        );
-
-        if (result['success']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Card added successfully!')),
-          );
-          Navigator.pop(context);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${result['error']}')),
-          );
-        }
-      }
     }
 
     return Scaffold(
@@ -61,133 +119,55 @@ class AddCardScreen extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Add Card Details',
+          'Add Card',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16.0,
-            right: 16.0,
-            top: 16.0,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
-          ),
-          child: Form(
-            key: formKey,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: cardNumberController,
-                  decoration: InputDecoration(
-                    labelText: 'Card Number',
-                    prefixIcon:
-                        Icon(Icons.credit_card, color: Colors.grey[700]),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
+                CardFormField(
+                  controller: controller,
+                  style: CardFormStyle(
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: Colors.grey,
+                    textColor: Colors.black,
+                    fontSize: 16,
+                    placeholderColor: Colors.grey,
                   ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter the card number'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: expMonthController,
-                        decoration: InputDecoration(
-                          labelText: 'Expiration',
-                          hintText: 'MM',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (value) => value == null || value.isEmpty
-                            ? 'Enter expiration month'
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: cvcController,
-                        decoration: InputDecoration(
-                          labelText: 'CVV',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (value) =>
-                            value == null || value.isEmpty ? 'Enter CVC' : null,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: zipCodeController,
-                  decoration: InputDecoration(
-                    labelText: 'ZIP Code',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter ZIP Code'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: countryController,
-                  decoration: InputDecoration(
-                    labelText: 'Country/Region',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  readOnly: true,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: addCard,
+                  onPressed: _isLoading ? null : addCard,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
+                    backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     minimumSize: const Size(double.infinity, 48),
                   ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel',
-                        style: TextStyle(color: primaryColor)),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Add Card',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
               ],
             ),
