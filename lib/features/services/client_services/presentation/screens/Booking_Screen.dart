@@ -20,6 +20,7 @@ class _BookingScreenState extends State<BookingScreen> {
   double baseTaskPrice = 0.0;
   double totalPrice = 0.0;
   String? providerId;
+  Map<String, int> serviceHours = {}; // Almacena las horas por servicio
 
   Map<String, dynamic> taskData = {};
   Map<String, double> selectedServices = {};
@@ -77,10 +78,20 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   void calculateTotalPrice() {
-    double servicesTotal = selectedServices.values.fold(0.0, (a, b) => a + b);
+    totalPrice = 0.0;
+    int totalHours = 0;
+
+    selectedServices.forEach((serviceName, price) {
+      final hours = serviceHours[serviceName] ?? 1; // Por defecto 1 hora
+      totalPrice += price * hours;
+      totalHours += hours;
+    });
+
     double taxRate = 0.1; // 10% impuestos
-    double taxAmount = servicesTotal * hours * taxRate;
-    totalPrice = servicesTotal * hours + taxAmount;
+    double taxAmount = totalPrice * taxRate;
+
+    totalPrice += taxAmount;
+    hours = totalHours; // Actualizar las horas totales
   }
 
   @override
@@ -179,6 +190,8 @@ class _BookingScreenState extends State<BookingScreen> {
               if (selectedCategory != null &&
                   selectedServices.isNotEmpty &&
                   providerId != null) {
+                final updatedServiceSizes = Map<String, int>.from(serviceHours);
+                updatedServiceSizes['Hours'] = hours;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -186,7 +199,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       taskId: widget.taskId,
                       selectedCategory: selectedCategory!,
                       selectedSubCategories: selectedServices.keys.toList(),
-                      serviceSizes: {'Hours': hours},
+                      serviceSizes: updatedServiceSizes,
                       totalPrice: totalPrice,
                       selectedTaskName: selectedTaskName!,
                       categoryPrice: baseTaskPrice,
@@ -272,19 +285,23 @@ class _BookingScreenState extends State<BookingScreen> {
       children: availableServices.entries.map((entry) {
         final serviceName = entry.key;
         final price = entry.value;
+        final isSelected = selectedServices.containsKey(serviceName);
 
         return CheckboxListTile(
           title: Text(
             "$serviceName (\$${price.toStringAsFixed(2)}/hour)",
             style: const TextStyle(fontSize: 16),
           ),
-          value: selectedServices.containsKey(serviceName),
+          value: isSelected,
           onChanged: (isSelected) {
             setState(() {
               if (isSelected == true) {
                 selectedServices[serviceName] = price;
+                serviceHours[serviceName] =
+                    1; // Inicializar con 1 hora por defecto
               } else {
                 selectedServices.remove(serviceName);
+                serviceHours.remove(serviceName); // Eliminar si se deselecciona
               }
               calculateTotalPrice();
             });
@@ -356,68 +373,108 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildHoursCard() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Text(
-            "$hours Hour${hours > 1 ? 's' : ''}",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF404C8C),
-            ),
-          ),
-        ),
-        Row(
-          children: [
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  if (hours > 1) {
-                    hours--;
-                    calculateTotalPrice();
-                  }
-                });
-              },
-              icon: Icon(
-                Icons.remove_circle_outline,
-                color: Colors.grey.shade700,
-              ),
-            ),
-            Text(
-              '$hours',
-              style: const TextStyle(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  hours++;
-                  calculateTotalPrice();
-                });
-              },
-              icon: Icon(
-                Icons.add_circle_outline,
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ],
-        ),
+        for (var entry in selectedServices.entries)
+          _buildServiceHoursRow(entry.key, entry.value),
       ],
     );
   }
 
+  Widget _buildServiceHoursRow(String serviceName, double servicePrice) {
+    final hoursForService = serviceHours[serviceName] ?? 1;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  serviceName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF404C8C),
+                  ),
+                ),
+                Text(
+                  "\$${servicePrice.toStringAsFixed(2)}/hour",
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: hoursForService > 1
+                    ? () {
+                        setState(() {
+                          serviceHours[serviceName] = hoursForService - 1;
+                          calculateTotalPrice();
+                        });
+                      }
+                    : null,
+                icon: const Icon(Icons.remove_circle_outline),
+              ),
+              Text(
+                "$hoursForService hr${hoursForService > 1 ? 's' : ''}",
+                style: const TextStyle(fontSize: 16),
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    serviceHours[serviceName] = hoursForService + 1;
+                    calculateTotalPrice();
+                  });
+                },
+                icon: const Icon(Icons.add_circle_outline),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPriceBreakdown() {
-    double servicesTotal = selectedServices.values.fold(0.0, (a, b) => a + b);
-    double taxRate = 0.1;
-    double taxAmount = servicesTotal * hours * taxRate;
+    double servicesTotal = 0.0;
+
+    // Calcular el total por cada servicio basado en sus horas específicas
+    selectedServices.forEach((serviceName, price) {
+      final hoursForService =
+          serviceHours[serviceName] ?? 1; // Por defecto 1 hora
+      servicesTotal += price * hoursForService;
+    });
+
+    double taxRate = 0.1; // 10% impuestos
+    double taxAmount = servicesTotal * taxRate;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPriceRow("Tasks Price:", servicesTotal * hours),
+        // Mostrar el desglose de cada servicio
+        ...selectedServices.entries.map((entry) {
+          final serviceName = entry.key;
+          final price = entry.value;
+          final hoursForService = serviceHours[serviceName] ?? 1;
+
+          return _buildPriceRow(
+            "$serviceName ($hoursForService hr${hoursForService > 1 ? 's' : ''}):",
+            price * hoursForService,
+          );
+        }).toList(),
+        const Divider(
+          height: 20,
+          thickness: 1,
+          color: Colors.grey,
+        ),
+        _buildPriceRow("Tasks Price (Subtotal):", servicesTotal),
         _buildPriceRow("Taxes (10%):", taxAmount),
         const Divider(
           height: 20,
@@ -426,7 +483,7 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
         _buildPriceRow(
           "Total:",
-          totalPrice,
+          servicesTotal + taxAmount,
           isBold: true,
         ),
       ],
