@@ -225,13 +225,16 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       String formattedDate,
       Map<String, dynamic> workingHours,
       String taskId) async {
-    if (taskSlots.containsKey(taskId))
-      return; // Evitar recarga si ya se cargaron
+    // Usa una clave única basada en el taskId y providerId
+    final key = "$taskId-$providerId";
+
+    if (taskSlots.containsKey(key)) return; // Evitar recarga si ya se cargaron
 
     final intervals = await getAvailableIntervals(
         providerId, dayName, formattedDate, workingHours);
+
     setState(() {
-      taskSlots[taskId] = intervals;
+      taskSlots[key] = intervals;
     });
   }
 
@@ -366,7 +369,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   }
 
   void handleSlotSelection(Map<String, dynamic> selectedSlot, String taskId) {
-    final timeSlots = taskSlots[taskId];
+    final key = "$taskId-${selectedCard?['providerId'] ?? ''}";
+    final timeSlots = taskSlots[key];
     if (timeSlots == null) return;
 
     final requiredSlots = ((widget.taskDuration * 60) / 30).ceil();
@@ -538,7 +542,10 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     final providerName = '$firstName $lastName';
     final isSelected = selectedCard == taskData;
     print(ProviderId);
-    if (!taskSlots.containsKey(taskId)) {
+
+    final key = "$taskId-$ProviderId";
+
+    if (!taskSlots.containsKey(key)) {
       String dayName =
           DateFormat('EEEE').format(selectedDate); // e.g., "Monday"
       String formattedDate =
@@ -567,7 +574,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       );
     }
 
-    final timeSlots = taskSlots[taskId]!;
+    final timeSlots = taskSlots[key]!;
 
     return GestureDetector(
       onTap: () {
