@@ -1,6 +1,8 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart';
+import 'package:ezpc_tasks_app/features/home/data/popular_services_controller.dart';
+import 'package:ezpc_tasks_app/features/home/data/services_controler.dart';
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_single_category_view.dart';
@@ -30,6 +32,8 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
   void initState() {
     super.initState();
     checkReferralStatus();
+    ref.read(servicesControllerProvider.notifier).loadAllServices();
+    ref.read(popularServicesProvider.notifier).loadPopularServices();
   }
 
   Future<void> checkReferralStatus() async {
@@ -63,6 +67,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final homeControllerState = ref.watch(homeControllerProvider);
+    final servicesState = ref.watch(servicesControllerProvider);
 
     return Column(
       children: [
@@ -89,7 +94,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
           error: (error, stack) => Center(child: Text('Error: $error')),
           data: (state) {
             if (state is HomeControllerLoaded) {
-              return HomeLoadedData(data: state.homeModel);
+              return HomeLoadedData(data: state.homeModel, ref: ref);
             } else {
               return Container(
                 child: const Text("No Enable"),
@@ -102,12 +107,157 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
   }
 }
 
+class ServiceCard extends StatelessWidget {
+  final SimpleService service;
+
+  const ServiceCard({super.key, required this.service});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        // Acción al hacer clic en el servicio
+        Navigator.pushNamed(
+          context,
+          RouteNames.serviceDetailsScreen, // Ajusta la ruta según sea necesario
+          arguments: {
+            'serviceId': service.serviceId
+          }, // Pasa el ID del servicio
+        );
+      },
+      child: Container(
+        width: 150, // Ancho de la tarjeta
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(2, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.home_repair_service, size: 40, color: Colors.blue),
+            const SizedBox(height: 8),
+            Text(
+              service.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "ID: ${service.serviceId}",
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PopularServiceCard extends StatelessWidget {
+  final PopularService service;
+
+  const PopularServiceCard({super.key, required this.service});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        // Acción al hacer clic en un servicio popular
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Selected service: ${service.providerName}')),
+        );
+      },
+      child: Container(
+        width: 150, // Ancho de la tarjeta
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(2, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Imagen del servicio (si existe)
+            service.imageUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      service.imageUrl,
+                      height: 80,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Container(
+                    height: 80,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
+                  ),
+            const SizedBox(height: 8),
+            // Nombre del proveedor
+            Text(
+              service.providerName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            // Categoría del servicio
+            Text(
+              service.category,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class HomeLoadedData extends StatelessWidget {
   const HomeLoadedData({
     super.key,
     required this.data,
+    required this.ref,
   });
   final HomeModel data;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -194,34 +344,47 @@ class HomeLoadedData extends StatelessWidget {
               ),
             ),
             ClientTitleAndNavigator(
-              title: data.featureServiceSection.title,
+              title: "Featured Services",
               press: () {
-                //error corregir mas tarde
-                Navigator.pushNamed(context, RouteNames.serviceScreen,
-                    arguments: {
-                      'title': 'Featured Services',
-                      'slug': 'feature'
-                    });
+                // Navegar a la lista completa de servicios destacados si es necesario
+                Navigator.pushNamed(context, RouteNames.serviceScreen);
               },
             ),
             Utils.verticalSpace(16),
 
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Row(
-                children: [
-                  ...List.generate(data.featuredServices.length, (index) {
-                    final service = data.featuredServices[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: ClientSingleCategoryView(item: service),
-                    );
-                  })
-                ],
-              ),
+// Manejo de estados del controlador de servicios
+            Builder(
+              builder: (context) {
+                final servicesState = ref.watch(servicesControllerProvider);
+
+                if (servicesState is ServicesControllerLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (servicesState is ServicesControllerError) {
+                  return Center(child: Text('Error: ${servicesState.message}'));
+                } else if (servicesState is ServicesControllerLoaded) {
+                  final services = servicesState.services;
+
+                  return SizedBox(
+                    height: 200, // Altura del carrusel
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: services.length,
+                      itemBuilder: (context, index) {
+                        final service = services[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: ServiceCard(service: service),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
             ),
+
             Utils.verticalSpace(12),
 
             // Imagen Promocional
@@ -252,28 +415,47 @@ class HomeLoadedData extends StatelessWidget {
             ),
             Utils.verticalSpace(24),
             ClientTitleAndNavigator(
-              title: data.popularServiceSection.title,
+              title: "Popular Services",
               press: () {
-                /*Navigator.pushNamed(context, RouteNames.serviceListScreen,
-                    arguments: {
-                      'title': 'Popular Services',
-                      'slug': 'popular'
-                    });*/
+                // Lógica para navegar a una lista completa de servicios populares
+                Navigator.pushNamed(context, RouteNames.ClientmainScreen);
               },
             ),
             Utils.verticalSpace(16),
 
-            Wrap(
-              runSpacing: 24,
-              spacing: 16,
-              children: [
-                ...List.generate(data.popularServices.length, (index) {
-                  final service = data.popularServices[index];
-                  return ClientSingleCategoryView(item: service);
-                })
-              ],
+// Nueva lógica para Popular Services
+            Builder(
+              builder: (context) {
+                final popularServicesState = ref.watch(popularServicesProvider);
+
+                if (popularServicesState is PopularServicesLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (popularServicesState is PopularServicesError) {
+                  return Center(
+                      child: Text('Error: ${popularServicesState.message}'));
+                } else if (popularServicesState is PopularServicesLoaded) {
+                  final popularServices = popularServicesState.services;
+
+                  return SizedBox(
+                    height: 200, // Altura del carrusel
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: popularServices.length,
+                      itemBuilder: (context, index) {
+                        final service = popularServices[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: PopularServiceCard(service: service),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
 
             // ... (resto del código) ...
           ],
