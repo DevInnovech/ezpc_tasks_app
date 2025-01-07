@@ -181,13 +181,16 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                       // Verificar qué campos faltan
                       if (email.isEmpty) missingFields += "Email, ";
                       if (fin.isEmpty) missingFields += "Business FIN, ";
-                      if (businessName.isEmpty)
+                      if (businessName.isEmpty) {
                         missingFields += "Business Name, ";
-                      if (description.isEmpty)
+                      }
+                      if (description.isEmpty) {
                         missingFields += "Business Description, ";
+                      }
                       if (dob == null) missingFields += "Date of Birth, ";
-                      if (phoneNumber.isEmpty)
+                      if (phoneNumber.isEmpty) {
                         missingFields += "Phone Number, ";
+                      }
 
                       // Eliminar la última coma
                       if (missingFields.isNotEmpty) {

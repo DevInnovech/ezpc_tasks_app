@@ -66,7 +66,7 @@ class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
               // Modo Grid
               return GridView.builder(
                 padding: const EdgeInsets.all(16.0),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 5.0,
                   mainAxisSpacing: 10.0,

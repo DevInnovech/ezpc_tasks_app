@@ -107,7 +107,7 @@ class ServiceScreen extends ConsumerWidget {
             child: RefreshIndicator(
               onRefresh: () async {
                 // Esperamos a que _loadTasks termine
-                await ref.refresh(taskProvider);
+                ref.refresh(taskProvider);
               },
               child: Builder(
                 builder: (context) {
@@ -264,7 +264,7 @@ class ServiceScreen extends ConsumerWidget {
                         ),
                       ],
                     );
-                  }).toList(),
+                  }),
                 ],
                 const SizedBox(height: 10.0),
                 // Botón de detalles siempre habilitado
@@ -428,7 +428,7 @@ class ServiceScreen extends ConsumerWidget {
                         ),
                       ],
                     );
-                  }).toList(),
+                  }),
                 ],
                 const SizedBox(height: 10.0),
                 // Botón de detalles

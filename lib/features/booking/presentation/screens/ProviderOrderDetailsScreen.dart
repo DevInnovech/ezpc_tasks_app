@@ -4,7 +4,6 @@ import 'package:ezpc_tasks_app/features/booking/data/booking_provider.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/Map_Screen.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/reviewpop.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/single_expansion_tile.dart';
-import 'package:ezpc_tasks_app/features/chat/data/chat_repository.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
@@ -16,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 class OrderDetailsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> order;
