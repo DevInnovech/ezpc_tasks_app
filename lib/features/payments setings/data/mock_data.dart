@@ -45,6 +45,10 @@ final mockBankAccounts = [
     ownerType: "provider",
     accountHolderName: 'juan acosta',
     branchCode: '2867',
+    routingNumber: '',
+    accountType: '',
+    userId: '',
+    email: '',
   ),
   BankAccountModel(
     id: "account_2",
@@ -53,6 +57,10 @@ final mockBankAccounts = [
     ownerType: "client",
     accountHolderName: 'juan acosta',
     branchCode: '2867',
+    routingNumber: '',
+    accountType: '',
+    userId: '',
+    email: '',
   ),
   BankAccountModel(
     id: "account_3",
@@ -61,5 +69,9 @@ final mockBankAccounts = [
     ownerType: "provider",
     accountHolderName: 'juan acosta',
     branchCode: '2867',
+    routingNumber: '',
+    accountType: '',
+    userId: '',
+    email: '',
   ),
 ];

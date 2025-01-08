@@ -66,51 +66,126 @@ exports.stripePaymentIntentRequest = functions.https.onRequest(async (req, res) 
     }
 });
 
+
 exports.addBankAccount = functions.https.onRequest(async (req, res) => {
-    try {
-      const { email, userId, country, currency, accountHolderName, accountNumber, routingNumber } = req.body;
-  
-      if (!email || !userId || !country || !currency || !accountHolderName || !accountNumber) {
-        return res.status(400).send({ success: false, error: "Missing required fields." });
-      }
-  
-      // Buscar o crear cliente en Stripe
-      let customerId;
-      const customerList = await stripe.customers.list({ email, limit: 1 });
-  
-      if (customerList.data.length > 0) {
-        customerId = customerList.data[0].id;
-      } else {
-        const customer = await stripe.customers.create({
-          email,
-          metadata: { userId },
-        });
-        customerId = customer.id;
-      }
-  
-      // Agregar cuenta bancaria al cliente
-      const bankAccount = await stripe.customers.createSource(customerId, {
-        source: {
-          object: "bank_account",
-          country,
-          currency,
-          account_holder_name: accountHolderName,
-          account_holder_type: "individual", 
-          routing_number: routingNumber, 
-          account_number: accountNumber,
-        },
-      });
-  
-      res.status(200).send({
-        success: true,
-        message: "Bank account added successfully.",
-        bankAccountId: bankAccount.id,
-      });
-    } catch (error) {
-      console.error("Error adding bank account:", error);
-      res.status(500).send({ success: false, error: error.message });
-    }
-  });
+    return cors(req, res, async () => {
+        // Validar método HTTP
+        if (req.method !== 'POST') {
+            return res.status(405).json({
+                success: false,
+                error: 'Method not allowed'
+            });
+        }
+
+        try {
+            const { email, bankDetails } = req.body;
+
+            // Validación mejorada de datos de entrada
+            if (!email || !bankDetails) {
+                functions.logger.error('Missing required fields:', { email: !!email, bankDetails: !!bankDetails });
+                return res.status(400).json({
+                    success: false,
+                    error: 'Email and bank details are required'
+                });
+            }
+
+            // Desestructuración y validación de detalles bancarios
+            const {
+                accountHolderName,
+                accountNumber,
+                routingNumber,
+                bankName,
+                accountHolderType = 'individual', // Valor por defecto
+                country = 'US',                   // Valor por defecto
+                currency = 'usd'                  // Valor por defecto
+            } = bankDetails;
+
+            // Validación de campos requeridos
+            const requiredFields = {
+                accountHolderName,
+                accountNumber,
+                routingNumber,
+                bankName
+            };
+
+            const missingFields = Object.entries(requiredFields)
+                .filter(([_, value]) => !value)
+                .map(([key]) => key);
+
+            if (missingFields.length > 0) {
+                functions.logger.error('Missing bank details fields:', missingFields);
+                return res.status(400).json({
+                    success: false,
+                    error: `Missing required fields: ${missingFields.join(', ')}`
+                });
+            }
+
+            // Buscar o crear cliente usando async/await
+            const customer = await stripe.customers.search({
+                query: `email:'${email}'`,
+                limit: 1
+            }).then(result => result.data[0]);
+
+            const customerId = customer
+                ? customer.id
+                : (await stripe.customers.create({ email })).id;
+
+            functions.logger.info(`Customer ${customer ? 'found' : 'created'}:`, { customerId });
+
+            // Crear cuenta bancaria con manejo de errores mejorado
+            const bankAccount = await stripe.customers.createSource(
+                customerId,
+                {
+                    source: {
+                        object: 'bank_account',
+                        country,
+                        currency,
+                        account_holder_name: accountHolderName,
+                        account_holder_type: accountHolderType,
+                        routing_number: routingNumber,
+                        account_number: accountNumber
+                    }
+                }
+            );
+
+            functions.logger.info('Bank account added successfully', {
+                customerId,
+                bankAccountId: bankAccount.id
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: 'Bank account added successfully',
+                data: {
+                    customerId,
+                    bankAccountId: bankAccount.id,
+                    lastFour: bankAccount.last4
+                }
+            });
+
+        } catch (error) {
+            functions.logger.error('Error in addBankAccount:', {
+                error: error.message,
+                stack: error.stack
+            });
+
+            // Manejo específico de errores de Stripe
+            if (error.type === 'StripeError') {
+                return res.status(400).json({
+                    success: false,
+                    error: error.message,
+                    code: error.code
+                });
+            }
+
+            return res.status(500).json({
+                success: false,
+                error: 'An internal server error occurred'
+            });
+        }
+    });
+});
+
 
 exports.addCard = functions.https.onRequest(async (req, res) => {
   try {
@@ -197,8 +272,59 @@ exports.addCard = functions.https.onRequest(async (req, res) => {
   }
 });
 
-  
-  
+exports.listBankAccounts = functions.https.onRequest((req, res) => {
+  return cors(req, res, async () => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email is required.',
+        });
+      }
+
+      // Buscar el cliente en Stripe
+      const customers = await stripe.customers.list({ email, limit: 1 });
+
+      if (customers.data.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Customer not found.',
+        });
+      }
+
+      const customerId = customers.data[0].id;
+
+      // Listar fuentes (bank accounts) asociadas al cliente
+      const bankAccounts = await stripe.customers.listSources(customerId, {
+        object: 'bank_account',
+      });
+
+      res.status(200).json({
+        success: true,
+        bankAccounts: bankAccounts.data.map((account) => ({
+          id: account.id,
+          bankName: account.bank_name,
+          last4: account.last4,
+          currency: account.currency,
+          country: account.country,
+          accountHolderName: account.account_holder_name,
+          accountHolderType: account.account_holder_type,
+          status: account.status,
+        })),
+      });
+    } catch (error) {
+      console.error('Error listing bank accounts:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+});
+
+
 exports.listPaymentMethods = functions.https.onRequest(async (req, res) => {
     try {
         const { email } = req.body;
