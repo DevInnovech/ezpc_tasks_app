@@ -126,79 +126,135 @@ class SpecialDaysStep extends ConsumerWidget {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Add New Special Day'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildDatePicker(context, dateController),
-                  const SizedBox(height: 10),
-                  _buildTimePicker(context, startTimeController, "Start Time"),
-                  const SizedBox(height: 10),
-                  _buildTimePicker(context, endTimeController, "End Time"),
-                  if (errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                ],
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              actions: [
-                TextButton(
-                  child: const Text("Cancel"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+              contentPadding: const EdgeInsets.all(20),
+              title: Center(
+                child: Text(
+                  'Add New Special Day',
+                  style: TextStyle(
+                    color: Colors.deepPurple,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
-                ElevatedButton(
-                  child: const Text("Add"),
-                  onPressed: () {
-                    final date = dateController.text;
-                    final startTime = startTimeController.text;
-                    final endTime = endTimeController.text;
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildDatePicker(context, dateController),
+                    const SizedBox(height: 15),
+                    _buildTimePicker(
+                        context, startTimeController, "Start Time"),
+                    const SizedBox(height: 15),
+                    _buildTimePicker(context, endTimeController, "End Time"),
+                    if (errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          errorMessage!,
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 14),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              actionsPadding: const EdgeInsets.symmetric(horizontal: 10),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.deepPurple,
+                              textStyle: const TextStyle(fontSize: 16),
+                            ),
+                            child: const Text("Cancel"),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final date = dateController.text;
+                              final startTime = startTimeController.text;
+                              final endTime = endTimeController.text;
 
-                    if (date.isEmpty || startTime.isEmpty || endTime.isEmpty) {
-                      setState(() {
-                        errorMessage = 'Please fill all fields';
-                      });
-                    } else {
-                      final startTimeParsed =
-                          _parseTimeOfDay(startTime, context);
-                      final endTimeParsed = _parseTimeOfDay(endTime, context);
+                              if (date.isEmpty ||
+                                  startTime.isEmpty ||
+                                  endTime.isEmpty) {
+                                setState(() {
+                                  errorMessage = 'Please fill all fields';
+                                });
+                              } else {
+                                final startTimeParsed =
+                                    _parseTimeOfDay(startTime, context);
+                                final endTimeParsed =
+                                    _parseTimeOfDay(endTime, context);
 
-                      if (startTimeParsed != null &&
-                          endTimeParsed != null &&
-                          _compareTimeOfDay(startTimeParsed, endTimeParsed) >=
-                              0) {
-                        setState(() {
-                          errorMessage = 'Start time must be before end time';
-                        });
-                      } else {
-                        final newDay = {
-                          'date': date,
-                          'startTime': startTime,
-                          'endTime': endTime,
-                        };
+                                if (startTimeParsed != null &&
+                                    endTimeParsed != null &&
+                                    _compareTimeOfDay(
+                                            startTimeParsed, endTimeParsed) >=
+                                        0) {
+                                  setState(() {
+                                    errorMessage =
+                                        'Start time must be before end time';
+                                  });
+                                } else {
+                                  final newDay = {
+                                    'date': date,
+                                    'startTime': startTime,
+                                    'endTime': endTime,
+                                  };
 
-                        final taskState = ref.read(taskProvider);
-                        final Task? currentTask = taskState.currentTask;
+                                  final taskState = ref.read(taskProvider);
+                                  final Task? currentTask =
+                                      taskState.currentTask;
 
-                        if (currentTask != null) {
-                          final updatedSpecialDays =
-                              List<Map<String, String>>.from(
-                                  currentTask.specialDays);
-                          updatedSpecialDays.add(newDay);
+                                  if (currentTask != null) {
+                                    final updatedSpecialDays =
+                                        List<Map<String, String>>.from(
+                                            currentTask.specialDays);
+                                    updatedSpecialDays.add(newDay);
 
-                          ref.read(taskProvider.notifier).updateTask(
-                                specialDays: updatedSpecialDays,
-                              );
-                        }
-                        Navigator.of(context).pop();
-                      }
-                    }
-                  },
+                                    ref.read(taskProvider.notifier).updateTask(
+                                          specialDays: updatedSpecialDays,
+                                        );
+                                  }
+                                  Navigator.of(context).pop();
+                                }
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              foregroundColor: Colors.white,
+                              textStyle: const TextStyle(fontSize: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text("Add"),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             );
@@ -210,103 +266,139 @@ class SpecialDaysStep extends ConsumerWidget {
 
   Widget _buildDatePicker(
       BuildContext context, TextEditingController controller) {
-    return Platform.isIOS
-        ? CupertinoButton(
-            child:
-                Text(controller.text.isEmpty ? "Select Date" : controller.text),
-            onPressed: () async {
-              showCupertinoModalPopup(
-                context: context,
-                builder: (context) {
-                  return Container(
-                    height: 216,
-                    padding: const EdgeInsets.only(top: 6.0),
-                    margin: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
+    return GestureDetector(
+      onTap: () async {
+        if (Platform.isIOS) {
+          showCupertinoModalPopup(
+            context: context,
+            builder: (BuildContext context) {
+              return Container(
+                height: 300,
+                color: CupertinoColors.systemBackground.resolveFrom(context),
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.all(10.0),
+                      child: CupertinoButton(
+                        child: const Text("Done"),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
                     ),
-                    color:
-                        CupertinoColors.systemBackground.resolveFrom(context),
-                    child: CupertinoDatePicker(
-                      mode: CupertinoDatePickerMode.date,
-                      initialDateTime: DateTime.now(),
-                      onDateTimeChanged: (DateTime newDateTime) {
-                        controller.text =
-                            "${newDateTime.toLocal()}".split(' ')[0];
-                      },
+                    Expanded(
+                      child: CupertinoDatePicker(
+                        mode: CupertinoDatePickerMode.date,
+                        initialDateTime: DateTime.now(),
+                        onDateTimeChanged: (DateTime newDateTime) {
+                          controller.text =
+                              "${newDateTime.toLocal()}".split(' ')[0];
+                        },
+                      ),
                     ),
-                  );
-                },
+                  ],
+                ),
               );
-            },
-          )
-        : TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: "Date"),
-            onTap: () async {
-              DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2101),
-              );
-              controller.text = "${pickedDate!.toLocal()}".split(' ')[0];
             },
           );
+        } else {
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2101),
+          );
+
+          if (pickedDate != null) {
+            controller.text = "${pickedDate.toLocal()}".split(' ')[0];
+          }
+        }
+      },
+      child: AbsorbPointer(
+        child: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: "Date",
+            border: OutlineInputBorder(),
+            suffixIcon: Icon(Icons.calendar_today),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildTimePicker(
       BuildContext context, TextEditingController controller, String label) {
-    return Platform.isIOS
-        ? CupertinoButton(
-            child: Text(controller.text.isEmpty ? label : controller.text),
-            onPressed: () async {
-              showCupertinoModalPopup(
-                context: context,
-                builder: (context) {
-                  return Container(
-                    height: 216,
-                    padding: const EdgeInsets.only(top: 6.0),
-                    margin: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
+    return GestureDetector(
+      onTap: () async {
+        if (Platform.isIOS) {
+          showCupertinoModalPopup(
+            context: context,
+            builder: (BuildContext context) {
+              return Container(
+                height: 300,
+                color: CupertinoColors.systemBackground.resolveFrom(context),
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.all(10.0),
+                      child: CupertinoButton(
+                        child: const Text("Done"),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
                     ),
-                    color:
-                        CupertinoColors.systemBackground.resolveFrom(context),
-                    child: CupertinoTimerPicker(
-                      mode: CupertinoTimerPickerMode.hm,
-                      onTimerDurationChanged: (Duration duration) {
-                        final time = TimeOfDay(
-                            hour: duration.inHours,
-                            minute: duration.inMinutes % 60);
-                        controller.text = time.format(context);
-                      },
+                    Expanded(
+                      child: CupertinoDatePicker(
+                        mode: CupertinoDatePickerMode.time,
+                        initialDateTime: DateTime.now(),
+                        use24hFormat: true,
+                        onDateTimeChanged: (DateTime newDateTime) {
+                          final time = TimeOfDay.fromDateTime(newDateTime);
+                          controller.text = time.format(context);
+                        },
+                      ),
                     ),
-                  );
-                },
+                  ],
+                ),
               );
-            },
-          )
-        : TextField(
-            controller: controller,
-            decoration: InputDecoration(labelText: label),
-            onTap: () async {
-              TimeOfDay? pickedTime = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay.now(),
-              );
-              if (pickedTime != null) {
-                controller.text = pickedTime.format(context);
-              }
             },
           );
+        } else {
+          TimeOfDay? pickedTime = await showTimePicker(
+            context: context,
+            initialTime: TimeOfDay.now(),
+          );
+
+          if (pickedTime != null) {
+            controller.text = pickedTime.format(context);
+          }
+        }
+      },
+      child: AbsorbPointer(
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            suffixIcon: const Icon(Icons.access_time),
+          ),
+        ),
+      ),
+    );
   }
 
   TimeOfDay? _parseTimeOfDay(String time, BuildContext context) {
     try {
       final split = time.split(":");
       final hour = int.parse(split[0]);
-      final minute = int.parse(split[1]);
+      final minute = int.parse(split[1].split(' ')[0]);
       return TimeOfDay(hour: hour, minute: minute);
     } catch (e) {
+      debugPrint("Error parsing time: $e");
       return null;
     }
   }
