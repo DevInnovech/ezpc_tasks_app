@@ -106,14 +106,18 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
       appBar: AppBar(
         title: const Text(
           'My Bookings',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: primaryColor),
         ),
-        backgroundColor: const Color(0xFF404C8C),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Padding(
-              padding: Utils.symmetric(h: 0.0, v: 6.0),
-              child: SvgPicture.asset(KImages.calendar),
+              padding: Utils.symmetric(h: 0.0, v: 0.0),
+              child: SvgPicture.asset(
+                width: 25,
+                KImages.calendar,
+                fit: BoxFit.contain,
+              ),
             ),
             onPressed: () {
               Navigator.push(
@@ -143,6 +147,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
 
           return Column(
             children: [
+              const SizedBox(height: 2),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
@@ -163,7 +168,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 1),
               Expanded(
                 child: filteredOrders.isEmpty
                     ? const Center(child: Text('No orders found.'))

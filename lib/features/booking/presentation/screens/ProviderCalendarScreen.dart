@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -149,6 +151,16 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           ),
         ),
         backgroundColor: Colors.transparent,
+        actions: [
+          Padding(
+            padding: Utils.symmetric(h: 10.0, v: 0.0),
+            child: SvgPicture.asset(
+              width: 25,
+              KImages.calendar,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
