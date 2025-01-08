@@ -82,6 +82,7 @@ dependencies:
   geolocator: ^13.0.2
   flutter_rating_bar: ^4.0.1
   firebase_messaging: ^15.1.6
+  encrypt: ^5.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
