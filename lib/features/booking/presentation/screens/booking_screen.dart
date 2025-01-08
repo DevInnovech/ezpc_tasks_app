@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderCalendarScreen.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/scrolling_taggle_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ProviderOrdersScreen extends StatefulWidget {
   const ProviderOrdersScreen({super.key});
@@ -105,6 +109,23 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color(0xFF404C8C),
+        actions: [
+          IconButton(
+            icon: Padding(
+              padding: Utils.symmetric(h: 0.0, v: 6.0),
+              child: SvgPicture.asset(KImages.calendar),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProviderCalendarScreen(), // Nueva pantalla
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchProviderOrders(),
