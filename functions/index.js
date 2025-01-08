@@ -112,115 +112,91 @@ exports.addBankAccount = functions.https.onRequest(async (req, res) => {
     }
   });
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-
-app.post('/add-card', async (req, res) => {
+exports.addCard = functions.https.onRequest(async (req, res) => {
   try {
+    // Log the received request body for debugging
+    console.log("Received request body:", req.body);
+
     const { email, paymentMethodId } = req.body;
 
+    // Validate incoming data
     if (!email || !paymentMethodId) {
+      console.error("Missing email or paymentMethodId");
       return res.status(400).json({
         success: false,
-        error: 'Email and payment method ID are required.',
+        error: "Email and payment method ID are required.",
       });
     }
 
-    // Buscar o crear cliente en Stripe
-    const customers = await stripe.customers.list({ email, limit: 1 });
+    console.log(`Processing card for email: ${email}, PaymentMethodId: ${paymentMethodId}`);
+
+    // Retrieve payment method details for validation
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    if (!paymentMethod) {
+      console.error("Invalid paymentMethodId:", paymentMethodId);
+      return res.status(400).json({
+        success: false,
+        error: "Invalid payment method ID.",
+      });
+    }
+
+    console.log("Payment method details retrieved successfully");
+
+    // Find or create a Stripe customer
     let customerId;
+    const customers = await stripe.customers.list({ email, limit: 1 });
 
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+      console.log("Existing customer found:", customerId);
     } else {
       const customer = await stripe.customers.create({ email });
       customerId = customer.id;
+      console.log("New customer created:", customerId);
     }
 
-    // Adjuntar el método de pago al cliente
-    await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+    // Check if the payment method is already attached to another customer
+    if (paymentMethod.customer && paymentMethod.customer !== customerId) {
+      console.error("Payment method already attached to another customer:", paymentMethod.customer);
+      return res.status(400).json({
+        success: false,
+        error: "Payment method is already attached to another customer.",
+      });
+    }
 
-    // Establecer como método de pago predeterminado
+    // Attach the payment method to the customer
+    await stripe.paymentMethods.attach(paymentMethodId, {
+      customer: customerId,
+    });
+
+    console.log("Payment method successfully attached to customer:", customerId);
+
+    // Set the payment method as default for invoices
     await stripe.customers.update(customerId, {
       invoice_settings: {
         default_payment_method: paymentMethodId,
       },
     });
 
-    res.status(200).json({
+    console.log("Payment method set as default for customer:", customerId);
+
+    // Return success response
+    return res.status(200).json({
       success: true,
-      message: 'Card added successfully!',
+      message: "Card added successfully",
       customerId,
       paymentMethodId,
     });
   } catch (error) {
-    console.error('Error adding card:', error);
-    res.status(500).json({
+    // Handle errors gracefully and log for debugging
+    console.error("Error processing addCard request:", error);
+    return res.status(500).json({
       success: false,
       error: error.message,
     });
   }
 });
 
-app.listen(4242, () => console.log('Server running on port 4242'));
-
-
-  exports.addCard = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
-      try {
-        const { email, paymentMethodId } = req.body;
-  
-        if (!email || !paymentMethodId) {
-          return res.status(400).json({
-            success: false,
-            error: 'Email and payment method ID are required.',
-          });
-        }
-  
-        console.log('Received request with email:', email, 'and paymentMethodId:', paymentMethodId);
-  
-        // Buscar o crear cliente
-        let customerId;
-        const customers = await stripe.customers.list({ email, limit: 1 });
-  
-        if (customers.data.length > 0) {
-          customerId = customers.data[0].id;
-          console.log('Found existing customer:', customerId);
-        } else {
-          const customer = await stripe.customers.create({ email });
-          customerId = customer.id;
-          console.log('Created new customer:', customerId);
-        }
-  
-        // Adjuntar método de pago al cliente
-        await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
-  
-        // Establecer como método de pago predeterminado
-        await stripe.customers.update(customerId, {
-          invoice_settings: {
-            default_payment_method: paymentMethodId,
-          },
-        });
-  
-        console.log('Payment method attached and set as default for customer:', customerId);
-  
-        res.status(200).json({
-          success: true,
-          message: 'Card added successfully',
-          customerId,
-          paymentMethodId,
-        });
-      } catch (error) {
-        console.error('Error adding card:', error);
-        res.status(500).json({
-          success: false,
-          error: error.message,
-          stack: error.stack,
-        });
-      }
-    });
-  });
   
   
 exports.listPaymentMethods = functions.https.onRequest(async (req, res) => {

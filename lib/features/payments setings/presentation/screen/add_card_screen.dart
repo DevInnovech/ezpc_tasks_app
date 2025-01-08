@@ -27,11 +27,7 @@ class _AddCardScreenState extends ConsumerState<AddCardScreen> {
       final paymentMethod = await Stripe.instance.createPaymentMethod(
         params: const PaymentMethodParams.card(
           paymentMethodData: PaymentMethodData(
-            billingDetails: BillingDetails(
-              // Add these details for better backend validation
-              email: 'example@test.com', // Replace this with dynamic user data
-              name: 'Test User', // Replace this with dynamic user data
-            ),
+            billingDetails: BillingDetails(),
           ),
         ),
       );
@@ -55,11 +51,10 @@ class _AddCardScreenState extends ConsumerState<AddCardScreen> {
       print('Step 2: Sending payment method to backend');
 
       final response = await http.post(
-        Uri.parse(
-            'https://addcard-kdtiuzlqjq-uc.a.run.app'), // Replace with your backend URL
+        Uri.parse('https://addcard-kdtiuzlqjq-uc.a.run.app'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email, // Replace with the actual user email
+          'email': user.email, // Replace with actual user email
           'paymentMethodId': paymentMethod.id,
         }),
       );
@@ -67,23 +62,17 @@ class _AddCardScreenState extends ConsumerState<AddCardScreen> {
       print('Backend response status: ${response.statusCode}');
       print('Backend response body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-
-        if (result['success'] == true) {
-          print('Card added successfully on backend');
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Card added successfully!')),
-          );
-          Navigator.pop(context);
-        } else {
-          print('Error from backend: ${result['error']}');
-          throw Exception(result['error'] ?? 'Failed to add card.');
-        }
+      final result = jsonDecode(response.body);
+      if (response.statusCode == 200 && result['success'] == true) {
+        print('Card added successfully on backend');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Card added successfully!')),
+        );
+        Navigator.pop(context);
       } else {
-        throw Exception(
-            'Failed to communicate with backend. Status: ${response.statusCode}');
+        print('Error from backend: ${result['error']}');
+        throw Exception(result['error'] ?? 'Failed to add card.');
       }
     } catch (e) {
       print('Error occurred: $e');
