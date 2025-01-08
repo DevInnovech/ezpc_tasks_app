@@ -4,6 +4,7 @@ import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class PerformanceScreen extends StatefulWidget {
   const PerformanceScreen({super.key});
@@ -13,6 +14,33 @@ class PerformanceScreen extends StatefulWidget {
 }
 
 class _PerformanceScreenState extends State<PerformanceScreen> {
+  Map<String, dynamic>? _monthlyPerformance;
+  Map<String, dynamic>? _annualPerformance;
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPerformanceData();
+  }
+
+  void _fetchPerformanceData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final monthlyPerformance = await _getMonthlyPerformance(userId);
+    final annualPerformance = await _getAnnualPerformance(userId);
+
+    setState(() {
+      _monthlyPerformance = monthlyPerformance;
+      _annualPerformance = annualPerformance;
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,19 +69,144 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     context, RouteNames.reviewOnTasksScreen),
               ),
               const SizedBox(height: 16),
-              _buildPerformanceCard(
-                  'Cancelations', 25, '9.23%', Colors.red, primaryColor),
-              const SizedBox(height: 16),
-              _buildPerformanceCard(
-                  'Jobs Completed', 50, '90%', Colors.green, Colors.green),
-              const SizedBox(height: 16),
-              _buildPerformanceCard(
-                  'Re-Schedules', 5, '50%', Colors.red, Colors.red),
+              if (_monthlyPerformance != null)
+                Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildPerformanceCard(
+                      'Jobs Completed',
+                      _monthlyPerformance?['currentMonth']['completed'] ?? 0,
+                      _monthlyPerformance?['percentageCompleted'] ?? 0.0,
+                      Colors.green,
+                      Colors.green,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPerformanceCard(
+                      'Re-Schedules',
+                      _monthlyPerformance?['currentMonth']['reschedules'] ?? 0,
+                      _monthlyPerformance?['percentageReschedules'] ?? 0.0,
+                      primaryColor,
+                      primaryColor,
+                    ),
+                    _buildPerformanceCard(
+                      'Cancelations',
+                      _monthlyPerformance?['currentMonth']?['canceled'] ?? 0,
+                      _monthlyPerformance?['percentageCanceled'] ?? 0.0,
+                      Colors.red,
+                      Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    if (_annualPerformance != null)
+                      _buildAnnualPerformanceCard(_annualPerformance!),
+                  ],
+                ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<Map<String, dynamic>> _getAnnualPerformance(String providerId) async {
+    try {
+      final providerDoc = await FirebaseFirestore.instance
+          .collection('providers')
+          .doc(providerId)
+          .get();
+
+      if (!providerDoc.exists) {
+        debugPrint("Provider not found.");
+        return {};
+      }
+
+      final providerData = providerDoc.data() as Map<String, dynamic>? ?? {};
+
+      final performanceData =
+          providerData['performance'] as Map<String, dynamic>? ?? {};
+
+      final String currentYear = DateFormat('yyyy').format(DateTime.now());
+      final Map<String, dynamic> yearlyPerformance = {};
+
+      performanceData.forEach((key, value) {
+        if (key.startsWith(currentYear)) {
+          final month = key.split('-')[1]; // Extraer el mes
+          yearlyPerformance[month] = value;
+        }
+      });
+
+      return yearlyPerformance;
+    } catch (e) {
+      debugPrint("Error fetching annual performance: $e");
+      return {};
+    }
+  }
+
+  Future<Map<String, dynamic>> _getMonthlyPerformance(String providerId) async {
+    try {
+      final providerDoc = await FirebaseFirestore.instance
+          .collection('providers')
+          .doc(providerId)
+          .get();
+
+      if (!providerDoc.exists) {
+        debugPrint("Provider not found.");
+        return {};
+      }
+
+      final providerData = providerDoc.data() as Map<String, dynamic>? ?? {};
+
+      final performanceData =
+          providerData['performance'] as Map<String, dynamic>? ?? {};
+
+      final String currentMonth = DateFormat('yyyy-MM').format(DateTime.now());
+      final String previousMonth = DateFormat('yyyy-MM').format(
+        DateTime.now().subtract(const Duration(days: 30)),
+      );
+
+      final currentMonthData =
+          performanceData[currentMonth] as Map<String, dynamic>? ??
+              {
+                'completed': 0,
+                'canceled': 0,
+                'reschedules': 0,
+              };
+
+      final previousMonthData =
+          performanceData[previousMonth] as Map<String, dynamic>? ??
+              {
+                'completed': 0,
+                'canceled': 0,
+                'reschedules': 0,
+              };
+
+      // Cálculo del porcentaje de incremento o decremento
+      double calculatePercentage(int current, int previous) {
+        if (previous == 0) return current > 0 ? 100.0 : 0.0;
+        return ((current - previous) / previous) * 100;
+      }
+
+      final performance = {
+        'currentMonth': currentMonthData,
+        'previousMonth': previousMonthData,
+        'percentageCompleted': calculatePercentage(
+          currentMonthData['completed'] ?? 0,
+          previousMonthData['completed'] ?? 0,
+        ),
+        'percentageCanceled': calculatePercentage(
+          currentMonthData['canceled'] ?? 0,
+          previousMonthData['canceled'] ?? 0,
+        ),
+        'percentageReschedules': calculatePercentage(
+          currentMonthData['reschedules'] ?? 0,
+          previousMonthData['reschedules'] ?? 0,
+        ),
+      };
+
+      return performance;
+    } catch (e) {
+      debugPrint("Error fetching performance: $e");
+      return {};
+    }
   }
 
   Widget _buildReviewCard() {
@@ -214,8 +367,40 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     );
   }
 
-  Widget _buildPerformanceCard(String title, int value, String percentage,
+  Widget _buildAnnualPerformanceCard(Map<String, dynamic> yearlyData) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 4,
+      child: ExpansionTile(
+        title: const Text(
+          "Annual Performance",
+          style: TextStyle(
+              color: primaryColor, fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        children: yearlyData.entries.map((entry) {
+          final month = entry.key;
+          final data = entry.value as Map<String, dynamic>;
+
+          return ListTile(
+            title: Text(
+              "Month: $month",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              "Completed: ${data['completed'] ?? 0}, "
+              "Canceled: ${data['canceled'] ?? 0}, "
+              "Reschedules: ${data['reschedules'] ?? 0}",
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildPerformanceCard(String title, int value, double percentage,
       Color arrowColor, Color progressBarColor) {
+    final isNegative = percentage < 0;
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 4,
@@ -224,31 +409,31 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Text(title,
+                style: const TextStyle(
+                    color: primaryColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title,
+                Text(value.toString(),
                     style: const TextStyle(
                         color: primaryColor,
-                        fontSize: 22,
+                        fontSize: 36,
                         fontWeight: FontWeight.bold)),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(value.toString(),
-                        style: const TextStyle(
-                            color: primaryColor,
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold)),
-                    Row(
-                      children: [
-                        Icon(Icons.arrow_upward, color: arrowColor),
-                        Text(percentage,
-                            style: TextStyle(
-                                fontSize: 28,
-                                color: arrowColor,
-                                fontWeight: FontWeight.w600)),
-                      ],
+                    Icon(
+                      isNegative ? Icons.arrow_downward : Icons.arrow_upward,
+                      color: isNegative ? Colors.red : arrowColor,
+                    ),
+                    Text(
+                      "${percentage.toStringAsFixed(1)}%",
+                      style: TextStyle(
+                          fontSize: 28,
+                          color: isNegative ? Colors.red : arrowColor,
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -257,7 +442,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             const SizedBox(height: 10),
             LinearProgressIndicator(
               minHeight: 18,
-              value: value / 100,
+              value: (value / 100).clamp(0.0, 1.0),
               backgroundColor: progressBarColor.withOpacity(0.3),
               color: progressBarColor,
               borderRadius: BorderRadius.circular(30),

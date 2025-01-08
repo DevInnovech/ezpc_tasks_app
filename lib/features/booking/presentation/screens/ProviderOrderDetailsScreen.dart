@@ -176,6 +176,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             'taskId': bookingId, // Añadir taskId
           };
         }).toList();
+
         print(
             "Intervalos a eliminar: $occupiedIntervalsToRemove y $blockedIntervalsToRemove");
 
@@ -186,6 +187,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ...blockedIntervalsToRemove,
           ]),
         });
+
+        // Llamar a la función secundaria para registrar el rendimiento del proveedor
+        await _updateProviderPerformance(
+          providerId,
+          currentDate,
+          newStatus,
+          bookingId,
+          widget.order,
+        );
       }
 
       // Actualizar el estado local de la tarea
@@ -203,6 +213,99 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update task status')),
       );
+    }
+  }
+
+  Future<void> _updateProviderPerformance(
+    String providerId,
+    DateTime currentDate,
+    String newStatus,
+    String bookingId,
+    Map<String, dynamic> order,
+  ) async {
+    try {
+      final String currentMonth = DateFormat('yyyy-MM').format(currentDate);
+
+      final DocumentReference providerRef =
+          FirebaseFirestore.instance.collection('providers').doc(providerId);
+
+      final providerDoc = await providerRef.get();
+
+      if (!providerDoc.exists) {
+        debugPrint("Provider document not found.");
+        return;
+      }
+
+      // Verificar y convertir el campo 'performance' a un mapa
+      final Map<String, dynamic> providerData =
+          providerDoc.data() as Map<String, dynamic>;
+
+      Map<String, dynamic> performanceData =
+          (providerData['performance'] as Map<String, dynamic>?) ?? {};
+
+      // Obtener los datos del mes actual o inicializar
+      Map<String, dynamic> monthlyPerformance =
+          performanceData[currentMonth] as Map<String, dynamic>? ??
+              {
+                'completed': 0,
+                'canceled': 0,
+                'reschedules': 0,
+              };
+
+      if (newStatus == "completed") {
+        monthlyPerformance['completed'] += 1;
+
+        // Verificar si es un reprogramado
+        bool isRescheduled =
+            await _checkIfRescheduled(providerId, bookingId, order);
+        if (isRescheduled) {
+          monthlyPerformance['reschedules'] += 1;
+        }
+      } else if (newStatus == "canceled") {
+        monthlyPerformance['canceled'] += 1;
+      }
+
+      // Actualizar los datos del mes actual en el rendimiento del proveedor
+      performanceData[currentMonth] = monthlyPerformance;
+
+      // Guardar los datos actualizados en el documento del proveedor
+      await providerRef.update({
+        'performance': performanceData,
+      });
+
+      debugPrint("Provider performance updated: $performanceData");
+    } catch (e) {
+      debugPrint("Error updating provider performance: $e");
+    }
+  }
+
+  Future<bool> _checkIfRescheduled(
+    String providerId,
+    String currentBookingId,
+    Map<String, dynamic> order,
+  ) async {
+    try {
+      final customerId = order['customerId'];
+      final selectedTaskName = order['selectedTaskName'];
+
+      final bookingsQuery = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('providerId', isEqualTo: providerId)
+          .where('customerId', isEqualTo: customerId)
+          .where('selectedTaskName', isEqualTo: selectedTaskName)
+          .where('status', isEqualTo: 'completed')
+          .get();
+
+      for (var booking in bookingsQuery.docs) {
+        if (booking.id != currentBookingId) {
+          return true; // Es reprogramado
+        }
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint("Error checking if task is rescheduled: $e");
+      return false;
     }
   }
 
