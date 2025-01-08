@@ -73,7 +73,7 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
             const SizedBox(height: 16),
 
             // Botón de guardar
-            ElevatedButton(
+            /*ElevatedButton(
               onPressed: () async {
                 if (selectedDays.isEmpty) {
                   _showSnackBar(
@@ -97,7 +97,7 @@ class _ScheduleStepState extends ConsumerState<ScheduleStep> {
                     isError: false);
               },
               child: const Text("Save"),
-            ),
+            ),*/
           ],
         ),
       ),

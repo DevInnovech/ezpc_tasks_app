@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/services/data/add_repository.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/category_pricing.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/questions.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/schedulestep.dart';
@@ -46,6 +47,8 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool special = ref.watch(specialDaysEnabledProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add New Task'),
@@ -82,8 +85,12 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
             Expanded(
               child: ElevatedButton(
                 onPressed: _handleNext,
-                child:
-                    Text(_currentStep == _steps.length - 1 ? 'Finish' : 'Next'),
+                child: Text(
+                  _currentStep == _steps.length - 1 ||
+                          (_currentStep == 2 && !special)
+                      ? 'Finish'
+                      : 'Next',
+                ),
               ),
             ),
           ],
@@ -93,8 +100,46 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   }
 
   void _handleNext() {
-    if (_formKeys[_currentStep].currentState!.validate()) {
-      if (_currentStep < _steps.length - 1) {
+    final currentTask = ref.read(taskProvider).currentTask;
+    bool specialDaysEnabled = ref.watch(specialDaysEnabledProvider);
+
+    if (currentTask == null) {
+      _showDialog(context, 'Error', 'No task data available.');
+      return;
+    }
+
+    if (_currentStep == 0) {
+      if (currentTask.imageUrl.isEmpty) {
+        _showDialog(context, 'Error', 'Please upload an image.');
+        return;
+      }
+
+      if (currentTask.category == null || currentTask.category!.isEmpty) {
+        _showDialog(context, 'Error', 'Please select a category and service.');
+        return;
+      }
+
+      if (currentTask.selectedTasks == null ||
+          currentTask.selectedTasks!.isEmpty) {
+        _showDialog(context, 'Error', 'Please select at least one service.');
+        return;
+      }
+
+      final allPricesProvided =
+          currentTask.selectedTasks.entries.every((service) {
+        return service.key != null && service.value > 0;
+      });
+
+      if (!allPricesProvided) {
+        _showDialog(context, 'Error',
+            'Ensure all selected services have valid prices.');
+        return;
+      }
+    }
+    if (_currentStep == 1) {
+      if (currentTask.questions == null || currentTask.questions!.isEmpty) {
+        // Rellenar información en blanco y avanzar automáticamente
+
         setState(() {
           _currentStep++;
           _pageController.nextPage(
@@ -102,13 +147,53 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
             curve: Curves.easeInOut,
           );
         });
-      } else {
-        _saveTask(context);
+        return;
+      }
+    }
+    if (_currentStep == 2) {
+      if (currentTask.workingHours == null ||
+          currentTask.workingHours!.isEmpty) {
+        _showDialog(
+            context, 'Error', 'Please select at least one date or day.');
+        return;
+      }
+    }
+
+    if (_currentStep == 3) {
+      // Paso 4 - Special Days
+      if (currentTask.specialDays == null || currentTask.specialDays.isEmpty) {
+        _showDialog(context, 'Error', 'Please add at least one special day.');
+        return;
+      }
+    }
+    if (!specialDaysEnabled && _currentStep == 2) {
+      // Si no se habilitaron días especiales, finalizar directamente
+      // _saveTask(context);
+      print("object");
+    } else {
+      // Validación general y pasos siguientes
+      if (_formKeys[_currentStep].currentState!.validate()) {
+        if (_currentStep < _steps.length - 1) {
+          setState(() {
+            _currentStep++;
+            _pageController.nextPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          });
+        } else {
+          _saveTask(context);
+        }
       }
     }
   }
 
   void _handlePrevious() {
+    final currentTask = ref.read(taskProvider).currentTask;
+
+    if (_currentStep == 2) {
+      ref.read(specialDaysEnabledProvider.notifier).state = false;
+    }
     setState(() {
       _currentStep--;
       _pageController.previousPage(
