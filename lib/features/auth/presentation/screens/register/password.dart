@@ -20,12 +20,15 @@ class PasswordAccountpage extends ConsumerStatefulWidget {
 class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
   final _formKey = GlobalKey<FormState>();
 
+  bool _isChecked = false; // Estado del checkbox
+  bool _isAccepted = false; // Estado de aceptación de términos
+
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   @override
   Widget build(BuildContext context) {
-    final TextEditingController usernameController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
-    final TextEditingController confirmPasswordController =
-        TextEditingController();
     final accountType = ref.watch(accountTypeProvider);
 
     String email;
@@ -141,81 +144,111 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                 ),
                 Row(
                   children: [
-                    Checkbox(value: true, onChanged: (val) {}),
-                    const Text('I agree to the Terms and Conditions')
+                    Checkbox(
+                      value: _isChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isChecked = value!;
+                          if (!_isChecked) {
+                            _isAccepted = false;
+                          }
+                        });
+                        if (_isChecked) {
+                          _showTermsAndConditionsPopup(context);
+                        }
+                      },
+                    ),
+                    const Text('I agree to the Terms and Conditions'),
                   ],
                 ),
                 PrimaryButton(
                   text: 'Continue',
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      // Llamar a la función de registro
-                      String username = usernameController.text;
-                      String password = passwordController.text;
+                  onPressed: _isAccepted
+                      ? () async {
+                          if (_formKey.currentState!.validate()) {
+                            // Llamar a la función de registro
+                            String username = usernameController.text;
+                            String password = passwordController.text;
 
-                      // Crear instancia de AuthService
-                      var authService =
-                          AuthService(); // Instancia de AuthService
+                            // Crear instancia de AuthService
+                            var authService =
+                                AuthService(); // Instancia de AuthService
 
-                      // Llamar a la función de registro
-                      var user = await authService.SignUpMethod(
-                        email: email,
-                        name: name,
-                        lastName: lastName,
-                        //       dob: dob,
-                        phoneNumber: phoneNumber,
-                        username: username,
-                        password: password,
-                        address: address,
-                        role: accountType == AccountType.client
-                            ? 'Client'
-                            : accountType == AccountType.corporateProvider
-                                ? 'Corporate Provider'
-                                : accountType == AccountType.independentProvider
-                                    ? 'Independent Provider'
-                                    : accountType ==
-                                            AccountType.employeeProvider
-                                        ? 'Employee Provider'
-                                        : '',
-                        description: description,
-                        communicationPreference: '',
-                        experienceYears: 0,
-                        languages: '',
-                        preferredPaymentMethod: '',
-                        profileImageUrl: '', accountType: '',
-                        companyID: accountType == AccountType.corporateProvider
-                            ? companyID
-                            : null,
-                        employeeCode:
-                            accountType == AccountType.corporateProvider
-                                ? employercode
-                                : accountType == AccountType.employeeProvider
-                                    ? employercode
-                                    : null,
-                      );
+                            // Llamar a la función de registro
+                            var user = await authService.SignUpMethod(
+                              email: email,
+                              name: name,
+                              lastName: lastName,
+                              //       dob: dob,
+                              phoneNumber: phoneNumber,
+                              username: username,
+                              password: password,
+                              address: address,
+                              role: accountType == AccountType.client
+                                  ? 'Client'
+                                  : accountType == AccountType.corporateProvider
+                                      ? 'Corporate Provider'
+                                      : accountType ==
+                                              AccountType.independentProvider
+                                          ? 'Independent Provider'
+                                          : accountType ==
+                                                  AccountType.employeeProvider
+                                              ? 'Employee Provider'
+                                              : '',
+                              description: description,
+                              communicationPreference: '',
+                              experienceYears: 0,
+                              languages: '',
+                              preferredPaymentMethod: '',
+                              profileImageUrl: '', accountType: '',
+                              companyID:
+                                  accountType == AccountType.corporateProvider
+                                      ? companyID
+                                      : null,
+                              employeeCode: accountType ==
+                                      AccountType.corporateProvider
+                                  ? employercode
+                                  : accountType == AccountType.employeeProvider
+                                      ? employercode
+                                      : null,
+                            );
 
-                      if (user != null) {
-                        // Navegar a la siguiente pantalla dependiendo del tipo de cuenta
-                        if (accountType == AccountType.client) {
-                          Navigator.pushNamed(
-                            context,
-                            RouteNames.addCardPaymentMethodScreen,
-                          );
-                        } else {
-                          Navigator.pushNamed(
-                            context,
-                            RouteNames.addBankAccountInformationScreen,
-                          );
+                            if (user != null) {
+                              // Navegar a la siguiente pantalla dependiendo del tipo de cuenta
+                              if (accountType == AccountType.client) {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.addCardPaymentMethodScreen,
+                                );
+                              } else {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.addBankAccountInformationScreen,
+                                );
+                              }
+                            } else {
+                              // Manejo de error si el registro falla
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Failed to create account')),
+                              );
+                            }
+                          }
                         }
-                      } else {
-                        // Manejo de error si el registro falla
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Failed to create account')),
-                        );
-                      }
-                    }
-                  },
+                      : () {
+                          // Mostrar SnackBar si no ha aceptado los términos
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'You must accept the Terms and Conditions to continue.',
+                                textAlign: TextAlign.center,
+                              ),
+                              backgroundColor: Colors
+                                  .red, // Fondo rojo para enfatizar el error
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        },
                 ),
               ],
             ),
@@ -223,5 +256,85 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
         ),
       ),
     );
+  }
+
+  void _showTermsAndConditionsPopup(BuildContext context) {
+    bool hasScrolledToEnd = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true, // Permitir cerrar tocando fuera
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              backgroundColor: Colors.white, // Fondo blanco
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                'Terms and Conditions',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: SizedBox(
+                height: 300,
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollInfo) {
+                    if (scrollInfo.metrics.pixels ==
+                        scrollInfo.metrics.maxScrollExtent) {
+                      setState(() {
+                        hasScrolledToEnd = true;
+                      });
+                    }
+                    return true;
+                  },
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Text(
+                          'Here are the terms and conditions...\n' *
+                              20, // Texto largo de ejemplo
+                          textAlign: TextAlign.justify,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                ElevatedButton(
+                  onPressed: hasScrolledToEnd
+                      ? () {
+                          setState(() {
+                            _isAccepted = true;
+                            _isChecked = true;
+                          });
+                          Navigator.pop(context);
+                        }
+                      : null, // Deshabilitado hasta que lea completo
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple, // Primary color
+                    foregroundColor: Colors.white, // Texto blanco
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('I Agree'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((_) {
+      // Verificar si no se aceptaron los términos
+      if (!_isAccepted) {
+        setState(() {
+          _isChecked = false; // Desmarcar el checkbox
+        });
+      }
+    });
   }
 }

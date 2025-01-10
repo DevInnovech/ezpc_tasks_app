@@ -162,7 +162,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
   }
 
   Future<void> _unassignTask() async {
-    print("objet");
+    print("Unassign Task triggered");
     try {
       setState(() {
         isLoading = true;
@@ -174,29 +174,47 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
         throw Exception('User not logged in');
       }
 
-      final querySnapshot = await FirebaseFirestore.instance
+      // Verificar si existen bookings conflictivos
+      final conflictingBookingsExists = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('taskId', isEqualTo: currentTask.taskId)
+          .where('status',
+              whereNotIn: ['completed', 'canceled']) // Estados conflictivos
+          .limit(1) // Solo necesitamos saber si existe al menos uno
+          .get()
+          .then((snapshot) =>
+              snapshot.docs.isEmpty); // Retorna `true` si hay documentos
+
+      if (conflictingBookingsExists) {
+        throw Exception(
+            'Cannot unassign task: There are bookings that are not completed or canceled');
+      }
+
+      // Buscar la tarea en Firestore
+      final taskDoc = await FirebaseFirestore.instance
           .collection('tasks')
           .where('taskId', isEqualTo: currentTask.taskId)
           .limit(1)
           .get();
 
-      if (querySnapshot.docs.isEmpty) {
+      if (taskDoc.docs.isEmpty) {
         throw Exception('Task not found in Firestore');
       }
 
-      final taskDoc = querySnapshot.docs.first;
+      final taskData = taskDoc.docs.first;
 
       // Eliminar al usuario del campo `assignments` en Firestore
       await FirebaseFirestore.instance
           .collection('tasks')
-          .doc(taskDoc.id)
+          .doc(taskData.id)
           .update({
         'assignments.$userId': FieldValue.delete(),
       });
 
+      // Actualizar el estado local de la tarea
       setState(() {
         currentTask = Task.fromMap({
-          ...taskDoc.data(),
+          ...taskData.data(),
           'taskId': currentTask.taskId,
           'assignments': {
             ...(currentTask.assignments ?? {})..remove(userId),
@@ -205,6 +223,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
         isLoading = false;
       });
 
+      // Mostrar mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Task unassigned successfully'),
@@ -215,12 +234,20 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
       setState(() {
         isLoading = false;
       });
+
+      // Mostrar mensaje de error
+      final errorMessage =
+          e.toString().contains('bookings that are not completed or canceled')
+              ? 'Cannot unassign task: Active bookings exist'
+              : 'Error unassigning task';
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error unassigning task'),
+        SnackBar(
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
         ),
       );
+
       debugPrint('Error unassigning task: $e');
     }
   }

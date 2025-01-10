@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderCalendarScreen.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/scrolling_taggle_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ProviderOrdersScreen extends StatefulWidget {
   const ProviderOrdersScreen({super.key});
@@ -102,9 +106,30 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
       appBar: AppBar(
         title: const Text(
           'My Bookings',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: primaryColor),
         ),
-        backgroundColor: const Color(0xFF404C8C),
+        backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Padding(
+              padding: Utils.symmetric(h: 0.0, v: 0.0),
+              child: SvgPicture.asset(
+                width: 25,
+                KImages.calendar,
+                fit: BoxFit.contain,
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProviderCalendarScreen(), // Nueva pantalla
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchProviderOrders(),
@@ -122,6 +147,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
 
           return Column(
             children: [
+              const SizedBox(height: 2),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
@@ -142,7 +168,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 1),
               Expanded(
                 child: filteredOrders.isEmpty
                     ? const Center(child: Text('No orders found.'))

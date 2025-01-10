@@ -16,6 +16,7 @@ class KImages {
   static const String offer = 'assets/images/offer.png';
   static const String Referalflayer = 'assets/images/Referral.png';
   static const String call = 'assets/icons/call.svg';
+  static const String calendar = 'assets/icons/calendar.svg';
 
   static const String defaultImage =
       'assets/images/default_image.png'; // Añade esta línea con la ruta a la imagen predeterminada
@@ -114,4 +115,6 @@ class KImages {
   static const String di08 = 'assets/icons/di08.svg';
   static const String di09 = 'assets/icons/di09.svg';
   static const String di10 = 'assets/icons/di10.svg';
+
+  //icons
 }

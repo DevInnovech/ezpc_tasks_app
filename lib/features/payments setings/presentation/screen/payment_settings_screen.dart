@@ -1,9 +1,18 @@
+import 'dart:convert';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/add_bank_account_screen.dart';
+import 'package:ezpc_tasks_app/features/payments%20setings/presentation/screen/add_card_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'add_card_screen.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+
+// Configuración de cifrado
+final key = encrypt.Key.fromUtf8(
+    'your32charsecureencryptionkey'); // Clave de 32 caracteres
+final iv = encrypt.IV.fromLength(16); // Vector de inicialización
+final encrypter = encrypt.Encrypter(encrypt.AES(key));
 
 final selectedPaymentMethodProvider = StateProvider<String?>((ref) => null);
 
@@ -17,6 +26,7 @@ class PaymentSettingsScreen extends ConsumerStatefulWidget {
 
 class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
   List<Map<String, dynamic>> _paymentMethods = [];
+  List<Map<String, dynamic>> _bankAccounts = [];
   bool _isLoading = true;
   String? _error;
   String? accountType;
@@ -42,9 +52,11 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
       // Fetch account type
       accountType = await _fetchAccountType();
 
-      // Fetch payment methods (cards) for clients or independent providers
-      if (accountType == 'client' || accountType == 'independentProvider') {
-        await _fetchPaymentMethodsFromServer(email);
+      // Fetch methods based on account type
+      if (accountType == 'Client') {
+        await _fetchPaymentMethodsFromStripe(email);
+      } else if (accountType == 'Independent Provider') {
+        await _fetchBankAccountsFromFirebase(user.uid);
       }
 
       setState(() {
@@ -58,8 +70,8 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
     }
   }
 
-  /// Fetch payment methods (cards) from Firebase Functions
-  Future<void> _fetchPaymentMethodsFromServer(String email) async {
+  /// Fetch payment methods (cards) from Stripe using Firebase Functions
+  Future<void> _fetchPaymentMethodsFromStripe(String email) async {
     final url =
         Uri.parse('https://listpaymentmethods-kdtiuzlqjq-uc.a.run.app/');
     final response = await http.post(
@@ -81,10 +93,64 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
     }
   }
 
-  /// Simulate account type fetching (replace with real implementation)
+  /// Fetch bank accounts from Firebase Firestore
+  Future<void> _fetchBankAccountsFromFirebase(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('bank_accounts')
+        .where('user_id', isEqualTo: userId)
+        .get();
+
+    _bankAccounts = snapshot.docs.map((doc) {
+      final data = doc.data();
+      return {
+        'id': doc.id,
+        'bank_name': data['bank_name'],
+        'account_holder_name': data['account_holder_name'],
+        'account_number': _decrypt(data['account_number']),
+        'routing_number': _decrypt(data['routing_number']),
+        'account_type': data['account_type'],
+      };
+    }).toList();
+  }
+
+  /// Decrypt the data
+  String _decrypt(String encryptedData) {
+    try {
+      final decrypted = encrypter.decrypt64(encryptedData, iv: iv);
+      return decrypted;
+    } catch (e) {
+      print('Error decrypting data: $e');
+      return 'Decryption error';
+    }
+  }
+
+  /// Fetch account type from Firestore
   Future<String> _fetchAccountType() async {
-    // Replace with real account type fetching logic
-    return Future.value('client'); // Example value
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('No user is logged in.');
+      }
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception('User document not found in Firestore.');
+      }
+
+      final data = userDoc.data();
+      if (data == null || !data.containsKey('accountType')) {
+        throw Exception('Account type not found.');
+      }
+
+      final accountType = data['accountType'] as String;
+      return accountType;
+    } catch (e) {
+      throw Exception('Failed to fetch account type: $e');
+    }
   }
 
   @override
@@ -95,8 +161,6 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedPaymentMethod = ref.watch(selectedPaymentMethodProvider);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Payment Settings')),
       body: Column(
@@ -114,14 +178,15 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                     : ListView(
                         padding: const EdgeInsets.all(16.0),
                         children: [
-                          const Text(
-                            'Pay with',
-                            style: TextStyle(
+                          Text(
+                            accountType == 'Client'
+                                ? 'Pay with'
+                                : 'Bank Accounts',
+                            style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 10),
-                          if (accountType == 'client' ||
-                              accountType == 'independentProvider')
+                          if (accountType == 'Client')
                             ..._paymentMethods
                                 .map((method) => _buildPaymentMethodTile(
                                       context,
@@ -129,6 +194,16 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                                       title: '**** ${method['last4']}',
                                       subtitle: method['brand'],
                                       icon: Icons.credit_card,
+                                    )),
+                          if (accountType == 'Independent Provider')
+                            ..._bankAccounts
+                                .map((account) => _buildPaymentMethodTile(
+                                      context,
+                                      methodId: account['id'],
+                                      title: account['bank_name'] ?? '',
+                                      subtitle:
+                                          'Account Holder: ${account['account_holder_name'] ?? ''}',
+                                      icon: Icons.account_balance,
                                     )),
                         ],
                       ),
@@ -144,8 +219,7 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                   style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
                 const SizedBox(height: 10),
-                if (accountType == 'client' ||
-                    accountType == 'independentProvider')
+                if (accountType == 'Client')
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -155,25 +229,31 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                         ),
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 20),
-                      backgroundColor: Colors.transparent,
-                      side: const BorderSide(color: Colors.grey, width: 0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
-                    ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Icon(Icons.credit_card, color: Colors.black),
                         SizedBox(width: 10),
-                        Text(
-                          'Credit or debit card',
-                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        Text('Credit or debit card'),
+                      ],
+                    ),
+                  ),
+                if (accountType == 'Independent Provider')
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddBankAccountScreen(),
                         ),
+                      );
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(Icons.account_balance, color: Colors.black),
+                        SizedBox(width: 10),
+                        Text('Bank Account'),
                       ],
                     ),
                   ),

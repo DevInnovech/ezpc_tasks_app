@@ -66,163 +66,265 @@ exports.stripePaymentIntentRequest = functions.https.onRequest(async (req, res) 
     }
 });
 
+
 exports.addBankAccount = functions.https.onRequest(async (req, res) => {
-    try {
-      const { email, userId, country, currency, accountHolderName, accountNumber, routingNumber } = req.body;
-  
-      if (!email || !userId || !country || !currency || !accountHolderName || !accountNumber) {
-        return res.status(400).send({ success: false, error: "Missing required fields." });
-      }
-  
-      // Buscar o crear cliente en Stripe
-      let customerId;
-      const customerList = await stripe.customers.list({ email, limit: 1 });
-  
-      if (customerList.data.length > 0) {
-        customerId = customerList.data[0].id;
-      } else {
-        const customer = await stripe.customers.create({
-          email,
-          metadata: { userId },
-        });
-        customerId = customer.id;
-      }
-  
-      // Agregar cuenta bancaria al cliente
-      const bankAccount = await stripe.customers.createSource(customerId, {
-        source: {
-          object: "bank_account",
-          country,
-          currency,
-          account_holder_name: accountHolderName,
-          account_holder_type: "individual", 
-          routing_number: routingNumber, 
-          account_number: accountNumber,
-        },
-      });
-  
-      res.status(200).send({
-        success: true,
-        message: "Bank account added successfully.",
-        bankAccountId: bankAccount.id,
-      });
-    } catch (error) {
-      console.error("Error adding bank account:", error);
-      res.status(500).send({ success: false, error: error.message });
-    }
-  });
+    return cors(req, res, async () => {
+        // Validar método HTTP
+        if (req.method !== 'POST') {
+            return res.status(405).json({
+                success: false,
+                error: 'Method not allowed'
+            });
+        }
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+        try {
+            const { email, bankDetails } = req.body;
 
-app.post('/add-card', async (req, res) => {
+            // Validación mejorada de datos de entrada
+            if (!email || !bankDetails) {
+                functions.logger.error('Missing required fields:', { email: !!email, bankDetails: !!bankDetails });
+                return res.status(400).json({
+                    success: false,
+                    error: 'Email and bank details are required'
+                });
+            }
+
+            // Desestructuración y validación de detalles bancarios
+            const {
+                accountHolderName,
+                accountNumber,
+                routingNumber,
+                bankName,
+                accountHolderType = 'individual', // Valor por defecto
+                country = 'US',                   // Valor por defecto
+                currency = 'usd'                  // Valor por defecto
+            } = bankDetails;
+
+            // Validación de campos requeridos
+            const requiredFields = {
+                accountHolderName,
+                accountNumber,
+                routingNumber,
+                bankName
+            };
+
+            const missingFields = Object.entries(requiredFields)
+                .filter(([_, value]) => !value)
+                .map(([key]) => key);
+
+            if (missingFields.length > 0) {
+                functions.logger.error('Missing bank details fields:', missingFields);
+                return res.status(400).json({
+                    success: false,
+                    error: `Missing required fields: ${missingFields.join(', ')}`
+                });
+            }
+
+            // Buscar o crear cliente usando async/await
+            const customer = await stripe.customers.search({
+                query: `email:'${email}'`,
+                limit: 1
+            }).then(result => result.data[0]);
+
+            const customerId = customer
+                ? customer.id
+                : (await stripe.customers.create({ email })).id;
+
+            functions.logger.info(`Customer ${customer ? 'found' : 'created'}:`, { customerId });
+
+            // Crear cuenta bancaria con manejo de errores mejorado
+            const bankAccount = await stripe.customers.createSource(
+                customerId,
+                {
+                    source: {
+                        object: 'bank_account',
+                        country,
+                        currency,
+                        account_holder_name: accountHolderName,
+                        account_holder_type: accountHolderType,
+                        routing_number: routingNumber,
+                        account_number: accountNumber
+                    }
+                }
+            );
+
+            functions.logger.info('Bank account added successfully', {
+                customerId,
+                bankAccountId: bankAccount.id
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: 'Bank account added successfully',
+                data: {
+                    customerId,
+                    bankAccountId: bankAccount.id,
+                    lastFour: bankAccount.last4
+                }
+            });
+
+        } catch (error) {
+            functions.logger.error('Error in addBankAccount:', {
+                error: error.message,
+                stack: error.stack
+            });
+
+            // Manejo específico de errores de Stripe
+            if (error.type === 'StripeError') {
+                return res.status(400).json({
+                    success: false,
+                    error: error.message,
+                    code: error.code
+                });
+            }
+
+            return res.status(500).json({
+                success: false,
+                error: 'An internal server error occurred'
+            });
+        }
+    });
+});
+
+
+exports.addCard = functions.https.onRequest(async (req, res) => {
   try {
+    // Log the received request body for debugging
+    console.log("Received request body:", req.body);
+
     const { email, paymentMethodId } = req.body;
 
+    // Validate incoming data
     if (!email || !paymentMethodId) {
+      console.error("Missing email or paymentMethodId");
       return res.status(400).json({
         success: false,
-        error: 'Email and payment method ID are required.',
+        error: "Email and payment method ID are required.",
       });
     }
 
-    // Buscar o crear cliente en Stripe
-    const customers = await stripe.customers.list({ email, limit: 1 });
+    console.log(`Processing card for email: ${email}, PaymentMethodId: ${paymentMethodId}`);
+
+    // Retrieve payment method details for validation
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    if (!paymentMethod) {
+      console.error("Invalid paymentMethodId:", paymentMethodId);
+      return res.status(400).json({
+        success: false,
+        error: "Invalid payment method ID.",
+      });
+    }
+
+    console.log("Payment method details retrieved successfully");
+
+    // Find or create a Stripe customer
     let customerId;
+    const customers = await stripe.customers.list({ email, limit: 1 });
 
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+      console.log("Existing customer found:", customerId);
     } else {
       const customer = await stripe.customers.create({ email });
       customerId = customer.id;
+      console.log("New customer created:", customerId);
     }
 
-    // Adjuntar el método de pago al cliente
-    await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+    // Check if the payment method is already attached to another customer
+    if (paymentMethod.customer && paymentMethod.customer !== customerId) {
+      console.error("Payment method already attached to another customer:", paymentMethod.customer);
+      return res.status(400).json({
+        success: false,
+        error: "Payment method is already attached to another customer.",
+      });
+    }
 
-    // Establecer como método de pago predeterminado
+    // Attach the payment method to the customer
+    await stripe.paymentMethods.attach(paymentMethodId, {
+      customer: customerId,
+    });
+
+    console.log("Payment method successfully attached to customer:", customerId);
+
+    // Set the payment method as default for invoices
     await stripe.customers.update(customerId, {
       invoice_settings: {
         default_payment_method: paymentMethodId,
       },
     });
 
-    res.status(200).json({
+    console.log("Payment method set as default for customer:", customerId);
+
+    // Return success response
+    return res.status(200).json({
       success: true,
-      message: 'Card added successfully!',
+      message: "Card added successfully",
       customerId,
       paymentMethodId,
     });
   } catch (error) {
-    console.error('Error adding card:', error);
-    res.status(500).json({
+    // Handle errors gracefully and log for debugging
+    console.error("Error processing addCard request:", error);
+    return res.status(500).json({
       success: false,
       error: error.message,
     });
   }
 });
 
-app.listen(4242, () => console.log('Server running on port 4242'));
+exports.listBankAccounts = functions.https.onRequest((req, res) => {
+  return cors(req, res, async () => {
+    try {
+      const { email } = req.body;
 
-
-  exports.addCard = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
-      try {
-        const { email, paymentMethodId } = req.body;
-  
-        if (!email || !paymentMethodId) {
-          return res.status(400).json({
-            success: false,
-            error: 'Email and payment method ID are required.',
-          });
-        }
-  
-        console.log('Received request with email:', email, 'and paymentMethodId:', paymentMethodId);
-  
-        // Buscar o crear cliente
-        let customerId;
-        const customers = await stripe.customers.list({ email, limit: 1 });
-  
-        if (customers.data.length > 0) {
-          customerId = customers.data[0].id;
-          console.log('Found existing customer:', customerId);
-        } else {
-          const customer = await stripe.customers.create({ email });
-          customerId = customer.id;
-          console.log('Created new customer:', customerId);
-        }
-  
-        // Adjuntar método de pago al cliente
-        await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
-  
-        // Establecer como método de pago predeterminado
-        await stripe.customers.update(customerId, {
-          invoice_settings: {
-            default_payment_method: paymentMethodId,
-          },
-        });
-  
-        console.log('Payment method attached and set as default for customer:', customerId);
-  
-        res.status(200).json({
-          success: true,
-          message: 'Card added successfully',
-          customerId,
-          paymentMethodId,
-        });
-      } catch (error) {
-        console.error('Error adding card:', error);
-        res.status(500).json({
+      if (!email) {
+        return res.status(400).json({
           success: false,
-          error: error.message,
-          stack: error.stack,
+          error: 'Email is required.',
         });
       }
-    });
+
+      // Buscar el cliente en Stripe
+      const customers = await stripe.customers.list({ email, limit: 1 });
+
+      if (customers.data.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Customer not found.',
+        });
+      }
+
+      const customerId = customers.data[0].id;
+
+      // Listar fuentes (bank accounts) asociadas al cliente
+      const bankAccounts = await stripe.customers.listSources(customerId, {
+        object: 'bank_account',
+      });
+
+      res.status(200).json({
+        success: true,
+        bankAccounts: bankAccounts.data.map((account) => ({
+          id: account.id,
+          bankName: account.bank_name,
+          last4: account.last4,
+          currency: account.currency,
+          country: account.country,
+          accountHolderName: account.account_holder_name,
+          accountHolderType: account.account_holder_type,
+          status: account.status,
+        })),
+      });
+    } catch (error) {
+      console.error('Error listing bank accounts:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
   });
-  
-  
+});
+
+
 exports.listPaymentMethods = functions.https.onRequest(async (req, res) => {
     try {
         const { email } = req.body;

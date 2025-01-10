@@ -46,10 +46,12 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   String? selectedTimeSlot;
   DateTime selectedDate = DateTime.now();
   String? providerId;
+  double totalPrice = 0;
 
   @override
   void initState() {
     super.initState();
+    totalPrice = widget.totalPrice;
     fetchTaskAndRelatedTasks();
   }
 
@@ -61,125 +63,114 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           .doc(widget.taskId)
           .get();
 
-      if (taskDoc.exists) {
-        final taskData = taskDoc.data()!;
-        final category = taskData['category'] as String;
-        final provider =
-            taskData['providerId'] as String?; // Obtener providerId
+      if (!taskDoc.exists) return;
 
-        // Extraer las selectedTasks de la tarea original
-        final Map<String, dynamic> selectedTasks =
-            Map<String, dynamic>.from(taskData['selectedTasks'] ?? {});
+      final taskData = taskDoc.data()!;
+      final category = taskData['category'] as String;
+      final provider = taskData['providerId'] as String?;
+      final subCategoriesSet = widget.selectedSubCategories.toSet();
+      List<Map<String, dynamic>> fetchedTasks = [];
 
-        // Obtener las selectedSubCategories desde el widget
-        final List<String> selectedSubCategories =
-            List<String>.from(widget.selectedSubCategories);
+      // Obtener todas las tareas en la misma categoría
+      final relatedTasksSnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .where('category', isEqualTo: category)
+          .get();
 
-        // Inicializar la lista de tareas relacionadas
-        List<Map<String, dynamic>> fetchedTasks = [];
+      // Procesar cada tarea
+      for (var task in relatedTasksSnapshot.docs) {
+        final taskMap = {'id': task.id, ...task.data()};
+        final relatedSelectedTasks =
+            Map<String, dynamic>.from(taskMap['selectedTasks'] ?? {});
+        final relatedSelectedKeys = relatedSelectedTasks.keys.toSet();
 
-        // Obtener todas las tareas en la misma categoría
-        final relatedTasksSnapshot = await FirebaseFirestore.instance
-            .collection('tasks')
-            .where('category', isEqualTo: category)
-            .get();
+        // Verificar si las subcategorías coinciden
+        if (!subCategoriesSet.difference(relatedSelectedKeys).isEmpty) continue;
 
-        // Filtrar tareas que cumplen con selectedSubCategories
-        final filteredTasks = relatedTasksSnapshot.docs
-            .map((doc) => {'id': doc.id, ...doc.data()})
-            .where((task) {
-          final Map<String, dynamic> taskSelectedTasks =
-              Map<String, dynamic>.from(task['selectedTasks'] ?? {});
-          print(widget.selectedSubCategories);
-          print(taskSelectedTasks);
-          // Verificar si la tarea relacionada contiene al menos los mismos selectedSubCategories
-          return widget.selectedSubCategories.every((entry) {
-            return taskSelectedTasks.containsKey(entry);
-          });
-        }).toList();
+        if (taskMap.containsKey('assignments')) {
+          // Tareas corporativas
+          final assignments = taskMap['assignments'] as Map<String, dynamic>;
+          final activeProviders = assignments.entries
+              .where((entry) => entry.value == true)
+              .map((entry) => entry.key)
+              .toList();
 
-        // Procesar cada tarea filtrada
-        for (var task in filteredTasks) {
-          if (task.containsKey('assignments')) {
-            // **Tarea Corporativa**
-            final assignments = task['assignments'] as Map<String, dynamic>;
+          final userDocs = await FirebaseFirestore.instance
+              .collection('users')
+              .where(FieldPath.documentId, whereIn: activeProviders)
+              .get();
 
-            // Filtrar empleados activos
-            final activeProviders = assignments.entries
-                .where((entry) => entry.value == true) // Solo empleados activos
-                .map((entry) => entry.key) // IDs de empleados
-                .toList();
-
-            for (String providerId in activeProviders) {
-              print("id:$providerId");
-              final userDoc = await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(providerId)
-                  .get();
-
-              if (userDoc.exists) {
-                final relatedTask = {
-                  'id': task['id'],
-                  ...task, // Datos de la tarea original
-                  'providerId': providerId,
-                  'providerName': userDoc.data()?['name'] ?? 'Unknown',
-                  'lastName': userDoc.data()?['name'] ??
-                      'Unknown', // Corregido a 'lastName'
-                  'providerPhoto': userDoc.data()?['profileImageUrl'] ?? '',
-                };
-
-                // Extraer selectedTasks de la tarea relacionada
-                final Map<String, dynamic> relatedSelectedTasks =
-                    Map<String, dynamic>.from(task['selectedTasks'] ?? {});
-
-                // Verificar si la tarea relacionada contiene al menos los mismos selectedTasks
-                bool matchesSelectedTasks =
-                    widget.selectedSubCategories.every((entry) {
-                  return relatedSelectedTasks.containsKey(entry);
-                });
-                print(matchesSelectedTasks);
-                if (matchesSelectedTasks) {
-                  fetchedTasks.add(relatedTask);
-                }
-              }
-            }
-          } else {
-            // **Tarea No Corporativa**
-            final userDoc = await FirebaseFirestore.instance
-                .collection('users')
-                .doc(providerId)
-                .get();
-            final task2 = {
-              'id': task['id'],
-              ...task, // Datos de la tarea original
-              'providerPhoto': userDoc.data()?['profileImageUrl'] ?? '',
-            };
-
-            final relatedSelectedTasks =
-                Map<String, dynamic>.from(task2['selectedTasks'] ?? {});
-            print(widget.selectedSubCategories);
-            print(relatedSelectedTasks);
-            // Verificar si la tarea relacionada contiene al menos los mismos selectedTasks
-            bool matchesSelectedTasks =
-                widget.selectedSubCategories.every((entry) {
-              return relatedSelectedTasks.containsKey(entry);
+          for (var doc in userDocs.docs) {
+            final userData = doc.data();
+            fetchedTasks.add({
+              ...taskMap,
+              'providerId': doc.id,
+              'providerName': userData['name'] ?? 'Unknown',
+              'lastName': userData['name'] ?? 'Unknown',
+              'providerPhoto': userData['profileImageUrl'] ?? '',
+              'onDemand': userData['onDemand'] ?? false,
+              'rating': userData['rating'] ?? 0.0,
             });
-            print(matchesSelectedTasks);
-            if (matchesSelectedTasks) {
-              fetchedTasks.add(task2);
-            }
           }
+        } else {
+          // Tareas no corporativas
+          final userData = await fetchUserData(taskMap['providerId']);
+          fetchedTasks.add({
+            ...taskMap,
+            'providerPhoto': userData['profileImageUrl'] ?? '',
+            'onDemand': userData['onDemand'] ?? false,
+            'rating': userData['rating'] ?? 0.0,
+          });
         }
-
-        // Actualizar el estado con la información obtenida
-        setState(() {
-          selectedTask = taskData;
-          providerId = provider; // Asignar el providerId extraído
-          relatedTasks = fetchedTasks;
-        });
       }
+
+      // Mover la tarea inicial al inicio
+      if (provider != null) {
+        final initialTaskIndex = fetchedTasks.indexWhere((task) =>
+            task['providerId'] == provider && task['id'] == widget.taskId);
+
+        if (initialTaskIndex != -1) {
+          final initialTask = fetchedTasks.removeAt(initialTaskIndex);
+          fetchedTasks.insert(0, initialTask);
+        }
+      }
+
+      // Ordenar por `onDemand` y `rating`
+      fetchedTasks.sort((a, b) {
+        final onDemandA = a['onDemand'] == true;
+        final onDemandB = b['onDemand'] == true;
+        if (onDemandA != onDemandB) return onDemandB ? 1 : -1;
+        return (b['rating'] ?? 0.0).compareTo(a['rating'] ?? 0.0);
+      });
+
+      // Actualizar estado
+      setState(() {
+        selectedTask = taskData;
+        providerId = provider;
+        relatedTasks = fetchedTasks;
+      });
     } catch (e) {
       debugPrint('Error fetching tasks: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchUserData(String providerId) async {
+    try {
+      // Obtener el documento del usuario correspondiente
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(providerId)
+          .get();
+
+      if (userDoc.exists) {
+        return userDoc.data()!;
+      } else {
+        debugPrint('User with ID $providerId not found.');
+        return {};
+      }
+    } catch (e) {
+      debugPrint('Error fetching user data for $providerId: $e');
+      return {};
     }
   }
 
@@ -217,6 +208,37 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       currentTime = nextTime;
     }
     return intervals;
+  }
+
+  void updatePricesForSelectedTask(Map<String, dynamic> task) {
+    double updatedTotalPrice = 0.0;
+
+    // Calcular el precio total basado en los servicios seleccionados
+    for (var service in widget.selectedSubCategories) {
+      final newPrice = (task['selectedTasks'][service] ?? 0.0).toDouble();
+      final hoursForService = widget.serviceSizes[service] ?? 1;
+      updatedTotalPrice += newPrice * hoursForService;
+    }
+
+    double taxRate = 0.1; // 10% impuestos
+    double taxAmount = updatedTotalPrice * taxRate;
+    updatedTotalPrice += taxAmount;
+
+    setState(() {
+      totalPrice = updatedTotalPrice;
+    });
+
+    // Notificar al usuario si el precio cambió
+    if (updatedTotalPrice != widget.totalPrice) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "The price has changed based on the selected provider. New price: \$${updatedTotalPrice.toStringAsFixed(2)}",
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   Future<void> getAvailableIntervalsForTask(
@@ -581,6 +603,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         setState(() {
           if (selectedCard != taskData) {
             providerId = ProviderId;
+            // Actualizar precios basados en la tarea seleccionada
+            updatePricesForSelectedTask(taskData);
             // Limpiar selección de slots en la tarjeta anterior
             final previousTaskId = selectedCard?['id'];
             if (previousTaskId != null) {
@@ -696,26 +720,45 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           ),
           onPressed: selectedTask != null && providerId != null
               ? () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => GeneralInformationScreen(
-                        taskId: widget.taskId,
-                        timeSlot: selectedTask!['start'],
-                        endSlot: selectedTask!['end'], // Nuevo parámetro
-                        date: selectedDate,
-                        selectedCategory: widget.selectedCategory,
-                        selectedSubCategories: widget.selectedSubCategories,
-                        serviceSizes: widget.serviceSizes,
-                        totalPrice: widget.totalPrice,
-                        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                        selectedTaskName: widget.selectedTaskName,
-                        categoryPrice: widget.categoryPrice,
-                        taskPrice: widget.taskPrice,
-                        providerId: providerId!,
+                  if (totalPrice != widget.totalPrice) {
+                    // Crear un mapa con el desglose de precios por tarea
+                    final Map<String, double> newPrices = {
+                      for (var subCategory in widget.selectedSubCategories)
+                        subCategory: relatedTasks
+                                .firstWhere(
+                                  (task) => task['id'] == selectedCard!['id'],
+                                  orElse: () => {},
+                                )
+                                .containsKey('selectedTasks')
+                            ? (relatedTasks.firstWhere(
+                                  (task) => task['id'] == selectedCard!['id'],
+                                )['selectedTasks'][subCategory] ??
+                                0.0)
+                            : 0.0,
+                    };
+                    showPriceChangeDialog(totalPrice, newPrices);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GeneralInformationScreen(
+                          taskId: widget.taskId,
+                          timeSlot: selectedTask!['start'],
+                          endSlot: selectedTask!['end'],
+                          date: selectedDate,
+                          selectedCategory: widget.selectedCategory,
+                          selectedSubCategories: widget.selectedSubCategories,
+                          serviceSizes: widget.serviceSizes,
+                          totalPrice: totalPrice,
+                          userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                          selectedTaskName: widget.selectedTaskName,
+                          categoryPrice: widget.categoryPrice,
+                          taskPrice: widget.taskPrice,
+                          providerId: providerId!,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 }
               : null,
           child: const Text(
@@ -728,6 +771,130 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPriceRow(String label, String value,
+      {bool isHighlighted = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
+              color: isHighlighted ? const Color(0xFF404C8C) : Colors.black,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
+              color: isHighlighted ? Colors.green : Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showPriceChangeDialog(
+      double newTotalPrice, Map<String, double> newPrices) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          title: const Text(
+            "Price Change",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF404C8C),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "The total price has changed based on the selected provider:",
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16.0),
+              _buildPriceRow(
+                "Previous Price (Total):",
+                widget.totalPrice.toString(),
+              ),
+              const Divider(
+                height: 20,
+                thickness: 1,
+                color: Colors.grey,
+              ),
+              ...newPrices.entries.map((entry) {
+                return _buildPriceRow(
+                  "New price for '${entry.key}':",
+                  entry.value.toString(),
+                );
+              }).toList(),
+              const Divider(
+                height: 20,
+                thickness: 1,
+                color: Colors.grey,
+              ),
+              _buildPriceRow(
+                "New Total Price:",
+                newTotalPrice.toString(),
+                isHighlighted: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Cancel
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GeneralInformationScreen(
+                      taskId: widget.taskId,
+                      timeSlot: selectedTask!['start'],
+                      endSlot: selectedTask!['end'],
+                      date: selectedDate,
+                      selectedCategory: widget.selectedCategory,
+                      selectedSubCategories: widget.selectedSubCategories,
+                      serviceSizes: widget.serviceSizes,
+                      totalPrice: newTotalPrice,
+                      userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                      selectedTaskName: widget.selectedTaskName,
+                      categoryPrice: widget.categoryPrice,
+                      taskPrice: widget.taskPrice,
+                      providerId: providerId!,
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                "Continue",
+                style: TextStyle(color: Color(0xFF404C8C)),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
