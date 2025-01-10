@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByProviderfilter.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByServiceScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Para autenticar al usuario
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -247,6 +248,17 @@ class ClientHomeHeader extends ConsumerWidget {
                                 providerLastName: result['lastName'] ?? 'N/A',
                                 providerDocumentID:
                                     result['id'], // Pasar el ID correctamente
+                              ),
+                            ),
+                          );
+                        }
+                        if (result['type'] == 'service') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ServicesByServiceScreen(
+                                serviceName: result['name'],
+                                // Pasar el ID correctamente
                               ),
                             ),
                           );

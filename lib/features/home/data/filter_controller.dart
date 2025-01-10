@@ -12,84 +12,79 @@ class SearchController {
     final Set<Map<String, dynamic>> results = {};
 
     try {
-      // Obtener todas las categorías y sus servicios
-      final categoriesSnapshot =
-          await _firestore.collection('categories').get();
-      final categories =
-          categoriesSnapshot.docs.map((doc) => doc.data()).toList();
+      // Búsqueda en la colección de proveedores por nombre o apellido
+      final providerQuery = await _firestore
+          .collection('providers')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThanOrEqualTo: '$query\uf8ff')
+          .get();
 
-      print('Categorías obtenidas: $categories');
+      final lastNameQuery = await _firestore
+          .collection('providers')
+          .where('lastName', isGreaterThanOrEqualTo: query)
+          .where('lastName', isLessThanOrEqualTo: '$query\uf8ff')
+          .get();
 
-      // Buscar en cada categoría
-      for (var category in categories) {
-        final categoryName = category['name'] ?? 'Unknown Category';
-        final categoryId = category['categoryId'];
-        final services = category['services'] as List<dynamic>? ?? [];
+      results.addAll(providerQuery.docs.map((doc) {
+        final data = {
+          ...doc.data(),
+          'id':
+              doc.id, // Este es el ID del documento de la colección 'providers'
+          'type': 'provider',
+        };
+        print(
+            'Provider Found - Document ID: ${doc.id}'); // Mostrar el ID en consola
+        return data;
+      }));
 
-        for (var service in services) {
-          if (service['name']
-              .toString()
-              .toLowerCase()
-              .contains(query.toLowerCase())) {
-            final serviceId = service['serviceId'];
-            results.add({
-              'serviceName': service['name'],
-              'serviceId': serviceId,
-              'categoryName': categoryName,
-              'categoryId': categoryId,
-              'type': 'categoryService',
-            });
-          }
-        }
-      }
+      results.addAll(lastNameQuery.docs.map((doc) {
+        final data = {
+          ...doc.data(),
+          'id':
+              doc.id, // Este es el ID del documento de la colección 'providers'
+          'type': 'provider',
+        };
+        print(
+            'Provider Found - Document ID: ${doc.id}'); // Mostrar el ID en consola
+        return data;
+      }));
 
-      print('Resultados tras buscar en categorías: $results');
+      Map<String, List<String>> resultservices =
+          await searchServiceNames(query);
 
-      // Buscar en las tareas (tasks)
-      final tasksSnapshot = await _firestore.collection('tasks').get();
-      final tasks = tasksSnapshot.docs.map((doc) => doc.data()).toList();
+      results.addAll(resultservices.entries
+          .expand((entry) => entry.value.map((service) => {
+                'category': entry.key, // Nombre de la categoría
+                'service': service, // Nombre del servicio individual
+                'type': 'service', // Tipo adicional
+              })));
 
-      print('Tareas obtenidas: $tasks');
-
-      for (var task in tasks) {
-        final selectedTasks =
-            task['selectedTasks'] as Map<String, dynamic>? ?? {};
-        for (var selectedTask in selectedTasks.entries) {
-          if (selectedTask.key.toLowerCase().contains(query.toLowerCase())) {
-            results.add({
-              'taskName': selectedTask.key,
-              'price': selectedTask.value,
-              'providerId': task['providerId'],
-              'imageUrl': task['imageUrl'] ?? '',
-              'type': 'task',
-            });
-          }
-        }
-      }
-
-      print('Resultados tras buscar en tareas: $results');
+      // Búsqueda en la colección de bookings por subcategorías (array y string)
     } catch (e) {
       print('Error al realizar la búsqueda: $e');
     }
 
-    // Estructurar los resultados
+    // Estructurar resultados para jerarquía
     final structuredResults = results
         .map((result) {
-          if (result['type'] == 'categoryService') {
+          if (result['type'] == 'service') {
             return {
-              'serviceName': result['serviceName'],
-              'serviceId': result['serviceId'],
-              'categoryName': result['categoryName'],
-              'categoryId': result['categoryId'],
-              'type': 'categoryService',
+              'category': result['category'], // Clave del mapa: categoría
+              'services':
+                  result['services'], // Valor del mapa: lista de servicios
+              'type': 'service', // Tipo adicional
+              'name': result['service'],
+              'lastName': result['category'],
+              'id': result['service'],
             };
-          } else if (result['type'] == 'task') {
+          } else if (result['type'] == 'provider') {
             return {
-              'taskName': result['taskName'],
-              'price': result['price'],
-              'providerId': result['providerId'],
-              'imageUrl': result['imageUrl'],
-              'type': 'task',
+              'name': result['name'] ?? 'No Name',
+              'lastName': result['lastName'] ?? 'No Last Name',
+              'email': result['email'] ?? 'No Email',
+              'type': 'provider',
+              'id': result[
+                  'id'], // Este es el ID que usaremos para buscar las tasks
             };
           }
           return null;
@@ -97,25 +92,58 @@ class SearchController {
         .where((item) => item != null)
         .toList();
 
-    print('Resultados estructurados: $structuredResults');
-
-    // Eliminar duplicados basados en `serviceId` o `taskName`
+    // Eliminar duplicados basados en el ID
     final uniqueResults = structuredResults
+        .toList()
         .fold<Map<String, Map<String, dynamic>>>(
           {},
           (map, item) {
-            final uniqueKey = item!['serviceId'] ?? item['taskName'];
-            map[uniqueKey] = item;
+            map[item!['id']] = item;
             return map;
           },
         )
         .values
         .toList();
 
-    print('Resultados únicos: $uniqueResults');
-
     return uniqueResults;
   }
+}
+
+Future<Map<String, List<String>>> searchServiceNames(String query) async {
+  final _firestore = FirebaseFirestore.instance;
+
+  // Obtener todos los documentos de la colección "categories"
+  final snapshot = await _firestore.collection('categories').get();
+
+  Map<String, List<String>> matchingCategories = {};
+
+  for (var doc in snapshot.docs) {
+    final data = doc.data();
+
+    // Verifica si hay servicios en el documento
+    if (data.containsKey('services')) {
+      List<dynamic> services = data['services'] as List<dynamic>;
+      String categoryName = data['name'] ?? 'Unknown Category';
+
+      // Busca en los nombres de los servicios
+      List<String> matchingServices = [];
+      for (var service in services) {
+        if (service['name']
+            .toString()
+            .toLowerCase()
+            .contains(query.toLowerCase())) {
+          matchingServices.add(service['name']);
+        }
+      }
+
+      // Si hay servicios coincidentes, agrégalos bajo la categoría
+      if (matchingServices.isNotEmpty) {
+        matchingCategories[categoryName] = matchingServices;
+      }
+    }
+  }
+  print(matchingCategories);
+  return matchingCategories;
 }
 
 final firestoreProvider = Provider<FirebaseFirestore>((ref) {
@@ -137,14 +165,12 @@ class SearchResultsNotifier extends StateNotifier<List<Map<String, dynamic>>> {
   SearchResultsNotifier(this._searchController) : super([]);
 
   Future<void> performSearch(String query) async {
-    print('Realizando búsqueda con query: $query');
     final results = await _searchController.search(query);
-    print('Resultados finales para el query: $results');
     state = results;
   }
 
+  // Método para limpiar resultados
   void clearResults() {
-    print('Limpiando resultados de búsqueda');
     state = [];
   }
 }
