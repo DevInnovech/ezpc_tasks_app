@@ -20,7 +20,15 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
   int _currentStep = 0;
 
   final _formKeys = List.generate(4, (_) => GlobalKey<FormState>());
+  List<Map<String, dynamic>> collaborators = []; // Almacenar colaboradores
 
+  void _updateCollaborators(List<Map<String, dynamic>> updatedCollaborators) {
+    setState(() {
+      collaborators = updatedCollaborators;
+    });
+  }
+
+  late final List<Widget> _steps;
   @override
   void initState() {
     super.initState();
@@ -36,14 +44,17 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
         debugPrint('No authenticated user.');
       }
     });
-  }
 
-  final List<Widget> _steps = [
-    CategoryPricingStep(formKey: GlobalKey<FormState>()),
-    QuestionsStep(formKey: GlobalKey<FormState>()),
-    ScheduleStep(formKey: GlobalKey<FormState>()),
-    SpecialDaysStep(formKey: GlobalKey<FormState>()),
-  ];
+    _steps = [
+      CategoryPricingStep(
+        formKey: GlobalKey<FormState>(),
+        onCollaboratorsChanged: _updateCollaborators,
+      ),
+      QuestionsStep(formKey: GlobalKey<FormState>()),
+      ScheduleStep(formKey: GlobalKey<FormState>()),
+      SpecialDaysStep(formKey: GlobalKey<FormState>()),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +146,20 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
             'Ensure all selected services have valid prices.');
         return;
       }
+      if (collaborators.any((collab) => collab['status'] == 'Pending')) {
+        final pendingCollaborators = collaborators
+            .where((collab) => collab['status'] == 'Pending')
+            .map((collab) => collab['name'])
+            .join(', ');
+
+        _showDialog(
+          context,
+          "Pending Requests",
+          "The following collaborators have pending requests: $pendingCollaborators. Please resolve them before proceeding.",
+        );
+        return;
+      }
+      ref.read(taskProvider.notifier).updateTask(collaborators: collaborators);
     }
     if (_currentStep == 1) {
       if (currentTask.questions == null || currentTask.questions!.isEmpty) {

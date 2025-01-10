@@ -118,6 +118,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
         questions: {},
         selectedTasks: {},
         assignments: {},
+        collaborators: [],
       );
 
       state = state.copyWith(currentTask: emptyTask);
@@ -420,6 +421,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
         questions: task.questions, // Asegurarse de guardar preguntas
         selectedTasks: task.selectedTasks,
         assignments: {}, // Guardar tareas seleccionadas
+        collaborators: [],
       );
 
       // Save the task in the repository
@@ -483,6 +485,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
     Map<String, String>? questions, // Agregado para actualizar preguntas
     Map<String, double>?
         selectedTasks, // Agregado para actualizar tareas seleccionadas
+    List<Map<String, dynamic>>? collaborators,
   }) {
     if (state.currentTask == null) return;
 
@@ -525,6 +528,8 @@ class TaskNotifier extends StateNotifier<TaskState> {
       questions:
           questions ?? state.currentTask!.questions, // Convertir a String
       selectedTasks: selectedTasks ?? state.currentTask!.selectedTasks,
+      collaborators: collaborators ??
+          state.currentTask!.collaborators, // Actualizar colaboradores
     );
 
     state = state.copyWith(currentTask: updatedTask);

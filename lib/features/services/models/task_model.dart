@@ -43,6 +43,7 @@ class Task {
   final String description;
   final String clientName;
   final String clientLastName;
+  final List<Map<String, dynamic>>? collaborators;
 
   Task({
     required this.id,
@@ -89,6 +90,7 @@ class Task {
     required this.description,
     required this.clientName,
     required this.clientLastName,
+    this.collaborators,
   });
 
   // Método copyWith
@@ -137,6 +139,7 @@ class Task {
     String? description,
     String? clientName,
     String? clientLastName,
+    List<Map<String, dynamic>>? collaborators, // NUEVO PARÁMETRO
   }) {
     return Task(
       id: id ?? this.id,
@@ -184,6 +187,7 @@ class Task {
       description: description ?? this.description,
       clientName: clientName ?? this.clientName,
       clientLastName: clientLastName ?? this.clientLastName,
+      collaborators: collaborators ?? this.collaborators, // NUEVO CAMPO
     );
   }
 
@@ -234,6 +238,7 @@ class Task {
       'description': description,
       'clientName': clientName,
       'clientLastName': clientLastName,
+      'collaborators': collaborators, // NUEVO CAMPO
     };
   }
 
@@ -256,6 +261,9 @@ class Task {
                   .map((key, value) => MapEntry(key, value.toString())),
             )
           : {}, // Ensure default is an empty map if not present or invalid
+      collaborators: map['collaborators'] != null
+          ? List<Map<String, dynamic>>.from(map['collaborators'])
+          : null, // NUEVO CAMPO
 
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
