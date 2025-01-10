@@ -245,7 +245,8 @@ class ClientHomeHeader extends ConsumerWidget {
                               builder: (context) => ServicesByProviderScreen(
                                 providerName: result['name'],
                                 providerLastName: result['lastName'] ?? 'N/A',
-                                providerDocumentID: '', // Pasar el userID
+                                providerDocumentID:
+                                    result['id'], // Pasar el ID correctamente
                               ),
                             ),
                           );

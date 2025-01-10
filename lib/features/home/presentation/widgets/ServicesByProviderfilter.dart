@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/services/client_services/widgets/servicecard.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -102,38 +103,11 @@ class _ServicesByProviderScreenState extends State<ServicesByProviderScreen> {
                     itemCount: tasks.length,
                     itemBuilder: (context, index) {
                       final task = tasks[index];
-                      return Card(
-                        elevation: 4,
-                        margin: const EdgeInsets.only(bottom: 16.0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                task.firstName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(task.description),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Precio: ${task.price}',
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 8),
-                              if (task.imageUrl != null)
-                                Image.network(
-                                  task.imageUrl!,
-                                  height: 150,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                            ],
-                          ),
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: ServiceCard(
+                          task: task, // Pasar la tarea al widget ServiceCard
+                          imageHeight: 160.0, // Asegurar un diseño consistente
                         ),
                       );
                     },
