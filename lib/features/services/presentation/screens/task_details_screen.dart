@@ -27,6 +27,66 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
     if (ref.read(accountTypeProvider) == AccountType.corporateProvider) {
       _fetchAssignedEmployees(); // Cargar los empleados asignados
     }
+    _fetchCollaborators();
+  }
+
+  List<Map<String, dynamic>> collaborators = [];
+
+  Future<void> _fetchCollaborators() async {
+    // Ensure collaborators exist and are in the expected format
+    if (currentTask.collaborators == null ||
+        currentTask.collaborators!.isEmpty) {
+      setState(() {
+        collaborators = [];
+      });
+      return;
+    }
+
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      List<Map<String, dynamic>> fetchedCollaborators = [];
+
+      // Ensure currentTask.collaborators is an iterable of strings
+      for (var collaborator in currentTask.collaborators!) {
+        // Assuming collaborators is a list of strings or contains an 'id' field
+        final String collaboratorId = collaborator['id'].toString();
+
+        final collaboratorDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(collaboratorId)
+            .get();
+
+        if (collaboratorDoc.exists) {
+          final data = collaboratorDoc.data();
+          fetchedCollaborators.add({
+            'id': collaboratorId,
+            'name': data?['name'] ?? 'Unknown',
+            'photoUrl': data?['profileImageUrl'] ?? '',
+            'active': collaborator["status"].toString() == "Accepted",
+          });
+        }
+      }
+
+      setState(() {
+        collaborators = fetchedCollaborators;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching collaborators: $e');
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching collaborators: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _toggleTaskStatus() async {
@@ -415,6 +475,69 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
     );
   }
 
+  Widget _buildCollaboratorsWidget() {
+    if (collaborators.isEmpty) {
+      return const Center(
+        child: Text(
+          'No collaborators available.',
+          style: TextStyle(fontSize: 16.0, color: Colors.black54),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Collaborators',
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF404C8C),
+          ),
+        ),
+        const SizedBox(height: 10.0),
+        ...collaborators.map((collaborator) {
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundImage: collaborator['photoUrl'].isNotEmpty
+                    ? NetworkImage(collaborator['photoUrl'])
+                    : null,
+                backgroundColor: Colors.grey.shade300,
+                child: collaborator['photoUrl'].isEmpty
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              ),
+              title: Text(
+                collaborator['name'],
+                style: const TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              subtitle: Text(
+                collaborator['active'] == true ? 'Active' : 'Inactive',
+                style: TextStyle(
+                  fontSize: 14.0,
+                  color: collaborator['active'] == true
+                      ? Colors.green
+                      : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final accountType = ref.watch(accountTypeProvider);
@@ -666,6 +789,7 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
                     const SizedBox(height: 20.0),
                     if (accountType == AccountType.corporateProvider)
                       _buildAssignedEmployeesWidget(),
+                    if (collaborators.isNotEmpty) _buildCollaboratorsWidget(),
                   ],
                 ),
               ),

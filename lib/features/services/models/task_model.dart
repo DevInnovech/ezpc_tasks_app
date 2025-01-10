@@ -20,7 +20,7 @@ class Task {
   final String licenseExpirationDate;
   final List<String> workingDays;
   final Map<String, Map<String, String>> workingHours;
-  final List<Map<String, String>> specialDays;
+  final List<Map<String, dynamic>> specialDays;
   final String documentUrl;
   final String phone;
   final String service;
@@ -43,6 +43,7 @@ class Task {
   final String description;
   final String clientName;
   final String clientLastName;
+  final List<Map<String, dynamic>>? collaborators;
 
   Task({
     required this.id,
@@ -89,6 +90,7 @@ class Task {
     required this.description,
     required this.clientName,
     required this.clientLastName,
+    this.collaborators,
   });
 
   // Método copyWith
@@ -114,7 +116,7 @@ class Task {
     String? licenseExpirationDate,
     List<String>? workingDays,
     Map<String, Map<String, String>>? workingHours,
-    List<Map<String, String>>? specialDays,
+    List<Map<String, dynamic>>? specialDays,
     String? documentUrl,
     String? phone,
     String? service,
@@ -137,6 +139,7 @@ class Task {
     String? description,
     String? clientName,
     String? clientLastName,
+    List<Map<String, dynamic>>? collaborators, // NUEVO PARÁMETRO
   }) {
     return Task(
       id: id ?? this.id,
@@ -184,6 +187,7 @@ class Task {
       description: description ?? this.description,
       clientName: clientName ?? this.clientName,
       clientLastName: clientLastName ?? this.clientLastName,
+      collaborators: collaborators ?? this.collaborators, // NUEVO CAMPO
     );
   }
 
@@ -234,6 +238,7 @@ class Task {
       'description': description,
       'clientName': clientName,
       'clientLastName': clientLastName,
+      'collaborators': collaborators, // NUEVO CAMPO
     };
   }
 
@@ -256,6 +261,9 @@ class Task {
                   .map((key, value) => MapEntry(key, value.toString())),
             )
           : {}, // Ensure default is an empty map if not present or invalid
+      collaborators: map['collaborators'] != null
+          ? List<Map<String, dynamic>>.from(map['collaborators'])
+          : null, // NUEVO CAMPO
 
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
@@ -282,7 +290,7 @@ class Task {
             ),
           ) ??
           {},
-      specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
+      specialDays: List<Map<String, dynamic>>.from(map['specialDays'] ?? []),
       documentUrl: map['documentUrl'] ?? '',
       phone: map['phone'] ?? '',
       service: map['service'] ?? '',

@@ -122,12 +122,33 @@ class ServiceCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Text(
-                      'by ${task.firstName ?? 'N/A'}',
-                      style: const TextStyle(
-                        fontSize: 12.0,
-                        color: Colors.grey,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'by ${task.firstName ?? 'N/A'}', // Muestra el nombre del proveedor
+                          style: const TextStyle(
+                            fontSize: 12.0,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        if (task.collaborators != null &&
+                            task.collaborators!.isNotEmpty)
+                          Row(
+                            children: [
+                              const Icon(Icons.person,
+                                  size: 16.0, color: Colors.blue),
+                              const SizedBox(width: 4.0),
+                              Text(
+                                '${task.collaborators!.length}', // Muestra la cantidad de colaboradores
+                                style: const TextStyle(
+                                  fontSize: 12.0,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
                   ],
                 ),
