@@ -421,7 +421,7 @@ class TaskNotifier extends StateNotifier<TaskState> {
         questions: task.questions, // Asegurarse de guardar preguntas
         selectedTasks: task.selectedTasks,
         assignments: {}, // Guardar tareas seleccionadas
-        collaborators: [],
+        collaborators: task.collaborators,
       );
 
       // Save the task in the repository

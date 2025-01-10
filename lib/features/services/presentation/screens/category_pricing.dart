@@ -56,16 +56,42 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
       return const Stream
           .empty(); // Devuelve un stream vacío si no hay tarea actual.
     }
+
     return FirebaseFirestore.instance
         .collection('notifications')
         .where('taskId', isEqualTo: taskId)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              return {
-                'id': doc.id,
-                ...doc.data(),
-              };
-            }).toList());
+        .map((snapshot) {
+      final updatedCollaborators = snapshot.docs.map((doc) {
+        return {
+          'id': doc.data()["providerId"],
+          ...doc.data(),
+        };
+      }).toList();
+
+      // Actualizar la lista local de colaboradores
+      for (var updated in updatedCollaborators) {
+        final existingIndex =
+            collaborators.indexWhere((collab) => collab['id'] == updated['id']);
+
+        if (existingIndex != -1) {
+          // Actualiza solo los datos del colaborador que cambió
+          collaborators[existingIndex] = {
+            ...collaborators[existingIndex],
+            ...updated,
+          };
+        } else {
+          // Si es un colaborador nuevo, agrégalo a la lista
+          collaborators.add(updated);
+        }
+      }
+
+      // Llamar a _updateCollaborators con la lista actualizada
+      widget.onCollaboratorsChanged(collaborators);
+
+      // Devolver la lista actualizada como parte del stream
+      return updatedCollaborators;
+    });
   }
 
   Future<void> _loadCategories() async {
@@ -491,7 +517,7 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
               ),
             _buildSectionTitle(context, 'Collaborators'),
             _buildAssistantsToggle(),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             if (_showassistants) _buildCollaboratorsSection(context)
           ],
         ),
@@ -599,7 +625,8 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
           .collection('tasks')
           .doc(currentTask.id)
           .update({
-        'collaborators': collaborators.map((collab) => collab['id']).toList(),
+        'collaborators':
+            collaborators.map((collab) => collab['providerId']).toList(),
       });
     } catch (e) {
       debugPrint("Error syncing collaborators to Firestore: $e");
@@ -607,7 +634,8 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
   }
 
   bool _addCollaboratorhome(Map<String, dynamic> collaborator) {
-    if (collaborators.any((collab) => collab['id'] == collaborator['id'])) {
+    if (collaborators
+        .any((collab) => collab['providerId'] == collaborator['id'])) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Collaborator already added.")),
       );

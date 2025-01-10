@@ -24,7 +24,9 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
 
   void _updateCollaborators(List<Map<String, dynamic>> updatedCollaborators) {
     setState(() {
+      print(updatedCollaborators);
       collaborators = updatedCollaborators;
+      ref.read(taskProvider.notifier).updateTask(collaborators: collaborators);
     });
   }
 
@@ -159,7 +161,6 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
         );
         return;
       }
-      ref.read(taskProvider.notifier).updateTask(collaborators: collaborators);
     }
     if (_currentStep == 1) {
       if (currentTask.questions == null || currentTask.questions!.isEmpty) {

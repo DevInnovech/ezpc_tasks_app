@@ -20,7 +20,7 @@ class Task {
   final String licenseExpirationDate;
   final List<String> workingDays;
   final Map<String, Map<String, String>> workingHours;
-  final List<Map<String, String>> specialDays;
+  final List<Map<String, dynamic>> specialDays;
   final String documentUrl;
   final String phone;
   final String service;
@@ -116,7 +116,7 @@ class Task {
     String? licenseExpirationDate,
     List<String>? workingDays,
     Map<String, Map<String, String>>? workingHours,
-    List<Map<String, String>>? specialDays,
+    List<Map<String, dynamic>>? specialDays,
     String? documentUrl,
     String? phone,
     String? service,
@@ -290,7 +290,7 @@ class Task {
             ),
           ) ??
           {},
-      specialDays: List<Map<String, String>>.from(map['specialDays'] ?? []),
+      specialDays: List<Map<String, dynamic>>.from(map['specialDays'] ?? []),
       documentUrl: map['documentUrl'] ?? '',
       phone: map['phone'] ?? '',
       service: map['service'] ?? '',

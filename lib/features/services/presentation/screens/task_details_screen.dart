@@ -33,7 +33,14 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
   List<Map<String, dynamic>> collaborators = [];
 
   Future<void> _fetchCollaborators() async {
-    if (currentTask.assignments == null) return;
+    // Ensure collaborators exist and are in the expected format
+    if (currentTask.collaborators == null ||
+        currentTask.collaborators!.isEmpty) {
+      setState(() {
+        collaborators = [];
+      });
+      return;
+    }
 
     try {
       setState(() {
@@ -41,18 +48,24 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
       });
 
       List<Map<String, dynamic>> fetchedCollaborators = [];
-      for (String collaboratorId in currentTask.assignments!.keys) {
+
+      // Ensure currentTask.collaborators is an iterable of strings
+      for (var collaborator in currentTask.collaborators!) {
+        // Assuming collaborators is a list of strings or contains an 'id' field
+        final String collaboratorId = collaborator['id'].toString();
+
         final collaboratorDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(collaboratorId)
             .get();
 
         if (collaboratorDoc.exists) {
+          final data = collaboratorDoc.data();
           fetchedCollaborators.add({
             'id': collaboratorId,
-            'name': collaboratorDoc.data()?['name'] ?? 'Unknown',
-            'photoUrl': collaboratorDoc.data()?['profileImageUrl'] ?? '',
-            'active': currentTask.assignments![collaboratorId],
+            'name': data?['name'] ?? 'Unknown',
+            'photoUrl': data?['profileImageUrl'] ?? '',
+            'active': collaborator["status"].toString() == "Accepted",
           });
         }
       }
@@ -66,6 +79,13 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
       setState(() {
         isLoading = false;
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching collaborators: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
