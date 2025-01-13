@@ -248,13 +248,18 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                             children: [
                               CircleAvatar(
                                 backgroundImage:
-                                    collaborator['photoUrl'] != null &&
-                                            collaborator['photoUrl'].isNotEmpty
-                                        ? NetworkImage(collaborator['photoUrl'])
+                                    collaborator['imagecollaborators'] !=
+                                                null &&
+                                            collaborator['imagecollaborators']
+                                                .isNotEmpty
+                                        ? NetworkImage(
+                                            collaborator['imagecollaborators'])
                                         : null,
                                 backgroundColor: Colors.grey.shade300,
-                                child: collaborator['photoUrl'] == null ||
-                                        collaborator['photoUrl'].isEmpty
+                                child: collaborator['imagecollaborators'] ==
+                                            null ||
+                                        collaborator['imagecollaborators']
+                                            .isEmpty
                                     ? const Icon(Icons.person,
                                         color: Colors.white)
                                     : null,
@@ -262,7 +267,7 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
                               const SizedBox(width: 12.0),
                               Expanded(
                                 child: Text(
-                                  collaborator['name'] ?? 'Unknown',
+                                  collaborator['collaborators'] ?? 'Unknown',
                                   style: const TextStyle(
                                     fontSize: 16.0,
                                     fontWeight: FontWeight.w600,
@@ -580,6 +585,8 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
           collaboratorDoc.docs.first.id,
           currentTask?.id ?? '',
           currentTask?.category ?? '',
+          collaborator['name'],
+          collaborator['profileImageUrl'],
         );
       }
 
@@ -592,8 +599,8 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
     }
   }
 
-  Future<void> _sendNotification(
-      String providerId, String taskId, String taskName) async {
+  Future<void> _sendNotification(String providerId, String taskId,
+      String taskName, String panername, String urlpaner) async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
 
@@ -601,13 +608,28 @@ class _CategoryPricingStepState extends ConsumerState<CategoryPricingStep> {
         throw Exception("User not authenticated.");
       }
 
+      // Buscar el nombre del usuario en la colección 'users'
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception("User document not found in 'users' collection.");
+      }
+
+      // Obtener el nombre del usuario desde Firestore
+      final senderName = userDoc.data()?['name'] ?? 'Unknown';
+
+      // Crear la notificación
       await FirebaseFirestore.instance.collection('notifications').add({
         'providerId': providerId, // ID del colaborador destinatario
         'taskId': taskId, // ID de la tarea relacionada
         'taskName': taskName, // Nombre de la tarea
         'sendId': currentUser.uid, // ID del remitente
-        'senderName':
-            currentUser.displayName ?? 'Unknown', // Nombre del remitente
+        'collaborators': panername,
+        'imagecollaborators': urlpaner,
+        'senderName': senderName, // Nombre del remitente obtenido de Firestore
         'status': 'Pending', // Estado inicial
         'timestamp': FieldValue.serverTimestamp(),
       });

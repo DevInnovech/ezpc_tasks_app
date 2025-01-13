@@ -72,7 +72,8 @@ Widget buildCollaboratorRequests() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Status: ${request['status']}"),
-                      Text("Sent by: ${senderData?['name'] ?? 'Unknown'}"),
+                      Text(
+                          "Sent by: ${senderData?['name'] ?? request['collaborators']}"),
                     ],
                   ),
                   trailing: Row(
