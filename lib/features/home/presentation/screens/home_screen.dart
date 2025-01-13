@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/features/home/data/dashboardnotifi.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/ondemand.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -143,7 +144,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ],
                         ),
-                        GestureDetector(
+                        const AvailabilitySwitch()
+                        /*   GestureDetector(
                           onTap: () {
                             scaffoldKey.currentState!.openEndDrawer();
                           },
@@ -169,6 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ),
                         ),
+                     */
                       ],
                     ),
                     const BalanceCard(),
