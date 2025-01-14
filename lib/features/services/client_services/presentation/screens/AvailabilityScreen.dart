@@ -87,7 +87,9 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         // Verificar si las subcategorías coinciden
         if (!subCategoriesSet.difference(relatedSelectedKeys).isEmpty) continue;
 
-        if (taskMap.containsKey('assignments')) {
+        if (taskMap.containsKey('assignments') &&
+            (taskMap["assignments"] != null &&
+                taskMap["assignments"].isNotEmpty)) {
           // Tareas corporativas
           final assignments = taskMap['assignments'] as Map<String, dynamic>;
           final activeProviders = assignments.entries
@@ -121,6 +123,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             'onDemand': userData['onDemand'] ?? false,
             'rating': userData['rating'] ?? 0.0,
           });
+          print("hola2");
         }
       }
 
