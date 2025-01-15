@@ -675,8 +675,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         } else if (taskStatus == "completed") {
           // Botón de soporte técnico
           return ElevatedButton(
-            onPressed: () => onReviewAdded(
-                'cT9iAt4aFuU2qiH697rWQt9x8zq2'), //_showTechnicalSupportOptions(context),
+            onPressed: () => _showTechnicalSupportOptions(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               minimumSize: const Size.fromHeight(50),

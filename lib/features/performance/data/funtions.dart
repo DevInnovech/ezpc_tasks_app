@@ -1,19 +1,31 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 Future<void> callCalculateAndUpdateProviderRating(String providerId) async {
+  final url = Uri.parse(
+      'https://us-central1-ezpc-tasks.cloudfunctions.net/calculateAndUpdateProviderRating');
+
   try {
-    // Inicializar Firebase Functions
-    final functions = FirebaseFunctions.instance;
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'providerId': providerId, // Enviar el ID del proveedor
+      }),
+    );
 
-    // Llamar a la función
-    final callable =
-        functions.httpsCallable('calculateAndUpdateProviderRating');
-    await callable.call({'providerId': providerId});
-
-    // Puedes agregar un log adicional si lo deseas
-    print('Cloud Function executed successfully.');
-  } catch (error) {
-    print('Error calling Cloud Function: $error');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print('Response: ${data['message']}');
+    } else {
+      print('Error: ${response.statusCode} - ${response.body}');
+    }
+  } catch (e) {
+    print('Exception: $e');
   }
 }
 

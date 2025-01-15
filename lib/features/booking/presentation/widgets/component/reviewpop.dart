@@ -228,8 +228,9 @@ Future<void> showCompletionReviewPopup(
                           review: reviewController.text.trim(),
                           isReviewingProvider: isReviewingProvider,
                         );
-
-                        onReviewAdded(providerId);
+                        if (isReviewingProvider) {
+                          onReviewAdded(providerId);
+                        }
 
                         ScaffoldMessenger.of(context1).showSnackBar(
                           const SnackBar(content: Text('Review submitted!')),
