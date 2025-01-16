@@ -139,7 +139,7 @@ class CreateAccountPage1 extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                //  loginextras(context),
+                loginextras(context),
                 const SizedBox(height: 16.0),
                 PrimaryButton(
                   text: 'Continue',
@@ -178,7 +178,7 @@ class CreateAccountPage1 extends StatelessWidget {
     );
   }
 }
-/*
+
 Widget loginextras(BuildContext context) {
   final authService = AuthService(); // Instancia del servicio de autenticación
 
@@ -195,13 +195,14 @@ Widget loginextras(BuildContext context) {
             if (user.displayName != null && user.email != null) {
               Navigator.pushNamed(
                 context,
-                RouteNames.additionalInfoPage,
+                RouteNames.registrationScreengoogle,
                 arguments: {
                   'email': user.email,
                   'name': user.displayName!.split(' ').first,
                   'lastName': user.displayName!.split(' ').length > 1
                       ? user.displayName!.split(' ').last
                       : '',
+                  'user_special': user
                 },
               );
             }
@@ -213,7 +214,7 @@ Widget loginextras(BuildContext context) {
         imagePath: KImages.facebookIcon,
         color: Colors.black,
         onTap: () async {
-          // Manejar el inicio de sesión con Facebook
+          /*     // Manejar el inicio de sesión con Facebook
           var user = await authService.signInWithFacebook();
           if (user != null) {
             Navigator.pushNamed(context, RouteNames.passwordAccountpage,
@@ -221,7 +222,7 @@ Widget loginextras(BuildContext context) {
                   'email': user.email,
                   'name': user.displayName,
                 });
-          }
+          }*/
         },
       ),
       Utils.horizontalSpace(6.0),
@@ -229,7 +230,7 @@ Widget loginextras(BuildContext context) {
         imagePath: KImages.applelogo,
         color: Colors.black,
         onTap: () async {
-          // Manejar el inicio de sesión con Apple
+          /*   // Manejar el inicio de sesión con Apple
           var user = await authService.signInWithApple();
           if (user != null) {
             Navigator.pushNamed(context, RouteNames.passwordAccountpage,
@@ -237,10 +238,9 @@ Widget loginextras(BuildContext context) {
                   'email': user.email,
                   'name': user.displayName,
                 });
-          }
+          }*/
         },
       ),
     ],
   );
 }
-*/

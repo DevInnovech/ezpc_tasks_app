@@ -1,6 +1,7 @@
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/preview_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/edit_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/about_me_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/basic_register_google.dart';
 import 'package:ezpc_tasks_app/features/checkr/screens/candidate_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/accountverificationscreen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
@@ -86,7 +87,7 @@ class RouteNames {
       '/providerTypeSelectionScreen';*/
   static const String providerSelectionEmployer = '/providerSelectionEmployer';
 
-  // static const String registrationScreen = '/registrationScreen';
+  static const String registrationScreengoogle = '/registrationScreen';
   static const String createAccountScreen = '/createAccountScreen';
   static const String signUpBusinessAccountScreen =
       '/signUpBusinessAccountScreen';
@@ -224,6 +225,12 @@ class RouteNames {
         return MaterialPageRoute(
             settings: settings,
             builder: (_) => const IndependentProviderSelectionScreen());
+      // con google
+
+      case RouteNames.registrationScreengoogle:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => AdditionalInfoPageGoogle());
+
       case RouteNames.createAccountScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => CreateAccountPage1());

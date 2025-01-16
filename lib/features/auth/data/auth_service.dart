@@ -2,6 +2,7 @@ import 'package:ezpc_tasks_app/features/my%20employe/models/employee_model.dart'
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'; // Para generar el número aleatorio
 
@@ -37,8 +38,7 @@ class AuthService {
     }
   }
 
-  /*
- Future<User?> signInWithGoogle() async {
+  Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) return null;
@@ -59,7 +59,31 @@ class AuthService {
       print("Error signing in with Google: $e");
       return null;
     }
-  }*/
+  }
+
+  Future<UserCredential?> signInWithGooglecredencial() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      return userCredential;
+    } catch (e) {
+      print("Error signing in with Google: $e");
+      return null;
+    }
+  }
+
   // Guardar preferencias (email y contraseña si 'isRemember' es true)
   Future<void> savePreferences(
       String email, String password, bool isRemember) async {
@@ -93,6 +117,8 @@ class AuthService {
 
   // Registro de cliente o proveedor
   Future<User?> SignUpMethod({
+    required String? special_register,
+    required User? user_special,
     required String email,
     required String name,
     required String lastName,
@@ -115,14 +141,19 @@ class AuthService {
     DateTime? dob,
   }) async {
     try {
-      // Crear usuario en Firebase Auth
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      User? user;
+      if (special_register == 'google' && user_special != null) {
+        user = user_special;
+      } else {
+        // Crear usuario en Firebase Auth
+        UserCredential userCredential =
+            await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      User? user = userCredential.user;
+        user = userCredential.user;
+      }
 
       if (user != null) {
         // Generar el código único basado en el rol
