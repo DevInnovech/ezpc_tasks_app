@@ -3,14 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Modelo para un servicio popular
 class PopularService {
-  final String providerName;
-  final String category;
-  final String imageUrl;
+  final String serviceName;
+  final int count;
 
   PopularService({
-    required this.providerName,
-    required this.category,
-    required this.imageUrl,
+    required this.serviceName,
+    required this.count,
   });
 }
 
@@ -41,22 +39,34 @@ class PopularServicesController extends StateNotifier<PopularServicesState> {
 
   Future<void> loadPopularServices() async {
     try {
-      // Consulta para obtener las tareas
-      final tasksSnapshot = await _firestore.collection('tasks').get();
+      // Consulta para obtener los servicios populares ordenados por 'count'
+      final snapshot = await _firestore
+          .collection('servicesfiltered')
+          .doc('servicespop')
+          .get();
 
-      // Mapear las tareas a objetos de PopularService
-      final services = tasksSnapshot.docs.map((doc) {
-        final data = doc.data();
+      if (snapshot.exists) {
+        final data = snapshot.data();
 
-        return PopularService(
-          providerName:
-              data['firstName'] ?? 'Unnamed Provider', // Nombre del proveedor
-          category: data['category'] ?? 'Uncategorized', // Categoría
-          imageUrl: data['imageUrl'] ?? '', // URL de la imagen
-        );
-      }).toList();
+        // Asegúrate de que 'services' es una lista válida
+        final servicesList = (data?['services'] as List<dynamic>?) ?? [];
 
-      state = PopularServicesLoaded(services);
+        // Mapear los datos a objetos de PopularService y ordenar por count
+        final services = servicesList
+            .map((serviceData) => PopularService(
+                  serviceName: serviceData['service'] ?? 'Unnamed Service',
+                  count: serviceData['count'] ?? 0,
+                ))
+            .toList()
+          ..sort((a, b) => b.count.compareTo(a.count)); // Orden descendente
+
+        // Tomar los 10 servicios más populares
+        final topServices = services.take(10).toList();
+
+        state = PopularServicesLoaded(topServices);
+      } else {
+        state = PopularServicesLoaded([]);
+      }
     } catch (e) {
       state = PopularServicesError(e.toString());
     }

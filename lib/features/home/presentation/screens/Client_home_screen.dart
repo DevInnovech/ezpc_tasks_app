@@ -34,6 +34,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
     checkReferralStatus();
     ref.read(servicesControllerProvider.notifier).loadAllServices();
     ref.read(popularServicesProvider.notifier).loadPopularServices();
+    ref.read(providerControllerProvider.notifier).loadProviders();
   }
 
   Future<void> checkReferralStatus() async {
@@ -167,17 +168,22 @@ class ServiceCard extends StatelessWidget {
 }
 
 class PopularServiceCard extends StatelessWidget {
-  final PopularService service;
+  final String serviceName;
+  final int count;
 
-  const PopularServiceCard({super.key, required this.service});
+  const PopularServiceCard({
+    super.key,
+    required this.serviceName,
+    required this.count,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // Acción al hacer clic en un servicio popular
+        // Acción al hacer clic en el servicio
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected service: ${service.providerName}')),
+          SnackBar(content: Text('Selected service: $serviceName')),
         );
       },
       child: Container(
@@ -197,51 +203,29 @@ class PopularServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen del servicio (si existe)
-            service.imageUrl.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      service.imageUrl,
-                      height: 80,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Container(
-                    height: 80,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      size: 40,
-                      color: Colors.grey,
-                    ),
-                  ),
+            // Icono representativo
+            const Icon(Icons.star, size: 40, color: Colors.blue),
             const SizedBox(height: 8),
-            // Nombre del proveedor
+
+            // Nombre del servicio
             Text(
-              service.providerName,
+              serviceName,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
-            // Categoría del servicio
+            const SizedBox(height: 8),
+
+            // Conteo del servicio (popularidad)
             Text(
-              service.category,
+              "Used $count times",
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[600],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -355,26 +339,34 @@ class HomeLoadedData extends StatelessWidget {
 // Manejo de estados del controlador de servicios
             Builder(
               builder: (context) {
-                final servicesState = ref.watch(servicesControllerProvider);
+                final providerState = ref.watch(providerControllerProvider);
 
-                if (servicesState is ServicesControllerLoading) {
+                if (providerState is ProviderControllerLoading) {
                   return const Center(child: CircularProgressIndicator());
-                } else if (servicesState is ServicesControllerError) {
-                  return Center(child: Text('Error: ${servicesState.message}'));
-                } else if (servicesState is ServicesControllerLoaded) {
-                  final services = servicesState.services;
+                } else if (providerState is ProviderControllerError) {
+                  return Center(child: Text('Error: ${providerState.message}'));
+                } else if (providerState is ProviderControllerLoaded) {
+                  final providers = providerState.providers;
+
+                  // Si no hay proveedores, mostrar un mensaje
+                  if (providers.isEmpty) {
+                    return const Center(
+                      child: Text('No featured providers available.'),
+                    );
+                  }
 
                   return SizedBox(
-                    height: 200, // Altura del carrusel
+                    height: 200,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: services.length,
+                      itemCount: providers.length,
                       itemBuilder: (context, index) {
-                        final service = services[index];
+                        final provider = providers[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
-                          child: ServiceCard(service: service),
+                          child: ProviderCard(
+                              provider: provider), // Usar ProviderCard
                         );
                       },
                     ),
@@ -446,7 +438,11 @@ class HomeLoadedData extends StatelessWidget {
                         final service = popularServices[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
-                          child: PopularServiceCard(service: service),
+                          child: PopularServiceCard(
+                            serviceName: service
+                                .serviceName, // Pasa el nombre del servicio
+                            count: service.count, // Pasa el conteo del servicio
+                          ),
                         );
                       },
                     ),
