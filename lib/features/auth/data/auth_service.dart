@@ -37,6 +37,29 @@ class AuthService {
     }
   }
 
+  /*
+ Future<User?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      return userCredential.user;
+    } catch (e) {
+      print("Error signing in with Google: $e");
+      return null;
+    }
+  }*/
   // Guardar preferencias (email y contraseña si 'isRemember' es true)
   Future<void> savePreferences(
       String email, String password, bool isRemember) async {

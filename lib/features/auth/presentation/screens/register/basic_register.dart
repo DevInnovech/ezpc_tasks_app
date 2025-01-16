@@ -1,7 +1,10 @@
+import 'package:ezpc_tasks_app/features/auth/data/auth_service.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
+import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_app_bar.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_socialbutton.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_form2.dart';
@@ -136,6 +139,8 @@ class CreateAccountPage1 extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16.0),
+                //  loginextras(context),
+                const SizedBox(height: 16.0),
                 PrimaryButton(
                   text: 'Continue',
                   onPressed: () async {
@@ -173,3 +178,69 @@ class CreateAccountPage1 extends StatelessWidget {
     );
   }
 }
+/*
+Widget loginextras(BuildContext context) {
+  final authService = AuthService(); // Instancia del servicio de autenticación
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      SocialButton(
+        imagePath: KImages.googleIcon,
+        color: Colors.black,
+        onTap: () async {
+          var user = await authService.signInWithGoogle();
+          if (user != null) {
+            // Verificar si falta información
+            if (user.displayName != null && user.email != null) {
+              Navigator.pushNamed(
+                context,
+                RouteNames.additionalInfoPage,
+                arguments: {
+                  'email': user.email,
+                  'name': user.displayName!.split(' ').first,
+                  'lastName': user.displayName!.split(' ').length > 1
+                      ? user.displayName!.split(' ').last
+                      : '',
+                },
+              );
+            }
+          }
+        },
+      ),
+      Utils.horizontalSpace(6.0),
+      SocialButton(
+        imagePath: KImages.facebookIcon,
+        color: Colors.black,
+        onTap: () async {
+          // Manejar el inicio de sesión con Facebook
+          var user = await authService.signInWithFacebook();
+          if (user != null) {
+            Navigator.pushNamed(context, RouteNames.passwordAccountpage,
+                arguments: {
+                  'email': user.email,
+                  'name': user.displayName,
+                });
+          }
+        },
+      ),
+      Utils.horizontalSpace(6.0),
+      SocialButton(
+        imagePath: KImages.applelogo,
+        color: Colors.black,
+        onTap: () async {
+          // Manejar el inicio de sesión con Apple
+          var user = await authService.signInWithApple();
+          if (user != null) {
+            Navigator.pushNamed(context, RouteNames.passwordAccountpage,
+                arguments: {
+                  'email': user.email,
+                  'name': user.displayName,
+                });
+          }
+        },
+      ),
+    ],
+  );
+}
+*/

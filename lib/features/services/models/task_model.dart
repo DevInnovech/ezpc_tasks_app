@@ -303,7 +303,7 @@ class Task {
       status: map['status'] ?? 1,
       createdAt: map['createdAt'] ?? '',
       approveByAdmin: map['approveByAdmin'] ?? 0,
-      averageRating: map['averageRating'] ?? '',
+      averageRating: map['averageRating'].toString() ?? '',
       totalReview: map['totalReview'] ?? 0,
       totalOrder: map['totalOrder'] ?? 0,
       providerId: map['providerId'] ?? '',
