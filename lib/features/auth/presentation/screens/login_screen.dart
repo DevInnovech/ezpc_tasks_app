@@ -379,8 +379,39 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
       UserCredential? userCredential;
       if (loginMethod == 'email') {
         // Iniciar sesión con email y contraseña
-        userCredential =
-            await _authService.signInWithEmailAndPassword(email!, password!);
+        try {
+          userCredential =
+              await _authService.signInWithEmailAndPassword(email!, password!);
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'email-not-verified') {
+            // Mostrar un mensaje de que el correo no está verificado
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.message ?? 'Please verify your email.'),
+                action: SnackBarAction(
+                  label: 'Resend Email',
+                  onPressed: () async {
+                    try {
+                      await FirebaseAuth.instance.currentUser
+                          ?.sendEmailVerification();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Verification email sent!')),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content:
+                              Text('Failed to resend verification email: $e'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            );
+          }
+        }
       } else if (loginMethod == 'google') {
         // Iniciar sesión con Google
         userCredential = (await _authService.signInWithGooglecredencial());
@@ -464,6 +495,7 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
       }
     } catch (e) {
       print('Error during login: $e');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('An error occurred during login')),
       );
