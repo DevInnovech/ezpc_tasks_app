@@ -1,6 +1,8 @@
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/preview_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/edit_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/about_me_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/autologin_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/basic_register_google.dart';
 import 'package:ezpc_tasks_app/features/checkr/screens/candidate_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/accountverificationscreen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
@@ -66,6 +68,7 @@ import 'package:flutter/material.dart';
 //ultima union
 class RouteNames {
   static const String popularServicesScreen = '/popularServicesScreen';
+  static const String autoLoginScreen = '/autoLoginScreen';
   static const String splashScreen = '/splashScreen';
   static const String onBoardingScreen = '/onBoardingScreen';
   static const String authenticationScreen = '/authenticationScreen';
@@ -87,7 +90,7 @@ class RouteNames {
       '/providerTypeSelectionScreen';*/
   static const String providerSelectionEmployer = '/providerSelectionEmployer';
 
-  // static const String registrationScreen = '/registrationScreen';
+  static const String registrationScreengoogle = '/registrationScreen';
   static const String createAccountScreen = '/createAccountScreen';
   static const String signUpBusinessAccountScreen =
       '/signUpBusinessAccountScreen';
@@ -185,6 +188,9 @@ class RouteNames {
       case RouteNames.splashScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const SplashScreen());
+      case RouteNames.autoLoginScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const AutoLoginScreen());
 
       case RouteNames.onBoardingScreen:
         return MaterialPageRoute(
@@ -200,7 +206,14 @@ class RouteNames {
 
       case RouteNames.forgotPasswordScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const ForgotPasswordScreen());
+          settings: settings,
+          builder: (_) {
+            // Recuperar los argumentos pasados
+            final String selectedOption = settings.arguments as String;
+            return ForgotPasswordScreen(selectedOption: selectedOption);
+          },
+        );
+
       case RouteNames.resetOptionSelectionScreen:
         return MaterialPageRoute(
             settings: settings,
@@ -225,6 +238,12 @@ class RouteNames {
         return MaterialPageRoute(
             settings: settings,
             builder: (_) => const IndependentProviderSelectionScreen());
+      // con google
+
+      case RouteNames.registrationScreengoogle:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => AdditionalInfoPageGoogle());
+
       case RouteNames.createAccountScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => CreateAccountPage1());
@@ -263,9 +282,16 @@ class RouteNames {
             settings: settings,
             builder: (_) => const VerificationSelectionScreen());
       case RouteNames.verificationCompletedScreen:
+        final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
-            settings: settings,
-            builder: (_) => const VerificationCompletedScreen());
+          settings: settings,
+          builder: (_) => VerificationCompletedScreen(
+            title: args['title'],
+            subtitle: args['subtitle'],
+            onContinue: args['onContinue'],
+          ),
+        );
+
       case RouteNames.homeScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const HomeScreen());

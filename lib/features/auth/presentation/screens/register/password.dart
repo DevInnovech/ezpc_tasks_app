@@ -4,6 +4,7 @@ import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_form2.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
@@ -40,6 +41,8 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
     String address;
     String description;
     String employercode;
+    String? special_register;
+    User? user_special;
     var dob;
 
     // Obtener los argumentos de la página anterior
@@ -81,6 +84,8 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
         lastName = args['lastName'];
         phoneNumber = args['phoneNumber'];
         address = args['address'];
+        special_register = args['special_register'];
+        user_special = args['user_special'];
     }
 
     return Scaffold(
@@ -211,6 +216,8 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                                   : accountType == AccountType.employeeProvider
                                       ? employercode
                                       : null,
+                              special_register: special_register,
+                              user_special: user_special,
                             );
 
                             if (user != null) {

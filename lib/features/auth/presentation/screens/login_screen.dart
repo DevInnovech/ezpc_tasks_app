@@ -105,115 +105,12 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                       : () async {
                           // Ocultar el teclado
                           Utils.closeKeyBoard(context);
-
-                          // Validar los campos
-                          if (email == null ||
-                              email!.isEmpty ||
-                              password == null ||
-                              password!.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Please fill in all fields')),
-                            );
-                            return;
-                          }
-
-                          try {
-                            UserCredential? userCredential = await _authService
-                                .signInWithEmailAndPassword(email!, password!);
-
-                            if (userCredential != null) {
-                              await _authService.savePreferences(
-                                  email!, password!, isRemember);
-
-                              final userDoc = await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(userCredential.user!.uid)
-                                  .get();
-
-                              if (userDoc.exists) {
-                                final userStatus = userDoc.get('status');
-                                final userRole = userDoc.get('accountType');
-
-                                // Verificar estado del usuario
-                                if (userStatus == 'Approved') {
-                                  // Redirigir según el rol
-                                  if (userRole == 'Client') {
-                                    ref
-                                        .read(accountTypeProvider.notifier)
-                                        .selectAccountType(AccountType.client);
-                                    Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        RouteNames.ClientmainScreen,
-                                        (route) => false);
-                                  } else if (userRole ==
-                                      'Independent Provider') {
-                                    ref
-                                        .read(accountTypeProvider.notifier)
-                                        .selectAccountType(
-                                            AccountType.independentProvider);
-                                    Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        RouteNames.mainScreen,
-                                        (route) => false);
-                                  } else if (userRole == 'Corporate Provider') {
-                                    ref
-                                        .read(accountTypeProvider.notifier)
-                                        .selectAccountType(
-                                            AccountType.corporateProvider);
-                                    Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        RouteNames.mainScreen,
-                                        (route) => false);
-                                  } else if (userRole == 'Employee Provider') {
-                                    ref
-                                        .read(accountTypeProvider.notifier)
-                                        .selectAccountType(
-                                            AccountType.employeeProvider);
-                                    Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        RouteNames.mainScreen,
-                                        (route) => false);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'An error occurred. Unrecognized role.')),
-                                    );
-                                  }
-                                  ///////////////////////////////////////////////
-                                } else if (userStatus == 'Pending') {
-                                  // Redirigir a pantalla de verificación
-                                  Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      RouteNames.accountVerificationScreen,
-                                      (route) => false);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Your account is not active. Contact support.')),
-                                  );
-                                }
-                              }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text('Incorrect email or password')),
-                              );
-                            }
-                          } catch (e) {
-                            print('Error during login: $e');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'An error occurred during login')));
-                          } finally {
-                            setState(() {
-                              isLoading = false;
-                            });
-                          }
+                          handleLogin(
+                              context: context,
+                              loginMethod: 'email',
+                              email: email,
+                              password: password,
+                              isRemember: isRemember);
                         },
                 ),
                 _buildRemember(),
@@ -394,12 +291,11 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SocialButton(
-          imagePath: KImages.googleIcon,
-          color: Colors.black,
-          onTap: () {
-            // Handle Google login
-          },
-        ),
+            imagePath: KImages.googleIcon,
+            color: Colors.black,
+            onTap: () async {
+              handleLogin(context: context, loginMethod: 'google');
+            }),
         Utils.horizontalSpace(6.0),
         SocialButton(
           imagePath: KImages.facebookIcon,
@@ -455,6 +351,160 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> handleLogin({
+    required BuildContext context,
+    String? email,
+    String? password,
+    required String loginMethod, // 'email' o 'google'
+    bool isRemember = false,
+  }) async {
+    try {
+      // Ocultar el teclado
+      Utils.closeKeyBoard(context);
+
+      // Validar los campos
+      if (loginMethod == 'email' &&
+          (email == null ||
+              email.isEmpty ||
+              password == null ||
+              password.isEmpty)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill in all fields')),
+        );
+        return;
+      }
+
+      // Autenticación según el método seleccionado
+      UserCredential? userCredential;
+      if (loginMethod == 'email') {
+        // Iniciar sesión con email y contraseña
+        try {
+          userCredential =
+              await _authService.signInWithEmailAndPassword(email!, password!);
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'email-not-verified') {
+            // Mostrar un mensaje de que el correo no está verificado
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.message ?? 'Please verify your email.'),
+                action: SnackBarAction(
+                  label: 'Resend Email',
+                  onPressed: () async {
+                    try {
+                      await FirebaseAuth.instance.currentUser
+                          ?.sendEmailVerification();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Verification email sent!')),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content:
+                              Text('Failed to resend verification email: $e'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            );
+          }
+        }
+      } else if (loginMethod == 'google') {
+        // Iniciar sesión con Google
+        userCredential = (await _authService.signInWithGooglecredencial());
+      }
+
+      if (userCredential != null) {
+        // Guardar preferencias del usuario
+        loginMethod == 'google'
+            ? null
+            : await _authService.savePreferences(email!, password!, isRemember);
+
+        // Obtener información del usuario desde Firestore
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+        if (userDoc.exists) {
+          final userStatus = userDoc.get('status');
+          final userRole = userDoc.get('accountType');
+
+          // Verificar estado del usuario
+          if (userStatus == 'Approved') {
+            // Redirigir según el rol
+            if (userRole == 'Client') {
+              ref
+                  .read(accountTypeProvider.notifier)
+                  .selectAccountType(AccountType.client);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, RouteNames.ClientmainScreen, (route) => false);
+            } else if (userRole == 'Independent Provider') {
+              ref
+                  .read(accountTypeProvider.notifier)
+                  .selectAccountType(AccountType.independentProvider);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, RouteNames.mainScreen, (route) => false);
+            } else if (userRole == 'Corporate Provider') {
+              ref
+                  .read(accountTypeProvider.notifier)
+                  .selectAccountType(AccountType.corporateProvider);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, RouteNames.mainScreen, (route) => false);
+            } else if (userRole == 'Employee Provider') {
+              ref
+                  .read(accountTypeProvider.notifier)
+                  .selectAccountType(AccountType.employeeProvider);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, RouteNames.mainScreen, (route) => false);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('An error occurred. Unrecognized role.')),
+              );
+            }
+          } else if (userStatus == 'Pending') {
+            // Redirigir a pantalla de verificación
+            Navigator.pushNamedAndRemoveUntil(context,
+                RouteNames.accountVerificationScreen, (route) => false);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content:
+                      Text('Your account is not active. Contact support.')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'User not found in the database. Please register first.')),
+          );
+        }
+      } else {
+        loginMethod == 'google'
+            ? ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Google sign-in failed. Please try again.')),
+              )
+            : ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Incorrect email or password')),
+              );
+      }
+    } catch (e) {
+      print('Error during login: $e');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred during login')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 }
 

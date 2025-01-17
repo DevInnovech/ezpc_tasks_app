@@ -7,6 +7,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/exit_dialog.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});
@@ -58,9 +59,14 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                 child: PrimaryButton(
                   text: 'Get Started',
                   textColor: whiteColor,
-                  onPressed: () {
+                  onPressed: () async {
                     if (_currentPage == data.length - 1) {
                       //   context.read<WebsiteSetupCubit>().cacheOnBoarding();
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      await prefs.setBool(
+                          'hasSeenSplash', true); // Guardar preferencia
+
                       Navigator.pushNamedAndRemoveUntil(context,
                           RouteNames.authenticationScreen, (route) => false);
                     } else {
@@ -161,7 +167,10 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
 
   Widget _buildSkipButton() {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('hasSeenSplash', true); // Guardar preferencia
+
         //   context.read<WebsiteSetupCubit>().cacheOnBoarding();
         Navigator.pushNamedAndRemoveUntil(
             context, RouteNames.authenticationScreen, (route) => false);

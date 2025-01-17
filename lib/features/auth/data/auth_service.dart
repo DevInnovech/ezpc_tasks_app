@@ -1,13 +1,22 @@
 import 'package:ezpc_tasks_app/features/my%20employe/models/employee_model.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'; // Para generar el número aleatorio
 
 class AuthService {
+  AndroidOptions getAndroidOptions() => const AndroidOptions(
+        encryptedSharedPreferences: true,
+      );
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   // Función para generar un código único con prefijo basado en el rol y 6 dígitos
   String generateUniqueCode(String role) {
@@ -30,15 +39,39 @@ class AuthService {
         email: email,
         password: password,
       );
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      print('Login error: ${e.message}');
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // user.emailVerified habilitado
+        //  1 desabilitado
+        if (true) {
+          // Correo verificado, permitir el acceso
+          print('Login successful! Email is verified.');
+          return userCredential;
+        } else {
+          // Correo no verificado, lanzar una excepción personalizada
+          print('Email is not verified.');
+          throw FirebaseAuthException(
+            code: 'email-not-verified',
+            message: 'Please verify your email before logging in.',
+          );
+        }
+      }
+
       return null;
+    } on FirebaseAuthException catch (e) {
+      // Manejar errores específicos de Firebase
+      print('Login error: ${e.message}');
+      rethrow;
+    } catch (e) {
+      // Manejar otros errores inesperados
+      print('An unexpected error occurred: $e');
+      throw Exception('An unexpected error occurred. Please try again.');
     }
   }
 
-  /*
- Future<User?> signInWithGoogle() async {
+  Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) return null;
@@ -59,19 +92,64 @@ class AuthService {
       print("Error signing in with Google: $e");
       return null;
     }
-  }*/
+  }
+
+  Future<UserCredential?> signInWithGooglecredencial() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      return userCredential;
+    } catch (e) {
+      print("Error signing in with Google: $e");
+      return null;
+    }
+  }
+
+  // Guardar preferencias (email y contraseña si 'isRemember' es true)
+
   // Guardar preferencias (email y contraseña si 'isRemember' es true)
   Future<void> savePreferences(
       String email, String password, bool isRemember) async {
     final prefs = await SharedPreferences.getInstance();
+
     if (isRemember) {
+      await prefs.setBool('isRemembered', true); // Guardar preferencia
       await prefs.setString('email', email);
-      await prefs.setString('password',
-          password); // Considera cifrar la contraseña si es necesario
+
+      // Guardar contraseña de forma segura en SecureStorage
+      await _secureStorage.write(key: 'password', value: password);
     } else {
+      await prefs.remove('isRemembered');
       await prefs.remove('email');
-      await prefs.remove('password');
+
+      // Eliminar contraseña de SecureStorage
+      await _secureStorage.delete(key: 'password');
     }
+  }
+
+  // Cargar preferencias (email y contraseña)
+  Future<Map<String, String?>> loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String? email = prefs.getString('email');
+    String? password = await _secureStorage.read(key: 'password');
+
+    return {
+      'email': email,
+      'password': password,
+    };
   }
 
   // Obtener el rol del usuario desde Firestore
@@ -91,8 +169,44 @@ class AuthService {
     }
   }
 
+  Future<void> sendVerificationEmail(String email) async {
+    try {
+      // Asegurarse de que el email no esté vacío
+      if (email.isEmpty) {
+        throw FirebaseAuthException(
+          code: 'invalid-email',
+          message: 'The email address cannot be empty.',
+        );
+      }
+
+      // Enviar correo de restablecimiento de contraseña
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      print('Verification email sent to $email');
+    } on FirebaseAuthException catch (e) {
+      // Manejar errores específicos de Firebase
+      switch (e.code) {
+        case 'user-not-found':
+          print('No user found for that email.');
+          throw Exception('No user found for the provided email.');
+        case 'invalid-email':
+          print('Invalid email address.');
+          throw Exception('The email address is invalid.');
+        default:
+          print('FirebaseAuth error: ${e.message}');
+          throw Exception('Failed to send verification email. Try again.');
+      }
+    } catch (e) {
+      // Manejar otros errores inesperados
+      print('Unexpected error: $e');
+      throw Exception('An unexpected error occurred. Please try again.');
+    }
+  }
+
   // Registro de cliente o proveedor
   Future<User?> SignUpMethod({
+    required String? special_register,
+    required User? user_special,
     required String email,
     required String name,
     required String lastName,
@@ -115,16 +229,32 @@ class AuthService {
     DateTime? dob,
   }) async {
     try {
-      // Crear usuario en Firebase Auth
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      User? user;
+      if (special_register == 'google' && user_special != null) {
+        user = user_special;
+      } else {
+        // Crear usuario en Firebase Auth
+        UserCredential userCredential =
+            await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      User? user = userCredential.user;
+        user = userCredential.user;
+      }
 
       if (user != null) {
+        if (special_register != 'google') {
+          try {
+            // Enviar correo de verificación
+            await user.sendEmailVerification();
+
+            print('Verification email sent to ${user.email}');
+          } catch (e) {
+            print('Error sending verification email: $e');
+            // Puedes manejar el error aquí, por ejemplo, mostrando un mensaje al usuario
+          }
+        }
         // Generar el código único basado en el rol
         String uniqueCode = generateUniqueCode(role);
         final utils = Utils();
@@ -284,4 +414,32 @@ class AuthService {
     }
     return null;
   }
+
+  /// Borra las credenciales almacenadas
+  Future<void> clearCredentials() async {
+    try {
+      // Borrar de SecureStorage
+      await _secureStorage.delete(key: 'password');
+
+      // Borrar de SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('email');
+      await prefs.remove('isRemembered');
+
+      print('Credenciales borradas correctamente.');
+    } catch (e) {
+      print('Error al borrar credenciales: $e');
+      throw Exception('Failed to clear credentials.');
+    }
+  }
+}
+
+Future<void> logout(BuildContext Context1) async {
+  await FirebaseAuth.instance.signOut();
+
+  await AuthService()
+      .clearCredentials(); // Llamar la función para borrar credenciales
+
+  Navigator.pushNamedAndRemoveUntil(
+      Context1, RouteNames.authenticationScreen, (route) => false);
 }
