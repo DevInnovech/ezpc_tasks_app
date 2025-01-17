@@ -23,6 +23,12 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: primaryColor),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
             const CustomText(
               text: 'Verification',
               fontSize: 24.0,

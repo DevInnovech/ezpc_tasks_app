@@ -200,7 +200,14 @@ class RouteNames {
 
       case RouteNames.forgotPasswordScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const ForgotPasswordScreen());
+          settings: settings,
+          builder: (_) {
+            // Recuperar los argumentos pasados
+            final String selectedOption = settings.arguments as String;
+            return ForgotPasswordScreen(selectedOption: selectedOption);
+          },
+        );
+
       case RouteNames.resetOptionSelectionScreen:
         return MaterialPageRoute(
             settings: settings,
@@ -269,9 +276,16 @@ class RouteNames {
             settings: settings,
             builder: (_) => const VerificationSelectionScreen());
       case RouteNames.verificationCompletedScreen:
+        final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
-            settings: settings,
-            builder: (_) => const VerificationCompletedScreen());
+          settings: settings,
+          builder: (_) => VerificationCompletedScreen(
+            title: args['title'],
+            subtitle: args['subtitle'],
+            onContinue: args['onContinue'],
+          ),
+        );
+
       case RouteNames.homeScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const HomeScreen());

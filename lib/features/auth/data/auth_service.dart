@@ -31,10 +31,35 @@ class AuthService {
         email: email,
         password: password,
       );
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      print('Login error: ${e.message}');
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // user.emailVerified habilitado
+        //  1 desabilitado
+        if (true) {
+          // Correo verificado, permitir el acceso
+          print('Login successful! Email is verified.');
+          return userCredential;
+        } else {
+          // Correo no verificado, lanzar una excepción personalizada
+          print('Email is not verified.');
+          throw FirebaseAuthException(
+            code: 'email-not-verified',
+            message: 'Please verify your email before logging in.',
+          );
+        }
+      }
+
       return null;
+    } on FirebaseAuthException catch (e) {
+      // Manejar errores específicos de Firebase
+      print('Login error: ${e.message}');
+      rethrow;
+    } catch (e) {
+      // Manejar otros errores inesperados
+      print('An unexpected error occurred: $e');
+      throw Exception('An unexpected error occurred. Please try again.');
     }
   }
 
@@ -115,6 +140,40 @@ class AuthService {
     }
   }
 
+  Future<void> sendVerificationEmail(String email) async {
+    try {
+      // Asegurarse de que el email no esté vacío
+      if (email.isEmpty) {
+        throw FirebaseAuthException(
+          code: 'invalid-email',
+          message: 'The email address cannot be empty.',
+        );
+      }
+
+      // Enviar correo de restablecimiento de contraseña
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      print('Verification email sent to $email');
+    } on FirebaseAuthException catch (e) {
+      // Manejar errores específicos de Firebase
+      switch (e.code) {
+        case 'user-not-found':
+          print('No user found for that email.');
+          throw Exception('No user found for the provided email.');
+        case 'invalid-email':
+          print('Invalid email address.');
+          throw Exception('The email address is invalid.');
+        default:
+          print('FirebaseAuth error: ${e.message}');
+          throw Exception('Failed to send verification email. Try again.');
+      }
+    } catch (e) {
+      // Manejar otros errores inesperados
+      print('Unexpected error: $e');
+      throw Exception('An unexpected error occurred. Please try again.');
+    }
+  }
+
   // Registro de cliente o proveedor
   Future<User?> SignUpMethod({
     required String? special_register,
@@ -156,6 +215,17 @@ class AuthService {
       }
 
       if (user != null) {
+        if (special_register != 'google') {
+          try {
+            // Enviar correo de verificación
+            await user.sendEmailVerification();
+
+            print('Verification email sent to ${user.email}');
+          } catch (e) {
+            print('Error sending verification email: $e');
+            // Puedes manejar el error aquí, por ejemplo, mostrando un mensaje al usuario
+          }
+        }
         // Generar el código único basado en el rol
         String uniqueCode = generateUniqueCode(role);
         final utils = Utils();

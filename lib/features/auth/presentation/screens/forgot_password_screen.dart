@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/greates_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/features/auth/state/statepassword.dart';
@@ -19,13 +20,12 @@ final forgotPasswordProvider =
 );
 
 class ForgotPasswordScreen extends ConsumerWidget {
-  const ForgotPasswordScreen({super.key});
+  final String selectedOption;
+  const ForgotPasswordScreen({super.key, required this.selectedOption});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final passwordNotifier = ref.read(forgotPasswordProvider.notifier);
-    final selectedOption =
-        ModalRoute.of(context)?.settings.arguments as String?;
 
     ref.listen<PasswordStateModel>(forgotPasswordProvider, (previous, state) {
       final passwordState = state.passwordState;
@@ -34,13 +34,37 @@ class ForgotPasswordScreen extends ConsumerWidget {
       } else if (passwordState is ForgotPasswordStateLoaded) {
         Utils.showSnackBar(context, passwordState.message);
 
-        if (selectedOption == 'sms') {
-          Navigator.pushNamed(
-            context,
-            RouteNames.verificationCodeScreen,
-            arguments: true,
-          );
-        }
+        // Navegación a la pantalla de felicitaciones
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (newContext) => VerificationCompletedScreen(
+              title: 'Congratulations! 🎉',
+              subtitle: selectedOption == 'sms'
+                  ? 'Verification code sent successfully to your phone.'
+                  : 'Reset link sent successfully to your email.',
+              onContinue: () {
+                if (selectedOption == null) {
+                  ScaffoldMessenger.of(newContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('No option selected. Please try again.'),
+                    ),
+                  );
+                  return;
+                }
+
+                // Acción según la opción seleccionada
+                if (selectedOption == 'email') {
+                  Navigator.pushNamed(
+                      newContext, RouteNames.authenticationScreen);
+                } else if (selectedOption == 'sms') {
+                  Navigator.pushNamed(
+                      newContext, RouteNames.authenticationScreen);
+                }
+              },
+            ),
+          ),
+        );
       }
     });
 
@@ -125,20 +149,70 @@ class ForgotPasswordScreen extends ConsumerWidget {
                     ),
                   ],
                   if (selectedOption == 'sms') ...[
-                    // Handle the SMS case here
                     const CustomText(
-                      text: 'Verification Code',
+                      text: 'Phone Number',
                       fontSize: 20.0,
                       fontWeight: FontWeight.w700,
                     ),
                     Utils.verticalSpace(12.0),
                     const CustomText(
                       text:
-                          'A 6-digit code was sent to your phone number. Please enter the code to continue.',
+                          'Enter your phone number to receive a 6-digit verification code.',
                       fontSize: 14.0,
                     ),
                     Utils.verticalSpace(30.0),
-                    // Implement your OTP input here or navigate to the OTP screen
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final state = ref.watch(forgotPasswordProvider);
+                        final passwordState = state.passwordState;
+                        return CustomForm(
+                          label: 'Phone Number',
+                          bottomSpace: 30.0,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextFormField(
+                                onChanged: (String text) =>
+                                    passwordNotifier.changePhoneNumber(text),
+                                decoration: InputDecoration(
+                                  hintText: '+1 234 567 890',
+                                  filled: true,
+                                  fillColor: TextFieldgraycolor,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: const BorderSide(
+                                        color: Colors.transparent),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: const BorderSide(
+                                        color: Colors.transparent),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: const BorderSide(
+                                        color: primaryColor, width: 2.0),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 20.0, horizontal: 12.0),
+                                ),
+                                initialValue: state.phoneNumber,
+                                keyboardType: TextInputType.phone,
+                              ),
+                              if (passwordState
+                                  is ForgotPasswordFormValidateError) ...[
+                                if (passwordState
+                                        .errors['phoneNumber']?.isNotEmpty ??
+                                    false)
+                                  ErrorText(
+                                      text: passwordState
+                                          .errors['phoneNumber']!.first),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ],
                   Consumer(
                     builder: (context, ref, _) {
@@ -155,7 +229,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
                             : 'Send SMS',
                         onPressed: () {
                           Utils.closeKeyBoard(context);
-                          passwordNotifier.forgotPassWord();
+                          passwordNotifier.forgotPassWord(selectedOption!);
                         },
                       );
                     },

@@ -4,8 +4,17 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 
-class ResetOptionSelectionScreen extends StatelessWidget {
+class ResetOptionSelectionScreen extends StatefulWidget {
   const ResetOptionSelectionScreen({super.key});
+
+  @override
+  _ResetOptionSelectionScreenState createState() =>
+      _ResetOptionSelectionScreenState();
+}
+
+class _ResetOptionSelectionScreenState
+    extends State<ResetOptionSelectionScreen> {
+  String? selectedOption; // Almacena la opción seleccionada
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +24,14 @@ class ResetOptionSelectionScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Botón de volver
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: primaryColor),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: 10.0),
             const CustomText(
               text: 'Forgot Password',
               fontSize: 24.0,
@@ -29,13 +46,19 @@ class ResetOptionSelectionScreen extends StatelessWidget {
             const SizedBox(height: 30.0),
             InkWell(
               onTap: () {
-                Navigator.pushNamed(context, RouteNames.verificationCodeScreen);
+                setState(() {
+                  selectedOption = 'sms';
+                });
               },
               child: Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: primaryColor),
+                  color: selectedOption == 'sms'
+                      ? Colors.grey[200]
+                      : Colors.white, // Indicar selección
+                  border: Border.all(
+                      color:
+                          selectedOption == 'sms' ? primaryColor : Colors.grey),
                   borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: const Row(
@@ -63,13 +86,20 @@ class ResetOptionSelectionScreen extends StatelessWidget {
             const SizedBox(height: 20.0),
             InkWell(
               onTap: () {
-                Navigator.pushNamed(context, RouteNames.forgotPasswordScreen,
-                    arguments: 'email');
+                setState(() {
+                  selectedOption = 'email';
+                });
               },
               child: Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+                  color: selectedOption == 'email'
+                      ? Colors.grey[200]
+                      : Colors.white, // Indicar selección
+                  border: Border.all(
+                      color: selectedOption == 'email'
+                          ? primaryColor
+                          : Colors.grey),
                   borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: const Row(
@@ -97,9 +127,16 @@ class ResetOptionSelectionScreen extends StatelessWidget {
             const Spacer(),
             PrimaryButton(
               text: 'Continue',
-              onPressed: () {
-                // Handle continue action, e.g., navigating to the selected option's screen
-              },
+              onPressed: selectedOption == null
+                  ? null // Deshabilitar si no se selecciona ninguna opción
+                  : () {
+                      Navigator.pushNamed(
+                        context,
+                        RouteNames.forgotPasswordScreen,
+                        arguments:
+                            selectedOption, // Enviar argumento seleccionado
+                      );
+                    },
             ),
           ],
         ),
