@@ -29,7 +29,6 @@ Future<void> main() async {
 
   // Decidir la pantalla inicial
   String initialRoute = RouteNames.authenticationScreen;
-  print(prefs.getBool('hasSeenSplash'));
   if (!hasSeenSplash) {
     initialRoute = RouteNames.splashScreen;
   } else if (isRemembered) {
