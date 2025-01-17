@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart'; // Importa el paquete carousel_slider
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/autologin_screen.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/data/PaymentKeys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_theme.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_string.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,11 +22,27 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const ProviderScope(child: Ezpc()));
+// Verificar preferencias guardadas
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool hasSeenSplash = prefs.getBool('hasSeenSplash') ?? false;
+  bool isRemembered = prefs.getBool('isRemembered') ?? false;
+
+  // Decidir la pantalla inicial
+  String initialRoute = RouteNames.authenticationScreen;
+  print(prefs.getBool('hasSeenSplash'));
+  if (!hasSeenSplash) {
+    initialRoute = RouteNames.splashScreen;
+  } else if (isRemembered) {
+    print("autologin");
+    initialRoute = RouteNames.autoLoginScreen; // Se intentará auto-login
+  }
+
+  runApp(ProviderScope(child: Ezpc(initialRoute: initialRoute)));
 }
 
 class Ezpc extends StatelessWidget {
-  const Ezpc({super.key});
+  final String initialRoute;
+  const Ezpc({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +55,7 @@ class Ezpc extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: KString.appName,
-          initialRoute: RouteNames.splashScreen,
+          initialRoute: initialRoute,
           onGenerateRoute: RouteNames.generateRoutes,
           onUnknownRoute: (RouteSettings settings) {
             return MaterialPageRoute(
@@ -48,7 +66,10 @@ class Ezpc extends StatelessWidget {
             );
           },
           theme: MyTheme.theme,
-          home: const HomeScreen(),
+          home: initialRoute == RouteNames.autoLoginScreen
+              ? AutoLoginScreen()
+              : null, // Pantalla de auto-login si es necesario
+          //  home: const HomeScreen(),
         );
       },
     );

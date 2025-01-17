@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/auth/data/auth_service.dart';
 import 'package:ezpc_tasks_app/features/home/setting/providerset.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/constraints.dart';
 
@@ -27,6 +29,8 @@ class Utils {
     try {
       // Cerrar sesión en Firebase
       await FirebaseAuth.instance.signOut();
+      await AuthService()
+          .clearCredentials(); // Llamar la función para borrar credenciales
 
       // Navegar a la pantalla de AuthenticationScreen
       // ignore: use_build_context_synchronously

@@ -1,14 +1,22 @@
 import 'package:ezpc_tasks_app/features/my%20employe/models/employee_model.dart';
+import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'; // Para generar el número aleatorio
 
 class AuthService {
+  AndroidOptions getAndroidOptions() => const AndroidOptions(
+        encryptedSharedPreferences: true,
+      );
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   // Función para generar un código único con prefijo basado en el rol y 6 dígitos
   String generateUniqueCode(String role) {
@@ -110,17 +118,38 @@ class AuthService {
   }
 
   // Guardar preferencias (email y contraseña si 'isRemember' es true)
+
+  // Guardar preferencias (email y contraseña si 'isRemember' es true)
   Future<void> savePreferences(
       String email, String password, bool isRemember) async {
     final prefs = await SharedPreferences.getInstance();
+
     if (isRemember) {
+      await prefs.setBool('isRemembered', true); // Guardar preferencia
       await prefs.setString('email', email);
-      await prefs.setString('password',
-          password); // Considera cifrar la contraseña si es necesario
+
+      // Guardar contraseña de forma segura en SecureStorage
+      await _secureStorage.write(key: 'password', value: password);
     } else {
+      await prefs.remove('isRemembered');
       await prefs.remove('email');
-      await prefs.remove('password');
+
+      // Eliminar contraseña de SecureStorage
+      await _secureStorage.delete(key: 'password');
     }
+  }
+
+  // Cargar preferencias (email y contraseña)
+  Future<Map<String, String?>> loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String? email = prefs.getString('email');
+    String? password = await _secureStorage.read(key: 'password');
+
+    return {
+      'email': email,
+      'password': password,
+    };
   }
 
   // Obtener el rol del usuario desde Firestore
@@ -385,4 +414,32 @@ class AuthService {
     }
     return null;
   }
+
+  /// Borra las credenciales almacenadas
+  Future<void> clearCredentials() async {
+    try {
+      // Borrar de SecureStorage
+      await _secureStorage.delete(key: 'password');
+
+      // Borrar de SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('email');
+      await prefs.remove('isRemembered');
+
+      print('Credenciales borradas correctamente.');
+    } catch (e) {
+      print('Error al borrar credenciales: $e');
+      throw Exception('Failed to clear credentials.');
+    }
+  }
+}
+
+Future<void> logout(BuildContext Context1) async {
+  await FirebaseAuth.instance.signOut();
+
+  await AuthService()
+      .clearCredentials(); // Llamar la función para borrar credenciales
+
+  Navigator.pushNamedAndRemoveUntil(
+      Context1, RouteNames.authenticationScreen, (route) => false);
 }

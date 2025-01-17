@@ -109,7 +109,8 @@ class _AuthenticationScreenState extends ConsumerState<AuthenticationScreen> {
                               context: context,
                               loginMethod: 'email',
                               email: email,
-                              password: password);
+                              password: password,
+                              isRemember: isRemember);
                         },
                 ),
                 _buildRemember(),

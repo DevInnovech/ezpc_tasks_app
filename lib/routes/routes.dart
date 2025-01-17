@@ -1,6 +1,7 @@
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/preview_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/edit_aboutme_screen.dart';
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/about_me_screen.dart';
+import 'package:ezpc_tasks_app/features/auth/presentation/screens/autologin_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/basic_register_google.dart';
 import 'package:ezpc_tasks_app/features/checkr/screens/candidate_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/accountverificationscreen.dart';
@@ -66,6 +67,7 @@ import 'package:flutter/material.dart';
 
 //ultima union
 class RouteNames {
+  static const String autoLoginScreen = '/autoLoginScreen';
   static const String splashScreen = '/splashScreen';
   static const String onBoardingScreen = '/onBoardingScreen';
   static const String authenticationScreen = '/authenticationScreen';
@@ -185,6 +187,9 @@ class RouteNames {
       case RouteNames.splashScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const SplashScreen());
+      case RouteNames.autoLoginScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const AutoLoginScreen());
 
       case RouteNames.onBoardingScreen:
         return MaterialPageRoute(
