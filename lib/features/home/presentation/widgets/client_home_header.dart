@@ -12,9 +12,37 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/features/home/data/filter_controller.dart';
+import 'dart:async'; // Import necesario para usar Timer
 
-class ClientHomeHeader extends ConsumerWidget {
+class ClientHomeHeader extends ConsumerStatefulWidget {
   const ClientHomeHeader({super.key});
+
+  @override
+  ConsumerState<ClientHomeHeader> createState() => _ClientHomeHeaderState();
+}
+
+class _ClientHomeHeaderState extends ConsumerState<ClientHomeHeader> {
+  Timer? _debounce;
+  Map<String, dynamic>? selectedFilters;
+  @override
+  void dispose() {
+    _debounce?.cancel(); // Cancela el debounce al destruir el widget
+    super.dispose();
+  }
+
+// Manejo del cambio en el campo de texto con debounce
+  void _onSearchChanged(String query, Map<String, dynamic>? selectedFilters) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (query.trim().isNotEmpty) {
+        ref
+            .read(searchResultsProvider.notifier)
+            .performSearch(query, selectedFilters);
+      } else {
+        ref.read(searchResultsProvider.notifier).clearResults();
+      }
+    });
+  }
 
   // Función para obtener un saludo según la hora actual
   String getGreeting() {
@@ -29,7 +57,7 @@ class ClientHomeHeader extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // Obtener el ID del usuario logueado
     final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -169,19 +197,27 @@ class ClientHomeHeader extends ConsumerWidget {
                   ),
                   child: TextField(
                     onChanged: (query) {
-                      if (query.trim().isNotEmpty) {
-                        ref
-                            .read(searchResultsProvider.notifier)
-                            .performSearch(query);
-                      } else {
-                        ref.read(searchResultsProvider.notifier).clearResults();
-                      }
+                      _onSearchChanged(query, selectedFilters);
                     },
                     decoration: InputDecoration(
                       hintText: 'Search Services or Providers',
                       prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 20),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.clear, color: Colors.grey[600]),
+                        onPressed: () {
+                          ref
+                              .read(searchResultsProvider.notifier)
+                              .clearResults();
+                        },
+                      ),
                     ),
                     style: const TextStyle(
                       fontSize: 14,
@@ -246,8 +282,7 @@ class ClientHomeHeader extends ConsumerWidget {
                               builder: (context) => ServicesByProviderScreen(
                                 providerName: result['name'],
                                 providerLastName: result['lastName'] ?? 'N/A',
-                                providerDocumentID:
-                                    result['id'], // Pasar el ID correctamente
+                                providerDocumentID: result['id'],
                               ),
                             ),
                           );
@@ -258,7 +293,6 @@ class ClientHomeHeader extends ConsumerWidget {
                             MaterialPageRoute(
                               builder: (context) => ServicesByServiceScreen(
                                 serviceName: result['name'],
-                                // Pasar el ID correctamente
                               ),
                             ),
                           );
@@ -307,7 +341,6 @@ void showTechnicalSupportOptions(BuildContext context) {
                 IconButton(
                   icon: const Icon(Icons.phone),
                   onPressed: () {
-                    // Open phone dialer
                     Navigator.pop(context);
                     makePhoneCall(
                         'tel:+1234567890'); // Replace with support number
@@ -323,7 +356,6 @@ void showTechnicalSupportOptions(BuildContext context) {
                 IconButton(
                   icon: const Icon(Icons.email),
                   onPressed: () {
-                    // Open email client
                     Navigator.pop(context);
                     sendEmail(
                         'support@example.com'); // Replace with support email

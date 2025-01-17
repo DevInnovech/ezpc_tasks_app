@@ -6,7 +6,8 @@ class SearchController {
 
   SearchController(this._firestore);
 
-  Future<List<Map<String, dynamic>>> search(String query) async {
+  Future<List<Map<String, dynamic>>> searchWithFilters(
+      String query, Map<String, dynamic>? filters) async {
     if (query.isEmpty) return [];
 
     final Set<Map<String, dynamic>> results = {};
@@ -25,87 +26,106 @@ class SearchController {
           .where('lastName', isLessThanOrEqualTo: '$query\uf8ff')
           .get();
 
-      results.addAll(providerQuery.docs.map((doc) {
-        final data = {
-          ...doc.data(),
-          'id':
-              doc.id, // Este es el ID del documento de la colección 'providers'
-          'type': 'provider',
-        };
-        print(
-            'Provider Found - Document ID: ${doc.id}'); // Mostrar el ID en consola
-        return data;
-      }));
+      results.addAll(providerQuery.docs.map((doc) => {
+            ...doc.data(),
+            'id': doc.id,
+            'type': 'provider',
+          }));
 
-      results.addAll(lastNameQuery.docs.map((doc) {
-        final data = {
-          ...doc.data(),
-          'id':
-              doc.id, // Este es el ID del documento de la colección 'providers'
-          'type': 'provider',
-        };
-        print(
-            'Provider Found - Document ID: ${doc.id}'); // Mostrar el ID en consola
-        return data;
-      }));
+      results.addAll(lastNameQuery.docs.map((doc) => {
+            ...doc.data(),
+            'id': doc.id,
+            'type': 'provider',
+          }));
 
+      // Búsqueda de servicios
       Map<String, List<String>> resultservices =
           await searchServiceNames(query);
 
       results.addAll(resultservices.entries
           .expand((entry) => entry.value.map((service) => {
-                'category': entry.key, // Nombre de la categoría
-                'service': service, // Nombre del servicio individual
-                'type': 'service', // Tipo adicional
+                'category': entry.key,
+                'service': service,
+                'type': 'service',
               })));
 
-      // Búsqueda en la colección de bookings por subcategorías (array y string)
+      // Aplicar filtros a los resultados
+      final filteredResults = _applyFilters(results, filters);
+
+      return filteredResults;
     } catch (e) {
       print('Error al realizar la búsqueda: $e');
+      return [];
+    }
+  }
+
+  List<Map<String, dynamic>> _applyFilters(
+      Set<Map<String, dynamic>> results, Map<String, dynamic>? filters) {
+    if (filters == null || filters.isEmpty) return results.toList();
+
+    // Filtrar por fecha
+    if (filters.containsKey('Date')) {
+      String dateFilter = filters['Date'];
+      DateTime now = DateTime.now();
+      DateTime filterDate;
+
+      switch (dateFilter) {
+        case 'Same Day':
+          filterDate = now;
+          break;
+        case 'Last Week':
+          filterDate = now.subtract(const Duration(days: 7));
+          break;
+        case 'Last Month':
+          filterDate = DateTime(now.year, now.month - 1, now.day);
+          break;
+        default:
+          filterDate = now;
+      }
+
+      results = results.where((result) {
+        final timestamp = result['createdAt'] as Timestamp?;
+        if (timestamp == null) return false;
+        return timestamp.toDate().isAfter(filterDate);
+      }).toSet();
     }
 
-    // Estructurar resultados para jerarquía
-    final structuredResults = results
-        .map((result) {
-          if (result['type'] == 'service') {
-            return {
-              'category': result['category'], // Clave del mapa: categoría
-              'services':
-                  result['services'], // Valor del mapa: lista de servicios
-              'type': 'service', // Tipo adicional
-              'name': result['service'],
-              'lastName': result['category'],
-              'id': result['service'],
-            };
-          } else if (result['type'] == 'provider') {
-            return {
-              'name': result['name'] ?? 'No Name',
-              'lastName': result['lastName'] ?? 'No Last Name',
-              'email': result['email'] ?? 'No Email',
-              'type': 'provider',
-              'id': result[
-                  'id'], // Este es el ID que usaremos para buscar las tasks
-            };
-          }
-          return null;
-        })
-        .where((item) => item != null)
-        .toList();
+    // Filtrar por precio
+    if (filters.containsKey('Price')) {
+      String priceFilter = filters['Price'];
+      results = results.where((result) {
+        final price = result['price'] as double?;
+        if (price == null) return false;
 
-    // Eliminar duplicados basados en el ID
-    final uniqueResults = structuredResults
-        .toList()
-        .fold<Map<String, Map<String, dynamic>>>(
-          {},
-          (map, item) {
-            map[item!['id']] = item;
-            return map;
-          },
-        )
-        .values
-        .toList();
+        if (priceFilter == 'Lowest') {
+          return price <= 100; // Ajustar el rango según los datos
+        } else if (priceFilter == 'Highest') {
+          return price >= 100; // Ajustar el rango según los datos
+        }
+        return true;
+      }).toSet();
+    }
 
-    return uniqueResults;
+    // Filtrar por calificación
+    if (filters.containsKey('Rating')) {
+      String ratingFilter = filters['Rating'];
+      final minRating = double.tryParse(ratingFilter) ?? 0;
+      results = results.where((result) {
+        final rating = result['rating'] as double?;
+        return rating != null && rating >= minRating;
+      }).toSet();
+    }
+
+    // Filtrar por opciones extendidas
+    if (filters.containsKey('extendedFilters')) {
+      final extendedFilters = filters['extendedFilters'] as Map<String, bool>;
+      results = results.where((result) {
+        final category = result['category'] as String?;
+        return category != null && extendedFilters[category] == true;
+      }).toSet();
+    }
+
+    return results.toList();
   }
 }
 
@@ -164,8 +184,9 @@ class SearchResultsNotifier extends StateNotifier<List<Map<String, dynamic>>> {
 
   SearchResultsNotifier(this._searchController) : super([]);
 
-  Future<void> performSearch(String query) async {
-    final results = await _searchController.search(query);
+  Future<void> performSearch(
+      String query, Map<String, dynamic>? filters) async {
+    final results = await _searchController.searchWithFilters(query, filters);
     state = results;
   }
 
