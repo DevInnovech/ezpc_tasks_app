@@ -12,6 +12,7 @@ import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/features/home/data/filter_controller.dart';
 import 'dart:async'; // Import necesario para usar Timer
+import 'package:material_floating_search_bar_2/material_floating_search_bar_2.dart';
 
 class ClientHomeHeader extends ConsumerStatefulWidget {
   const ClientHomeHeader({super.key});
@@ -21,27 +22,7 @@ class ClientHomeHeader extends ConsumerStatefulWidget {
 }
 
 class _ClientHomeHeaderState extends ConsumerState<ClientHomeHeader> {
-  Timer? _debounce;
   Map<String, dynamic>? selectedFilters;
-  @override
-  void dispose() {
-    _debounce?.cancel(); // Cancela el debounce al destruir el widget
-    super.dispose();
-  }
-
-// Manejo del cambio en el campo de texto con debounce
-  void _onSearchChanged(String query, Map<String, dynamic>? selectedFilters) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (query.trim().isNotEmpty) {
-        ref
-            .read(searchResultsProvider.notifier)
-            .performSearch(query, selectedFilters);
-      } else {
-        ref.read(searchResultsProvider.notifier).clearResults();
-      }
-    });
-  }
 
   // Función para obtener un saludo según la hora actual
   String getGreeting() {
@@ -173,7 +154,7 @@ class _ClientHomeHeaderState extends ConsumerState<ClientHomeHeader> {
                 ),
               ),
 
-              // Barra de búsqueda centrada
+              /* // Barra de búsqueda centrada
               Positioned(
                 bottom: -5.h, // Posicionar más cerca del centro
                 left: 20,
@@ -225,11 +206,12 @@ class _ClientHomeHeaderState extends ConsumerState<ClientHomeHeader> {
                   ),
                 ),
               ),
+         */
             ],
           ),
         ),
 
-        // Previsualizador de resultados
+        /*  // Previsualizador de resultados
         Consumer(
           builder: (context, ref, _) {
             final searchResults = ref.watch(searchResultsProvider);
@@ -304,6 +286,7 @@ class _ClientHomeHeaderState extends ConsumerState<ClientHomeHeader> {
             );
           },
         ),
+      */
       ],
     );
   }
