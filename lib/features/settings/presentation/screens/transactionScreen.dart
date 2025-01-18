@@ -31,9 +31,12 @@ class TransactionScreen extends StatelessWidget {
       if (user == null) throw Exception("User not logged in");
 
       final role = await _getUserRole();
+      debugPrint("Role detected: $role");
 
+      // Asegúrate de usar la comparación correcta
       final queryField =
-          role.toLowerCase() == 'Client' ? 'customerId' : 'providerId';
+          role.toLowerCase() == 'client' ? 'customerId' : 'providerId';
+      debugPrint("Querying transactions where $queryField = ${user.uid}");
 
       final querySnapshot = await FirebaseFirestore.instance
           .collection('transactions')
@@ -41,7 +44,11 @@ class TransactionScreen extends StatelessWidget {
           .orderBy('createdAt', descending: true)
           .get();
 
-      // Retorna la lista de transacciones
+      debugPrint("Transactions fetched: ${querySnapshot.docs.length}");
+      for (var doc in querySnapshot.docs) {
+        debugPrint("Transaction: ${doc.data()}");
+      }
+
       return querySnapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
       debugPrint("Error loading transactions: $e");
