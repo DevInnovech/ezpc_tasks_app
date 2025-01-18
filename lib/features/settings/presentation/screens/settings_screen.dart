@@ -249,7 +249,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             ontap: () =>
                 Navigator.pushNamed(context, RouteNames.referralScreen),
           ),
-          _buildOption(context, Icons.history, 'View transaction history'),
+          _buildOption(
+            context,
+            Icons.history,
+            'View transaction history',
+            ontap: () =>
+                Navigator.pushNamed(context, RouteNames.transactionScreen),
+          ),
         ];
 
         if (accountType != AccountType.client &&

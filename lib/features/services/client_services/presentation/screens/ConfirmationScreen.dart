@@ -25,45 +25,51 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
 
   Future<void> saveBookingToFirestoreAfterPayment() async {
     try {
-      // Obtener el ID del cliente autenticado
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception("No authenticated user found.");
-      }
+      if (user == null) throw Exception("No authenticated user found.");
 
+      // Generar un ID único para la reserva
       final bookingId =
           FirebaseFirestore.instance.collection('bookings').doc().id;
 
       final bookingData = {
         ...widget.bookingData,
         'bookingId': bookingId,
-        'customerId': user.uid, // ID del cliente autenticado
-        'status': 'pending', // Estado inicial
-        'paymentStatus': 'Paid', // Estado del pago
+        'customerId': user.uid,
+        'status': 'pending',
+        'paymentStatus': 'Paid',
       };
 
       // Guardar la reserva en Firestore
       await FirebaseFirestore.instance
           .collection('bookings')
-          .doc(bookingId) // Guardar usando el bookingId generado
+          .doc(bookingId)
           .set(bookingData);
 
-      if (kDebugMode) {
-        print("Booking saved successfully with payment status 'Paid'");
-      }
+      debugPrint("Booking saved successfully.");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Booking saved successfully!')),
+      // Crear la transacción en Firestore
+      await saveTransactionToFirestore(
+        providerId: widget.bookingData['providerId'],
+        customerId: user.uid,
+        bookingId: bookingId,
+        amount: widget.bookingData['totalPrice'] ?? 0.0,
+        service: widget.bookingData['selectedTaskName'] ?? 'Unknown Service',
+        transactionType: 'payment',
+        paymentStatus: 'completed',
+        status: 'completed',
       );
 
-      // Navegar a la pantalla de éxito o cerrar el flujo actual
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking and transaction saved!')),
+      );
+
+      // Navegar a la pantalla principal del cliente
       Navigator.pushNamed(context, RouteNames.ClientmainScreen);
     } catch (e) {
-      if (kDebugMode) {
-        print("Failed to save booking: $e");
-      }
+      debugPrint("Failed to save booking and transaction: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save booking: $e')),
+        SnackBar(content: Text('Failed to save booking and transaction: $e')),
       );
     }
   }
@@ -369,6 +375,56 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update payment status: $e')),
       );
+    }
+  }
+
+  Future<void> saveTransactionToFirestore({
+    required String providerId,
+    required String customerId,
+    required String bookingId,
+    required double amount,
+    required String service,
+    required String transactionType,
+    required String paymentStatus,
+    required String status,
+  }) async {
+    try {
+      // Generar un ID único para la transacción
+      final transactionId =
+          FirebaseFirestore.instance.collection('transactions').doc().id;
+
+      // Crear los datos de la transacción
+      final transactionData = {
+        'transactionId': transactionId,
+        'amount': amount,
+        'currency': 'USD',
+        'providerId': providerId,
+        'customerId': customerId,
+        'service': service,
+        'transactionType': transactionType, // Ej: 'payment' o 'withdraw'
+        'paymentStatus': paymentStatus, // Ej: 'hold', 'completed'
+        'status': status, // Ej: 'pending', 'completed'
+        'type': 'booking', // Puede ser 'booking', 'task', etc.
+        'withdrawStatus': 'not_started',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'details': {
+          'bookingId': bookingId,
+          'description': 'Payment for service booked',
+          'paymentStatus': paymentStatus,
+          'providerId': providerId,
+        },
+      };
+
+      // Guardar la transacción en Firestore
+      await FirebaseFirestore.instance
+          .collection('transactions')
+          .doc(transactionId)
+          .set(transactionData);
+
+      debugPrint("Transaction added successfully.");
+    } catch (e) {
+      debugPrint("Failed to save transaction: $e");
     }
   }
 

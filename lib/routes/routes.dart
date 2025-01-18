@@ -58,6 +58,7 @@ import 'package:ezpc_tasks_app/features/settings/presentation/screens/change_pas
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/edit_profile.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_config.dart';
 import 'package:ezpc_tasks_app/features/settings/presentation/screens/settings_screen.dart';
+import 'package:ezpc_tasks_app/features/settings/presentation/screens/transactionScreen.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
 import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/two_factor_setup_screen.dart';
@@ -117,6 +118,7 @@ class RouteNames {
 
   // referidos y employess ,settings
   static const String referralScreen = '/referralScreen';
+  static const String transactionScreen = '/transactionScreen';
   static const String employeeScreen = '/employeeScreen';
   static const String companyProfileScreen = '/companyProfileScreen';
   static const String twoFactorSetupScreen = '/twoFactorSetupScreen';
@@ -459,6 +461,12 @@ class RouteNames {
           settings: settings,
           builder: (_) => const ReferralScreen(),
         );
+      case RouteNames.transactionScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const TransactionScreen(),
+        );
+
       case RouteNames.employeeScreen:
         return MaterialPageRoute(
           settings: settings,
