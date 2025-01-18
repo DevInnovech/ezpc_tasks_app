@@ -1,4 +1,3 @@
-import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_text.dart';
@@ -8,7 +7,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 
 class VerificationCompletedScreen extends ConsumerWidget {
-  const VerificationCompletedScreen({super.key});
+  final String title; // Título dinámico
+  final String subtitle; // Subtítulo dinámico
+  final VoidCallback onContinue; // Acción al presionar "Continue"
+
+  const VerificationCompletedScreen({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.onContinue,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,49 +31,27 @@ class VerificationCompletedScreen extends ConsumerWidget {
             const CustomImage(
               path: KImages.verificationCompletedIcon, // Icono de verificación
               height: 100.0,
-              width: 100.0, url: null,
+              width: 100.0,
+              url: null,
             ),
             const SizedBox(height: 20.0),
-            const CustomText(
-              text: 'Congratulations! 🎉',
+            CustomText(
+              text: title,
               fontSize: 22.0,
               fontWeight: FontWeight.bold,
               color: primaryColor,
             ),
             const SizedBox(height: 10.0),
-            const CustomText(
-              text: 'Your account has been verified!',
+            CustomText(
+              text: subtitle,
               fontSize: 16.0,
               color: primaryColor,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40.0),
             PrimaryButton(
               text: 'Continue',
-              onPressed: () {
-                final accountType = ref.watch(accountTypeProvider);
-
-                // Dependiendo del tipo de cuenta, redirigir a la pantalla principal correspondiente
-                if (accountType == AccountType.client) {
-                  // Lógica para cliente
-                  /*   Navigator.pushNamed(
-                    context,
-                    RouteNames.addCardPaymentMethodScreen,
-                  );*/
-                } else if (accountType == AccountType.corporateProvider) {
-                  // Lógica para proveedor corporativo
-                } else if (accountType == AccountType.independentProvider) {
-                  // Lógica para proveedor independiente
-                } else if (accountType == AccountType.employeeProvider) {
-                  // Lógica para proveedor empleado
-                } else {
-                  // Manejar el caso en que no se haya seleccionado un tipo de cuenta
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Account type not selected.'),
-                    ),
-                  );
-                }
-              },
+              onPressed: onContinue,
             ),
           ],
         ),

@@ -212,13 +212,8 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   Widget _buildReviewCard() {
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    return FutureBuilder<QuerySnapshot>(
-      future: FirebaseFirestore.instance
-          .collection('reviews')
-          .doc(userId)
-          .collection('reviews')
-          .orderBy('createdAt', descending: true)
-          .get(),
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -226,7 +221,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           );
         }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
           return Card(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -243,32 +238,37 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
           );
         }
 
-        final reviews = snapshot.data!.docs;
-        final double averageRating = reviews
-                .map((doc) => (doc['rating'] as num).toDouble())
-                .reduce((a, b) => a + b) /
-            reviews.length;
-        final totalReviews = reviews.length;
-        final mostRecentReview = reviews.first.data() as Map<String, dynamic>;
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        // Información ya calculada por la función
+        final double averageRating =
+            (userData['averageRating'] as num?)?.toDouble() ?? 0.0;
+        final int totalReviews = userData['totalReviews'] ?? 0;
+        final Map<String, dynamic>? mostRecentReview =
+            userData['mostRecentReview'] as Map<String, dynamic>?;
 
         // Buscar la imagen del cliente con el clientId
-        final clientId = mostRecentReview['clientId'];
+        final String clientId = mostRecentReview?['clientId'] ?? '';
+        final String reviewText =
+            mostRecentReview?['review'] ?? 'No recent review available.';
+        final double recentRating =
+            (mostRecentReview?['rating'] as num?)?.toDouble() ?? 0.0;
 
         return FutureBuilder<DocumentSnapshot>(
           future: FirebaseFirestore.instance
               .collection('users')
               .doc(clientId)
               .get(),
-          builder: (context, userSnapshot) {
-            if (userSnapshot.connectionState == ConnectionState.waiting) {
+          builder: (context, clientSnapshot) {
+            if (clientSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(
                 child: CircularProgressIndicator(),
               );
             }
 
             final clientData =
-                userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
-            final clientImage = clientData['profileImageUrl'] ?? KImages.pp;
+                clientSnapshot.data?.data() as Map<String, dynamic>? ?? {};
+            final String clientImage =
+                clientData['profileImageUrl'] ?? KImages.pp;
 
             return Card(
               shape: RoundedRectangleBorder(
@@ -330,23 +330,20 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                mostRecentReview['review'] != null
-                                    ? (mostRecentReview['review'].length > 30
-                                        ? '${mostRecentReview['review'].substring(0, 30)}...' // Trunca si supera 30 caracteres
-                                        : mostRecentReview[
-                                            'review']) // De lo contrario, muestra el texto completo
-                                    : 'Great service experience with provider',
+                                reviewText.length > 30
+                                    ? '${reviewText.substring(0, 30)}...' // Trunca si es muy largo
+                                    : reviewText, // Texto completo si es corto
                                 style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               Row(
                                 children: List.generate(
                                   5,
                                   (index) => Icon(
                                     Icons.star,
-                                    color: index <
-                                            (mostRecentReview['rating'] as num)
-                                                .toDouble()
+                                    color: index < recentRating.toDouble()
                                         ? Colors.orange
                                         : Colors.grey,
                                   ),

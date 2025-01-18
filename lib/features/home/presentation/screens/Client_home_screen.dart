@@ -4,6 +4,8 @@ import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart
 import 'package:ezpc_tasks_app/features/home/data/popular_services_controller.dart';
 import 'package:ezpc_tasks_app/features/home/data/services_controler.dart';
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/pop_services.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/see_all_featured.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
@@ -18,6 +20,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/see_all_popular.dart';
 
 class ClientHomeScreen extends ConsumerStatefulWidget {
   const ClientHomeScreen({super.key});
@@ -33,6 +36,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
     checkReferralStatus();
     ref.read(servicesControllerProvider.notifier).loadAllServices();
     ref.read(popularServicesProvider.notifier).loadPopularServices();
+    ref.read(providerControllerProvider.notifier).loadProviders();
   }
 
   Future<void> checkReferralStatus() async {
@@ -166,19 +170,21 @@ class ServiceCard extends StatelessWidget {
 }
 
 class PopularServiceCard extends StatelessWidget {
-  final PopularService service;
+  final String serviceName;
+  final int count;
+  final VoidCallback onTap; // Añade este parámetro
 
-  const PopularServiceCard({super.key, required this.service});
+  const PopularServiceCard({
+    super.key,
+    required this.serviceName,
+    required this.count,
+    required this.onTap, // Asegúrate de hacerlo obligatorio
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        // Acción al hacer clic en un servicio popular
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected service: ${service.providerName}')),
-        );
-      },
+      onTap: onTap, // Usa el callback aquí
       child: Container(
         width: 150, // Ancho de la tarjeta
         padding: const EdgeInsets.all(8),
@@ -196,51 +202,29 @@ class PopularServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen del servicio (si existe)
-            service.imageUrl.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      service.imageUrl,
-                      height: 80,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Container(
-                    height: 80,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      size: 40,
-                      color: Colors.grey,
-                    ),
-                  ),
+            // Icono representativo
+            const Icon(Icons.star, size: 40, color: Colors.blue),
             const SizedBox(height: 8),
-            // Nombre del proveedor
+
+            // Nombre del servicio
             Text(
-              service.providerName,
+              serviceName,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
-            // Categoría del servicio
+            const SizedBox(height: 8),
+
+            // Conteo del servicio (popularidad)
             Text(
-              service.category,
+              "Used $count times",
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[600],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -345,35 +329,48 @@ class HomeLoadedData extends StatelessWidget {
             ClientTitleAndNavigator(
               title: "Featured Services",
               press: () {
-                // Navegar a la lista completa de servicios destacados si es necesario
-                Navigator.pushNamed(context, RouteNames.serviceScreen);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FeaturedProvidersScreen(),
+                  ),
+                );
               },
             ),
+
             Utils.verticalSpace(16),
 
 // Manejo de estados del controlador de servicios
             Builder(
               builder: (context) {
-                final servicesState = ref.watch(servicesControllerProvider);
+                final providerState = ref.watch(providerControllerProvider);
 
-                if (servicesState is ServicesControllerLoading) {
+                if (providerState is ProviderControllerLoading) {
                   return const Center(child: CircularProgressIndicator());
-                } else if (servicesState is ServicesControllerError) {
-                  return Center(child: Text('Error: ${servicesState.message}'));
-                } else if (servicesState is ServicesControllerLoaded) {
-                  final services = servicesState.services;
+                } else if (providerState is ProviderControllerError) {
+                  return Center(child: Text('Error: ${providerState.message}'));
+                } else if (providerState is ProviderControllerLoaded) {
+                  final providers = providerState.providers;
+
+                  // Si no hay proveedores, mostrar un mensaje
+                  if (providers.isEmpty) {
+                    return const Center(
+                      child: Text('No featured providers available.'),
+                    );
+                  }
 
                   return SizedBox(
-                    height: 200, // Altura del carrusel
+                    height: 200,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: services.length,
+                      itemCount: providers.length,
                       itemBuilder: (context, index) {
-                        final service = services[index];
+                        final provider = providers[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
-                          child: ServiceCard(service: service),
+                          child: ProviderCard(
+                              provider: provider), // Usar ProviderCard
                         );
                       },
                     ),
@@ -416,10 +413,16 @@ class HomeLoadedData extends StatelessWidget {
             ClientTitleAndNavigator(
               title: "Popular Services",
               press: () {
-                // Lógica para navegar a una lista completa de servicios populares
-                Navigator.pushNamed(context, RouteNames.ClientmainScreen);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const PopularServicesScreen(), // Página de Popular Services
+                  ),
+                );
               },
             ),
+
             Utils.verticalSpace(16),
 
 // Nueva lógica para Popular Services
@@ -435,6 +438,12 @@ class HomeLoadedData extends StatelessWidget {
                 } else if (popularServicesState is PopularServicesLoaded) {
                   final popularServices = popularServicesState.services;
 
+                  if (popularServices.isEmpty) {
+                    return const Center(
+                      child: Text('No popular services available.'),
+                    );
+                  }
+
                   return SizedBox(
                     height: 200, // Altura del carrusel
                     child: ListView.builder(
@@ -445,7 +454,20 @@ class HomeLoadedData extends StatelessWidget {
                         final service = popularServices[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
-                          child: PopularServiceCard(service: service),
+                          child: PopularServiceCard(
+                            serviceName: service.serviceName,
+                            count: service.count,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TasksByServiceScreen(
+                                    serviceName: service.serviceName,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         );
                       },
                     ),

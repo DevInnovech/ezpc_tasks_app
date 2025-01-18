@@ -1,6 +1,7 @@
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/WalletScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/paner_funcion.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/end_drawer_menu.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
 import 'package:ezpc_tasks_app/shared/widgets/bottom_nav_bar.dart';
@@ -50,13 +51,18 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: const EndDrawerMenu(),
-        body: StreamBuilder<int>(
-          initialData: 0,
-          stream: _homeController.naveListener.stream,
-          builder: (context, AsyncSnapshot<int> snapshot) {
-            int item = snapshot.data ?? 0;
-            return screenList[item];
-          },
+        body: Stack(
+          children: [
+            StreamBuilder<int>(
+              initialData: 0,
+              stream: _homeController.naveListener.stream,
+              builder: (context, AsyncSnapshot<int> snapshot) {
+                int item = snapshot.data ?? 0;
+                return screenList[item];
+              },
+            ),
+            buildCollaboratorRequests()
+          ],
         ),
         bottomNavigationBar: MyBottomNavigationBar(
           scaffoldKey: _scaffoldKey,

@@ -1,2 +1,23 @@
 node_modules/
 *.local
+# Ignorar node_modules y dependencias
+functions/node_modules/
+node_modules/
+
+# Ignorar archivos de bloqueo de dependencias
+package-lock.json
+functions/package-lock.json
+
+# Archivos de configuración específicos del entorno
+.env
+.env.*
+
+# Ignorar archivos de Firebase generados automáticamente
+.firebase/
+firestore.indexes.json
+firestore.rules
+storage.rules
+
+# Otros archivos innecesarios
+.eslintcache
+.DS_Store

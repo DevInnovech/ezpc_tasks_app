@@ -17,6 +17,8 @@ class ServicesByCategoryScreen extends StatefulWidget {
 class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
   late Future<List<Task>> _servicesFuture;
   bool _isGrid = false; // Comenzamos con lista (false)
+  final bool _sortBySelectedTasks =
+      true; // Por defecto ordenamos por selectedTasks
 
   @override
   void initState() {
@@ -61,6 +63,19 @@ class _ServicesByCategoryScreenState extends State<ServicesByCategoryScreen> {
             if (services.isEmpty) {
               return const Center(child: Text('No tasks available.'));
             }
+
+            // Ordenar primero por averageRating y luego por selectedTasks
+            services.sort((a, b) {
+              final double aRating = double.tryParse(a.averageRating) ?? 0.0;
+              final double bRating = double.tryParse(b.averageRating) ?? 0.0;
+              if (bRating.compareTo(aRating) == 0) {
+                final int aSelected = a.selectedTasks.length;
+                final int bSelected = b.selectedTasks.length;
+                return bSelected
+                    .compareTo(aSelected); // Orden por selectedTasks
+              }
+              return bRating.compareTo(aRating); // Orden por averageRating
+            });
 
             if (_isGrid) {
               // Modo Grid

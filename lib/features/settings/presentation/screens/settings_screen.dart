@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/auth/data/auth_service.dart';
 import 'package:ezpc_tasks_app/features/services/data/task_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -371,12 +372,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               onPressed: () async {
                 Navigator.of(context).pop();
                 ref.invalidate(taskProvider);
-                await _auth.signOut();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  RouteNames.authenticationScreen,
-                  (route) => false,
-                );
+                logout(context);
               },
               child: const Text('Yes'),
             ),

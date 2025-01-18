@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1084114580182:android:293533fe6348d48758cf77",
+        "mobilesdk_app_id": "1:1084114580182:android:65c18ec8db25da4058cf77",
         "android_client_info": {
-          "package_name": "com.example.ezpc_tasks_app"
+          "package_name": "com.example.ezpc_tasks_admin_panel"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1084114580182-ovmjcfvcvlfvljcjuu5snnusc2i4pbm0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBlBi2jSvSgwk7xFi3mEf3HKDgIWRVlXhA"
@@ -20,7 +25,63 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1084114580182-ovmjcfvcvlfvljcjuu5snnusc2i4pbm0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1084114580182-5em7k7b2dgenk61t0cm1r79loi7ip5vm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ezpcTasksApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1084114580182:android:293533fe6348d48758cf77",
+        "android_client_info": {
+          "package_name": "com.example.ezpc_tasks_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1084114580182-8vj0jr05mlnrfq3fcjlr0m6474fdil8m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ezpc_tasks_app",
+            "certificate_hash": "1e5ec270fc6d456bf192db2c50f3aa4cdf00160f"
+          }
+        },
+        {
+          "client_id": "1084114580182-ovmjcfvcvlfvljcjuu5snnusc2i4pbm0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlBi2jSvSgwk7xFi3mEf3HKDgIWRVlXhA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1084114580182-ovmjcfvcvlfvljcjuu5snnusc2i4pbm0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1084114580182-5em7k7b2dgenk61t0cm1r79loi7ip5vm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ezpcTasksApp"
+              }
+            }
+          ]
         }
       }
     }

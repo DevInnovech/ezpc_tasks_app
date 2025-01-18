@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/performance/data/funtions.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -227,6 +228,9 @@ Future<void> showCompletionReviewPopup(
                           review: reviewController.text.trim(),
                           isReviewingProvider: isReviewingProvider,
                         );
+                        if (isReviewingProvider) {
+                          onReviewAdded(providerId);
+                        }
 
                         ScaffoldMessenger.of(context1).showSnackBar(
                           const SnackBar(content: Text('Review submitted!')),
