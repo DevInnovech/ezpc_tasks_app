@@ -13,25 +13,27 @@ class PopularService {
 
 // Widget independiente para mostrar una tarjeta de servicio popular
 class PopularServiceCard extends StatelessWidget {
-  final PopularService service;
+  final String serviceName;
+  final int count;
+  final VoidCallback onTap;
 
-  const PopularServiceCard({super.key, required this.service});
+  const PopularServiceCard({
+    super.key,
+    required this.serviceName,
+    required this.count,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        // Acción al hacer clic en la tarjeta
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected service: ${service.serviceName}')),
-        );
-      },
+      onTap: onTap,
       child: Container(
         width: 150, // Ancho de la tarjeta
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -43,13 +45,10 @@ class PopularServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icono representativo (puedes personalizar)
             const Icon(Icons.star, size: 40, color: Colors.blue),
             const SizedBox(height: 8),
-
-            // Nombre del servicio
             Text(
-              service.serviceName,
+              serviceName,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
@@ -58,10 +57,8 @@ class PopularServiceCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 8),
-
-            // Conteo del servicio
             Text(
-              "Used ${service.count} times",
+              "Used $count times",
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[600],

@@ -214,6 +214,8 @@ class ProviderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double cardWidth = MediaQuery.of(context).size.width * 0.4;
+
     return InkWell(
       onTap: () {
         // Navegar a la pantalla de servicios por proveedor
@@ -227,29 +229,30 @@ class ProviderCard extends StatelessWidget {
         );
       },
       child: Container(
-        width: 150,
+        width: cardWidth, // Ancho relativo a la pantalla
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(2, 2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Imagen o ícono en la parte superior
+            // Imagen en la parte superior
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
-                color: Colors.grey[200],
-                height: 80,
+                height: cardWidth * 0.6, // Altura relativa al ancho
                 width: double.infinity,
+                color: Colors.grey[200],
                 child: provider.providerId.isNotEmpty
                     ? Image.asset(
                         'assets/images/pp.jpg', // Imagen por defecto
@@ -262,29 +265,33 @@ class ProviderCard extends StatelessWidget {
                       ),
               ),
             ),
-            const SizedBox(height: 12),
-
-            // Nombre del proveedor
-            Text(
-              provider.name,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
             const SizedBox(height: 8),
 
-            // Promedio de calificaciones
+            // Nombre del proveedor
+            Flexible(
+              child: Text(
+                provider.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            // Promedio de calificaciones y estrella
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.star, size: 14, color: Colors.amber),
+                const Icon(Icons.star, size: 18, color: Colors.amber),
                 const SizedBox(width: 4),
                 Text(
                   provider.averageRating.toStringAsFixed(1),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -299,6 +306,7 @@ class ProviderCard extends StatelessWidget {
                 fontSize: 12,
                 color: Colors.grey[600],
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

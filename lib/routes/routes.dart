@@ -67,6 +67,7 @@ import 'package:flutter/material.dart';
 
 //ultima union
 class RouteNames {
+  static const String popularServicesScreen = '/popularServicesScreen';
   static const String autoLoginScreen = '/autoLoginScreen';
   static const String splashScreen = '/splashScreen';
   static const String onBoardingScreen = '/onBoardingScreen';
