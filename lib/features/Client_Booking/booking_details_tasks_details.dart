@@ -622,17 +622,16 @@ class ProviderInfo extends StatelessWidget {
                   child: (providerImage != null &&
                           providerImage != 'N/A' &&
                           providerImage.isNotEmpty)
-                      ? Container(
-                          width: 94.w,
-                          height: 94.h,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey, width: 2),
-                          ),
+                      ? CircleAvatar(
+                          radius:
+                              40.w, // Radio para definir el tamaño del círculo
+                          backgroundColor:
+                              Colors.grey[200], // Color de fondo del círculo
                           child: ClipOval(
                             child: CustomImage(
                               path: providerImage,
-                              fit: BoxFit.cover,
+                              fit: BoxFit
+                                  .cover, // Asegura que la imagen llene el círculo
                               url: null,
                             ),
                           ),
@@ -659,7 +658,7 @@ class ProviderInfo extends StatelessWidget {
                         ),
                       ),
                       Utils.verticalSpace(8),
-                      Row(
+                      /* Row(
                         children: [
                           SvgPicture.asset(KImages.call),
                           Utils.horizontalSpace(4),
@@ -673,7 +672,7 @@ class ProviderInfo extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                      ),*/
                       Utils.verticalSpace(8),
                       Row(
                         children: [
