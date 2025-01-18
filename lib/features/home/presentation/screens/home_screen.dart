@@ -1,7 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
-import 'package:ezpc_tasks_app/features/home/data/dashboardnotifi.dart';
-import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -158,90 +155,256 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final userName = userData['name'] ?? "John Doe";
           final profileImage = userData['imagen'];
 
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                automaticallyImplyLeading: false,
-                pinned: true,
-                backgroundColor: primaryColor,
-                toolbarHeight: Utils.vSize(240.0),
-                centerTitle: true,
-                actions: const [SizedBox()],
-                title: Column(
-                  children: [
-                    Utils.verticalSpace(20.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return FutureBuilder<Map<String, dynamic>>(
+            future: _loadDashboardData(),
+            builder: (context, dashboardSnapshot) {
+              if (dashboardSnapshot.connectionState ==
+                  ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final dashboardData = dashboardSnapshot.data ??
+                  {
+                    'activeBookings': 0,
+                    'pendingBookings': 0,
+                    'remainingPayout': 0.0,
+                    'totalRevenue': 0.0,
+                  };
+
+              return CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    automaticallyImplyLeading: false,
+                    pinned: true,
+                    backgroundColor: primaryColor,
+                    toolbarHeight: Utils.vSize(240.0),
+                    centerTitle: true,
+                    actions: const [SizedBox()],
+                    title: Column(
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Utils.verticalSpace(20.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const CustomText(
-                              text: "Good Morning!",
-                              fontSize: 14.0,
-                              color: Color(0xCCFFFFFF), // Blanco con opacidad
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const CustomText(
+                                  text: "Good Morning!",
+                                  fontSize: 14.0,
+                                  color: Color(0xCCFFFFFF),
+                                ),
+                                CustomText(
+                                  text: userName,
+                                  fontSize: 22.0,
+                                  fontWeight: FontWeight.w700,
+                                  color: whiteColor,
+                                ),
+                                const CustomText(
+                                  text: "Role: Provider",
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.normal,
+                                  color: whiteColor,
+                                ),
+                              ],
                             ),
-                            // Nombre dinámico del usuario
-                            CustomText(
-                              text: userName,
-                              fontSize: 22.0,
-                              fontWeight: FontWeight.w700,
-                              color: whiteColor,
-                            ),
-                            CustomText(
-                              text: roleText,
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.normal,
-                              color: whiteColor,
+                            GestureDetector(
+                              onTap: () {
+                                scaffoldKey.currentState!.openEndDrawer();
+                              },
+                              child: Container(
+                                height: Utils.vSize(55.0),
+                                width: Utils.vSize(60.0),
+                                margin: Utils.only(right: 10.0),
+                                child: ClipRRect(
+                                  borderRadius: Utils.borderRadius(r: 6.0),
+                                  child: profileImage != null
+                                      ? Image.network(
+                                          profileImage,
+                                          fit: BoxFit.cover,
+                                          height: 50,
+                                          width: 50,
+                                        )
+                                      : const Icon(
+                                          Icons.person,
+                                          size: 50,
+                                          color: Colors.white,
+                                        ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            scaffoldKey.currentState!.openEndDrawer();
-                          },
-                          child: Container(
-                            height: Utils.vSize(55.0),
-                            width: Utils.vSize(60.0),
-                            margin: Utils.only(right: 10.0),
-                            child: ClipRRect(
-                              borderRadius: Utils.borderRadius(r: 6.0),
-                              child: profileImage != null &&
-                                      profileImage.isNotEmpty
-                                  ? Image.network(
-                                      profileImage,
-                                      fit: BoxFit.cover,
-                                      height: 50,
-                                      width: 50,
-                                    )
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: Colors.white,
-                                    ),
-                            ),
-                          ),
+                        Utils.verticalSpace(20),
+                        _buildBalanceCard(
+                          dashboardData['remainingPayout'].toStringAsFixed(2),
                         ),
                       ],
                     ),
-                    const BalanceCard(),
-                  ],
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Utils.verticalSpace(20.0),
-              ),
-              SliverToBoxAdapter(
-                child: Wrap(
-                  runSpacing: Utils.vSize(14.0),
-                  alignment: WrapAlignment.spaceEvenly,
-                  children: [
-                    _buildSingleCard(KImages.d01, '10', 'Active Booking'),
-                    _buildSingleCard(KImages.d02, '20', 'Pending Booking'),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Wrap(
+                        spacing: 16.0,
+                        runSpacing: 16.0,
+                        alignment: WrapAlignment.spaceEvenly,
+                        children: [
+                          _buildDashboardCard(
+                            KImages.d01,
+                            "${dashboardData['activeBookings']}",
+                            "Active Bookings",
+                          ),
+                          _buildDashboardCard(
+                            KImages.d02,
+                            "${dashboardData['pendingBookings']}",
+                            "Pending Bookings",
+                          ),
+                          _buildDashboardCard(
+                            KImages.d03,
+                            "\$${dashboardData['totalRevenue'].toStringAsFixed(2)}",
+                            "Total Revenue",
+                          ),
+                          _buildDashboardCard(
+                            KImages.d04,
+                            "\$${dashboardData['remainingPayout'].toStringAsFixed(2)}",
+                            "Remaining Payout",
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Recent Transactions",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/walletScreen');
+                                },
+                                child: const Text(
+                                  "View All",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                              height: 2), // Espacio entre encabezado y tarjetas
+                          _buildRecentTransactions(), // Renderiza las tarjetas de transacciones
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Bookings Over Time",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          FutureBuilder<List<FlSpot>>(
+                            future: _loadBookingsChartData(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
+
+                              final spots = snapshot.data ?? [];
+
+                              return SizedBox(
+                                height: 200,
+                                child: LineChart(
+                                  LineChartData(
+                                    gridData: const FlGridData(show: false),
+                                    borderData: FlBorderData(
+                                      show: true,
+                                      border: const Border(
+                                        bottom: BorderSide(color: Colors.black),
+                                        left: BorderSide(color: Colors.black),
+                                      ),
+                                    ),
+                                    titlesData: FlTitlesData(
+                                      leftTitles: AxisTitles(
+                                        sideTitles: SideTitles(
+                                          showTitles: true,
+                                          reservedSize: 22,
+                                          getTitlesWidget: (value, meta) =>
+                                              Text(
+                                            value.toInt().toString(),
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      bottomTitles: AxisTitles(
+                                        sideTitles: SideTitles(
+                                          showTitles: true,
+                                          reservedSize: 22,
+                                          getTitlesWidget: (value, meta) =>
+                                              Text(
+                                            value.toInt().toString(),
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    lineBarsData: [
+                                      LineChartBarData(
+                                        spots: spots,
+                                        isCurved: true,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF5F60BA),
+                                            Color(0xFF8A89D6)
+                                          ],
+                                        ),
+                                        barWidth: 3,
+                                        belowBarData: BarAreaData(show: false),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
