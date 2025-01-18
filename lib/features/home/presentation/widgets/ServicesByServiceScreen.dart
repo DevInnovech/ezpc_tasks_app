@@ -5,11 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ServicesByServiceScreen extends StatefulWidget {
   final String serviceName; // Nombre del servicio a buscar
+  final int ordenby;
+  final double? rating; // Valor opcional para filtrar por rating
 
-  const ServicesByServiceScreen({
-    super.key,
-    required this.serviceName,
-  });
+  const ServicesByServiceScreen(
+      {super.key,
+      required this.serviceName,
+      required this.ordenby,
+      this.rating});
 
   @override
   _ServicesByServiceScreenState createState() =>
@@ -37,7 +40,7 @@ class _ServicesByServiceScreenState extends State<ServicesByServiceScreen> {
           .get();
 
       // Filtrar tareas por servicios dentro de selectedTasks
-      return querySnapshot.docs.where((doc) {
+      List<Task> tasks = querySnapshot.docs.where((doc) {
         final selectedTasks =
             Map<String, dynamic>.from(doc['selectedTasks'] ?? {});
         return selectedTasks
@@ -47,6 +50,32 @@ class _ServicesByServiceScreenState extends State<ServicesByServiceScreen> {
         data['taskId'] = doc.id; // Agregar el ID del documento como taskId
         return Task.fromMap(data); // Convertir los datos al modelo Task
       }).toList();
+
+      if (widget.rating != null) {
+        // Filtrar tareas con rating mayor al valor proporcionado
+        tasks = tasks.where((task) {
+          double rating = double.tryParse(task.averageRating) ?? 0.0;
+          return rating > widget.rating!;
+        }).toList();
+      }
+      if (widget.ordenby != 0) {
+        tasks.sort((a, b) {
+          double priceA =
+              a.selectedTasks.values.fold(0.0, (sum, price) => sum + price);
+          double priceB =
+              b.selectedTasks.values.fold(0.0, (sum, price) => sum + price);
+
+          // Orden ascendente o descendente basado en widget.ordenby
+          if (widget.ordenby == 1) {
+            return priceA.compareTo(priceB); // Ascendente
+          } else if (widget.ordenby == 2) {
+            return priceB.compareTo(priceA); // Descendente
+          }
+          return 0; // Sin cambios si no se especifica ordenby
+        });
+      }
+
+      return tasks;
     } catch (e) {
       throw Exception('Error al cargar las tareas: $e');
     }

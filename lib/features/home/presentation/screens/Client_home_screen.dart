@@ -37,6 +37,7 @@ class ClientHomeScreen extends ConsumerStatefulWidget {
 
 class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
   Timer? _debounce;
+  Map<String, dynamic> selectedFilter = {};
   @override
   void initState() {
     super.initState();
@@ -102,10 +103,10 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
       body: Stack(
         children: [
           // Contenido principal
-          Column(
+          const Column(
             children: [
               // Header fijo
-              const ClientHomeHeader(),
+              ClientHomeHeader(),
 
               // Espacio adicional debajo del header para que el FloatingSearchBar tenga espacio
               SizedBox(height: 10), // Ajusta según el diseño necesario
@@ -122,10 +123,11 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
               children: [
                 // Espaciador
                 Utils.verticalSpace(20),
+
                 GenericFilterWidget(
                   onFilterSelected: (selectedFilters) {
                     if (selectedFilters != null) {
-                      // Aplicar los filtros seleccionados
+                      selectedFilter = selectedFilters;
                       print('Filtros seleccionados: $selectedFilters');
                     } else {
                       print('No se seleccionaron filtros');
@@ -167,7 +169,8 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
               automaticallyImplyBackButton: false,
               onQueryChanged: (query) {
                 // Actualiza los resultados de la búsqueda
-                _onSearchChanged(query, null); // Llama al método con debounce
+                _onSearchChanged(
+                    query, selectedFilter); // Llama al método con debounce
               },
               builder: (context, transition) {
                 final searchResults = ref.watch(searchResultsProvider);
@@ -199,10 +202,36 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                   );
                 }
 
-                final filteredResults = searchResults
-                    .where((result) =>
-                        result['name'] != null && result['name']!.isNotEmpty)
-                    .toList();
+                // Procesa los resultados y añade el tipo basado en la presencia de `userID`
+                /*final processedResults = searchResults.map((result) {
+                  print({'$result'});
+                  // Identificar si es provider o service basándonos en la existencia del campo `userID`
+                  final isProvider = result.containsKey('type') &&
+                      result['type'] == 'provider';
+
+                  if (isProvider) {
+                    // Para providers, devolvemos el `name`, `lastName`, y otros datos relevantes
+                    return {
+                      'name': result['name'] ?? 'No Name',
+                      'lastName': result['lastName'] ?? 'No Last Name',
+                      'type': 'provider',
+                      'id': result['id'] ?? '',
+                    };
+                  } else {
+                    // Para services, extraemos el primer `taskName` de `selectedTasks`
+                    final selectedTasks =
+                        result['selectedTasks'] as Map<String, dynamic>? ?? {};
+                    final taskName = selectedTasks.keys.isNotEmpty
+                        ? selectedTasks.keys.first
+                        : 'No Task Name';
+
+                    return {
+                      'taskName': taskName,
+                      'type': 'service',
+                      'id': result['id'] ?? '',
+                    };
+                  }
+                }).toList();*/
 
                 return Material(
                   elevation: 4,
@@ -210,19 +239,20 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                   child: ListView.builder(
                     padding: const EdgeInsets.all(8),
                     shrinkWrap: true,
-                    itemCount: filteredResults.length,
+                    itemCount: searchResults.length,
                     itemBuilder: (context, index) {
-                      final result = filteredResults[index];
+                      final result = searchResults[index];
+                      final isProvider = result['type'] == 'provider';
+
                       return ListTile(
                         leading: Icon(
-                          result['type'] == 'provider'
-                              ? Icons.person
-                              : Icons.home_repair_service,
+                          isProvider ? Icons.person : Icons.home_repair_service,
                         ),
-                        title: Text(result['name']),
-                        subtitle: Text(result['lastName'] ?? 'No Last Name'),
+                        title: Text(result['name'] ?? 'N/A'),
+                        subtitle: Text(result['lastName'] ?? '/a'),
                         onTap: () {
-                          if (result['type'] == 'provider') {
+                          if (isProvider) {
+                            // Navegación para provider
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -230,15 +260,33 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                                   providerName: result['name'],
                                   providerLastName: result['lastName'] ?? 'N/A',
                                   providerDocumentID: result['id'],
+                                  ordenby:
+                                      selectedFilter['Lowest'] == true ? 1 : 0,
+                                  rating:
+                                      selectedFilter['averageRating'][0] == true
+                                          ? double.tryParse(
+                                              selectedFilter['averageRating'][1]
+                                                  .toString())
+                                          : null,
                                 ),
                               ),
                             );
-                          } else if (result['type'] == 'service') {
+                          } else {
+                            // Navegación para service
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ServicesByServiceScreen(
-                                  serviceName: result['name'],
+                                  rating:
+                                      selectedFilter['averageRating'][0] == true
+                                          ? double.tryParse(
+                                              selectedFilter['averageRating'][1]
+                                                  .toString())
+                                          : null,
+                                  ordenby:
+                                      selectedFilter['Lowest'] == true ? 1 : 0,
+                                  serviceName: result[
+                                      'name'], // Usar taskName en la navegación
                                 ),
                               ),
                             );
@@ -250,7 +298,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                 );
               },
             ),
-          ),
+          )
         ],
       ),
     );
