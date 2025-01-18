@@ -114,20 +114,19 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
         return;
       }
 
-      if (currentTask.category == null || currentTask.category!.isEmpty) {
+      if (currentTask.category.isEmpty) {
         _showDialog(context, 'Error', 'Please select a category and service.');
         return;
       }
 
-      if (currentTask.selectedTasks == null ||
-          currentTask.selectedTasks!.isEmpty) {
+      if (currentTask.selectedTasks.isEmpty) {
         _showDialog(context, 'Error', 'Please select at least one service.');
         return;
       }
 
       final allPricesProvided =
           currentTask.selectedTasks.entries.every((service) {
-        return service.key != null && service.value > 0;
+        return service.value > 0;
       });
 
       if (!allPricesProvided) {
@@ -151,8 +150,7 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
       }
     }
     if (_currentStep == 2) {
-      if (currentTask.workingHours == null ||
-          currentTask.workingHours!.isEmpty) {
+      if (currentTask.workingHours.isEmpty) {
         _showDialog(
             context, 'Error', 'Please select at least one date or day.');
         return;
@@ -161,7 +159,7 @@ class _AddNewTaskScreenState extends ConsumerState<AddNewTaskScreen> {
 
     if (_currentStep == 3) {
       // Paso 4 - Special Days
-      if (currentTask.specialDays == null || currentTask.specialDays.isEmpty) {
+      if (currentTask.specialDays.isEmpty) {
         _showDialog(context, 'Error', 'Please add at least one special day.');
         return;
       }

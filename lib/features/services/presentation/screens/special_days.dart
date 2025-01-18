@@ -131,7 +131,7 @@ class SpecialDaysStep extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               contentPadding: const EdgeInsets.all(20),
-              title: Center(
+              title: const Center(
                 child: Text(
                   'Add New Special Day',
                   style: TextStyle(
@@ -310,9 +310,7 @@ class SpecialDaysStep extends ConsumerWidget {
             lastDate: DateTime(2101),
           );
 
-          if (pickedDate != null) {
-            controller.text = "${pickedDate.toLocal()}".split(' ')[0];
-          }
+          controller.text = "${pickedDate!.toLocal()}".split(' ')[0];
         }
       },
       child: AbsorbPointer(

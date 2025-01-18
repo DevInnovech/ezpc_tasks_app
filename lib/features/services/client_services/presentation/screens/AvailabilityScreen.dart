@@ -85,7 +85,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         final relatedSelectedKeys = relatedSelectedTasks.keys.toSet();
 
         // Verificar si las subcategorías coinciden
-        if (!subCategoriesSet.difference(relatedSelectedKeys).isEmpty) continue;
+        if (subCategoriesSet.difference(relatedSelectedKeys).isNotEmpty)
+          continue;
 
         if (taskMap.containsKey('assignments')) {
           // Tareas corporativas
@@ -842,7 +843,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                   "New price for '${entry.key}':",
                   entry.value.toString(),
                 );
-              }).toList(),
+              }),
               const Divider(
                 height: 20,
                 thickness: 1,

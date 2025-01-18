@@ -468,7 +468,7 @@ class _BookingScreenState extends State<BookingScreen> {
             "$serviceName ($hoursForService hr${hoursForService > 1 ? 's' : ''}):",
             price * hoursForService,
           );
-        }).toList(),
+        }),
         const Divider(
           height: 20,
           thickness: 1,

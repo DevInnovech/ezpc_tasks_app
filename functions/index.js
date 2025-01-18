@@ -402,3 +402,4 @@ exports.deletePaymentMethod = functions.https.onRequest(async (req, res) => {
         });
     }
 });
+

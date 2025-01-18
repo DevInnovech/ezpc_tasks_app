@@ -119,7 +119,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         return {};
       }
 
-      final providerData = providerDoc.data() as Map<String, dynamic>? ?? {};
+      final providerData = providerDoc.data() ?? {};
 
       final performanceData =
           providerData['performance'] as Map<String, dynamic>? ?? {};
@@ -153,7 +153,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         return {};
       }
 
-      final providerData = providerDoc.data() as Map<String, dynamic>? ?? {};
+      final providerData = providerDoc.data() ?? {};
 
       final performanceData =
           providerData['performance'] as Map<String, dynamic>? ?? {};

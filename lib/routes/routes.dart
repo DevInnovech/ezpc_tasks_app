@@ -26,6 +26,7 @@ import 'package:ezpc_tasks_app/features/chat/presentation/screens/SupportChatScr
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/AllcategoriesScreen.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/WalletScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/home_screen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/main_screen.dart';
@@ -248,7 +249,8 @@ class RouteNames {
 
       case RouteNames.addCardPaymentMethodScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => PaymentInformationScreen());
+            settings: settings,
+            builder: (_) => const PaymentInformationScreen());
 
       case RouteNames.backgroundCheckScreen:
         return MaterialPageRoute(
@@ -281,6 +283,10 @@ class RouteNames {
       case RouteNames.addNewServiceScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const AddNewTaskScreen());
+
+      case RouteNames.walletScreen:
+        return MaterialPageRoute(
+            settings: settings, builder: (_) => const WalletScreen());
 
       case RouteNames.primierServiceScreen:
         // Asegúrate de recibir los argumentos correctamente como un Map

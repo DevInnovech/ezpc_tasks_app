@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/src/widgets/basic.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Modelo simplificado para un servicio

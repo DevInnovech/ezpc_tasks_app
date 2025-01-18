@@ -1,4 +1,5 @@
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_screen.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/screens/WalletScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/miancontroller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/end_drawer_menu.dart';
 import 'package:ezpc_tasks_app/features/services/presentation/screens/sevices_page.dart';
@@ -35,7 +36,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       const HomeScreen(),
       const ProviderOrdersScreen(),
       const ServiceScreen(),
-      const HomeScreen(),
+      const WalletScreen(),
     ];
   }
 

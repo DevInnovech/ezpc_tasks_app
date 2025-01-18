@@ -54,7 +54,7 @@ class TwoFactorSetupScreen extends ConsumerWidget {
                       ref.read(authMethodProvider.notifier).state = '';
                     }
                   },
-                  activeColor: Colors.blue,
+                  activeTrackColor: Colors.blue,
                 ),
               ],
             ),
@@ -89,7 +89,7 @@ class TwoFactorSetupScreen extends ConsumerWidget {
                       ref.read(authMethodProvider.notifier).state = '';
                     }
                   },
-                  activeColor: Colors.blue,
+                  activeTrackColor: Colors.blue,
                 ),
               ],
             ),

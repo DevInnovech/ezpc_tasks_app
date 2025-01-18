@@ -11,7 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shimmer/shimmer.dart'; // Para el skeleton loader
 
 class ProviderCalendarScreen extends StatefulWidget {
-  const ProviderCalendarScreen({Key? key}) : super(key: key);
+  const ProviderCalendarScreen({super.key});
 
   @override
   _ProviderCalendarScreenState createState() => _ProviderCalendarScreenState();
@@ -188,7 +188,7 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
               availableCalendarFormats: const {
                 CalendarFormat.month: 'Month',
               },
-              headerStyle: HeaderStyle(
+              headerStyle: const HeaderStyle(
                 formatButtonVisible: false, // Oculta el botón "2 weeks"
                 titleCentered: true, // Centra el título del mes
                 titleTextStyle: TextStyle(
@@ -220,7 +220,7 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                 _loadBookingsForSelectedDate();
               },
               calendarStyle: CalendarStyle(
-                todayTextStyle: TextStyle(
+                todayTextStyle: const TextStyle(
                   color: primaryColor, // Color del texto de hoy
                   fontWeight: FontWeight.bold, // Para que resalte más
                 ),
@@ -233,11 +233,11 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                     width: 2, // Grosor del borde
                   ),
                 ),
-                selectedDecoration: BoxDecoration(
+                selectedDecoration: const BoxDecoration(
                   color: primaryColor,
                   shape: BoxShape.circle,
                 ),
-                markerDecoration: BoxDecoration(
+                markerDecoration: const BoxDecoration(
                   color: primaryColor,
                   shape: BoxShape.circle,
                 ),
@@ -255,8 +255,8 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
 
   Widget _buildBookingList() {
     if (_bookingsDetails.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -266,12 +266,12 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                 url: null,
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               "No Bookings for This Day",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const Text(
+            Text(
               "Try selecting another date.",
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
@@ -296,7 +296,7 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
               contentPadding: const EdgeInsets.all(16),
               title: Text(
                 booking['selectedTaskName'] ?? "Booking Name Not Found",
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: primaryColor,

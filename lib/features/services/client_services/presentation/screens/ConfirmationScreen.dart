@@ -393,7 +393,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       });
     } on stripe.StripeException catch (e) {
       // Validar si el código de error es por cancelación del flujo de pago
-      if (e.error?.localizedMessage?.contains("canceled") ?? false) {
+      if (e.error.localizedMessage?.contains("canceled") ?? false) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Payment cancelled.")),
         );

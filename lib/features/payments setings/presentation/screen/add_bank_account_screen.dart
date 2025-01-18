@@ -34,8 +34,8 @@ class AddBankAccountScreen extends ConsumerWidget {
     final accountNumberController = TextEditingController();
     final routingNumberController = TextEditingController();
     final accountTypeController = TextEditingController();
-    String? _selectedBank; // Banco seleccionado
-    bool _isLoading = false;
+    String? selectedBank; // Banco seleccionado
+    bool isLoading = false;
 
     Future<List<String>> fetchBanks() async {
       final snapshot =
@@ -67,7 +67,7 @@ class AddBankAccountScreen extends ConsumerWidget {
         final bankAccountData = {
           'user_id': user.uid,
           'email': email,
-          'bank_name': _selectedBank, // Nombre del banco seleccionado
+          'bank_name': selectedBank, // Nombre del banco seleccionado
           'account_holder_name': accountHolderNameController.text,
           'account_number': encryptedAccountNumber,
           'routing_number': encryptedRoutingNumber,
@@ -143,7 +143,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                           );
                         }).toList(),
                         onChanged: (value) {
-                          _selectedBank = value;
+                          selectedBank = value;
                         },
                         validator: (value) => value == null || value.isEmpty
                             ? 'Please select a bank'
@@ -231,7 +231,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: _isLoading ? null : addBankAccount,
+                        onPressed: isLoading ? null : addBankAccount,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           shape: RoundedRectangleBorder(
@@ -239,7 +239,7 @@ class AddBankAccountScreen extends ConsumerWidget {
                           ),
                           minimumSize: const Size(double.infinity, 48),
                         ),
-                        child: _isLoading
+                        child: isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
