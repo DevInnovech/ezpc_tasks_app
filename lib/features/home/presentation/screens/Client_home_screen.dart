@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/home/data/client_services_controler.dart';
+import 'package:ezpc_tasks_app/features/home/data/filter_controller.dart';
 import 'package:ezpc_tasks_app/features/home/data/popular_services_controller.dart';
 import 'package:ezpc_tasks_app/features/home/data/services_controler.dart';
 import 'package:ezpc_tasks_app/features/home/models/client_home_controller.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/pop_services.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/see_all_featured.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByProviderfilter.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByServiceScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
@@ -21,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/see_all_popular.dart';
+import 'package:material_floating_search_bar_2/material_floating_search_bar_2.dart';
 
 class ClientHomeScreen extends ConsumerStatefulWidget {
   const ClientHomeScreen({super.key});
@@ -30,6 +36,7 @@ class ClientHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
+  Timer? _debounce;
   @override
   void initState() {
     super.initState();
@@ -68,44 +75,184 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
   }
 
   @override
+  void dispose() {
+    _debounce?.cancel(); // Cancela el debounce al destruir el widget
+    super.dispose();
+  }
+
+// Manejo del cambio en el campo de texto con debounce
+  void _onSearchChanged(String query, Map<String, dynamic>? selectedFilters) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (query.trim().isNotEmpty) {
+        ref
+            .read(searchResultsProvider.notifier)
+            .performSearch(query, selectedFilters);
+      } else {
+        ref.read(searchResultsProvider.notifier).clearResults();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final homeControllerState = ref.watch(homeControllerProvider);
-    final servicesState = ref.watch(servicesControllerProvider);
 
-    return Column(
-      children: [
-        const ClientHomeHeader(),
-        Utils.verticalSpace(50),
-        GenericFilterWidget(
-          onFilterSelected: (selectedFilters) {
-            if (selectedFilters != null) {
-              // Aplicar los filtros seleccionados
-              print('Filtros seleccionados: $selectedFilters');
-            } else {
-              print('No se seleccionaron filtros');
-            }
-          },
-        ),
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Contenido principal
+          Column(
+            children: [
+              // Header fijo
+              const ClientHomeHeader(),
 
-        // Banner Carousel
+              // Espacio adicional debajo del header para que el FloatingSearchBar tenga espacio
+              SizedBox(height: 10), // Ajusta según el diseño necesario
+            ],
+          ),
 
-        Utils.verticalSpace(24),
+          // FloatingSearchBar ajustado
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 150,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Column(
+              children: [
+                // Espaciador
+                Utils.verticalSpace(20),
+                GenericFilterWidget(
+                  onFilterSelected: (selectedFilters) {
+                    if (selectedFilters != null) {
+                      // Aplicar los filtros seleccionados
+                      print('Filtros seleccionados: $selectedFilters');
+                    } else {
+                      print('No se seleccionaron filtros');
+                    }
+                  },
+                ),
+                // Manejo de estado del controlador principal
+                Expanded(
+                  child: homeControllerState.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) =>
+                        Center(child: Text('Error: $error')),
+                    data: (state) {
+                      if (state is HomeControllerLoaded) {
+                        return HomeLoadedData(data: state.homeModel, ref: ref);
+                      } else {
+                        return const Center(child: Text('No data available'));
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-        // Manejo adecuado del AsyncValue para homeControllerState
-        homeControllerState.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
-          data: (state) {
-            if (state is HomeControllerLoaded) {
-              return HomeLoadedData(data: state.homeModel, ref: ref);
-            } else {
-              return Container(
-                child: const Text("No Enable"),
-              ); // Maneja cualquier otro estado inesperado
-            }
-          },
-        ),
-      ],
+          // Contenido debajo de la barra de búsqueda
+          Positioned.fill(
+            top: 100,
+            child: FloatingSearchBar(
+              hint: 'Search Tasks or Providers',
+              backdropColor: Colors.transparent, // Quitar el fondo opacado
+
+              scrollPadding: const EdgeInsets.only(top: 16, bottom: 56),
+              transitionDuration: const Duration(milliseconds: 300),
+              transitionCurve: Curves.easeInOut,
+              physics: const BouncingScrollPhysics(),
+              debounceDelay: const Duration(milliseconds: 500),
+              automaticallyImplyBackButton: false,
+              onQueryChanged: (query) {
+                // Actualiza los resultados de la búsqueda
+                _onSearchChanged(query, null); // Llama al método con debounce
+              },
+              builder: (context, transition) {
+                final searchResults = ref.watch(searchResultsProvider);
+
+                if (searchResults.isEmpty) {
+                  return Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.search_off,
+                              size: 40, color: Colors.grey[600]),
+                          SizedBox(height: 10),
+                          Text(
+                            'No results found.',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final filteredResults = searchResults
+                    .where((result) =>
+                        result['name'] != null && result['name']!.isNotEmpty)
+                    .toList();
+
+                return Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(8),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    shrinkWrap: true,
+                    itemCount: filteredResults.length,
+                    itemBuilder: (context, index) {
+                      final result = filteredResults[index];
+                      return ListTile(
+                        leading: Icon(
+                          result['type'] == 'provider'
+                              ? Icons.person
+                              : Icons.home_repair_service,
+                        ),
+                        title: Text(result['name']),
+                        subtitle: Text(result['lastName'] ?? 'No Last Name'),
+                        onTap: () {
+                          if (result['type'] == 'provider') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ServicesByProviderScreen(
+                                  providerName: result['name'],
+                                  providerLastName: result['lastName'] ?? 'N/A',
+                                  providerDocumentID: result['id'],
+                                ),
+                              ),
+                            );
+                          } else if (result['type'] == 'service') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ServicesByServiceScreen(
+                                  serviceName: result['name'],
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
