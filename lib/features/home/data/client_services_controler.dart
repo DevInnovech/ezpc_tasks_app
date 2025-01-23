@@ -74,7 +74,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
         id: doc.id,
         name: data['name'] ?? 'Unnamed Category',
         subCategories: subCategories,
-        pathImage: null,
+        pathImage: data['imageUrl'] ?? "",
         categoryId: '',
       );
     }).toList();

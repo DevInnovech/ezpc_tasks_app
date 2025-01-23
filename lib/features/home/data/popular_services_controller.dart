@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Modelo para un servicio popular
 class PopularService {
+  final String? image;
   final String serviceName;
   final int count;
 
   PopularService({
     required this.serviceName,
     required this.count,
+    required this.image,
   });
 }
 
@@ -56,6 +58,7 @@ class PopularServicesController extends StateNotifier<PopularServicesState> {
             .map((serviceData) => PopularService(
                   serviceName: serviceData['service'] ?? 'Unnamed Service',
                   count: serviceData['count'] ?? 0,
+                  image: serviceData['image'] ?? null,
                 ))
             .toList()
           ..sort((a, b) => b.count.compareTo(a.count)); // Orden descendente

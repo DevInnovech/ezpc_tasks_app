@@ -277,12 +277,14 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ServicesByServiceScreen(
-                                  rating:
-                                      selectedFilter['averageRating'][0] == true
-                                          ? double.tryParse(
-                                              selectedFilter['averageRating'][1]
-                                                  .toString())
-                                          : null,
+                                  /*   rating: selectedFilter['averageRating'][0] ==
+                                              true &&
+                                          selectedFilter['averageRating'][0] !=
+                                              null
+                                      ? double.tryParse(
+                                          selectedFilter['averageRating'][1]
+                                              .toString())
+                                      : null,*/
                                   ordenby:
                                       selectedFilter['Lowest'] == true ? 1 : 0,
                                   serviceName: result[
@@ -365,6 +367,7 @@ class ServiceCard extends StatelessWidget {
 }
 
 class PopularServiceCard extends StatelessWidget {
+  final String? image;
   final String serviceName;
   final int count;
   final VoidCallback onTap; // Añade este parámetro
@@ -373,7 +376,8 @@ class PopularServiceCard extends StatelessWidget {
     super.key,
     required this.serviceName,
     required this.count,
-    required this.onTap, // Asegúrate de hacerlo obligatorio
+    required this.onTap,
+    required this.image, // Asegúrate de hacerlo obligatorio
   });
 
   @override
@@ -397,8 +401,27 @@ class PopularServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                height: 150 * 0.5, // Altura relativa al ancho
+                width: double.infinity,
+                color: Colors.grey[200],
+                child: image != null
+                    ? Image.asset(
+                        'assets/images/pp.jpg', // Imagen por defecto
+                        fit: BoxFit.cover,
+                      )
+                    : const Icon(
+                        Icons.person,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+              ),
+            ),
             // Icono representativo
-            const Icon(Icons.star, size: 40, color: Colors.blue),
+            /*    const Icon(Icons.star, size: 40, color: Colors.blue),
+            */
             const SizedBox(height: 8),
 
             // Nombre del servicio
@@ -650,6 +673,7 @@ class HomeLoadedData extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
                           child: PopularServiceCard(
+                            image: service.image,
                             serviceName: service.serviceName,
                             count: service.count,
                             onTap: () {
