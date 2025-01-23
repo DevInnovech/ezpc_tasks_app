@@ -13,11 +13,14 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByProv
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByServiceScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/popular_service_card.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/scrool_text.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_filter.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
@@ -366,91 +369,6 @@ class ServiceCard extends StatelessWidget {
   }
 }
 
-class PopularServiceCard extends StatelessWidget {
-  final String? image;
-  final String serviceName;
-  final int count;
-  final VoidCallback onTap; // Añade este parámetro
-
-  const PopularServiceCard({
-    super.key,
-    required this.serviceName,
-    required this.count,
-    required this.onTap,
-    required this.image, // Asegúrate de hacerlo obligatorio
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap, // Usa el callback aquí
-      child: Container(
-        width: 150, // Ancho de la tarjeta
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(2, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                height: 150 * 0.5, // Altura relativa al ancho
-                width: double.infinity,
-                color: Colors.grey[200],
-                child: image != null
-                    ? Image.asset(
-                        'assets/images/pp.jpg', // Imagen por defecto
-                        fit: BoxFit.cover,
-                      )
-                    : const Icon(
-                        Icons.person,
-                        size: 40,
-                        color: Colors.grey,
-                      ),
-              ),
-            ),
-            // Icono representativo
-            /*    const Icon(Icons.star, size: 40, color: Colors.blue),
-            */
-            const SizedBox(height: 8),
-
-            // Nombre del servicio
-            Text(
-              serviceName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-
-            // Conteo del servicio (popularidad)
-            Text(
-              "Used $count times",
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class HomeLoadedData extends StatelessWidget {
   const HomeLoadedData({
     super.key,
@@ -673,6 +591,8 @@ class HomeLoadedData extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
                           child: PopularServiceCard(
+                            rank: index + 1,
+                            category: service.categoryName,
                             image: service.image,
                             serviceName: service.serviceName,
                             count: service.count,

@@ -8,8 +8,12 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/popular_servic
 class PopularServiceModel {
   final String service;
   final int count;
+  final String? image;
+  final String category;
 
   PopularServiceModel({
+    required this.image,
+    required this.category,
     required this.service, // Cambiado para que coincida con 'service' en Firestore
     required this.count,
   });
@@ -20,6 +24,8 @@ class PopularServiceModel {
       service:
           map['service'] as String? ?? 'Unknown Service', // Campo corregido
       count: map['count'] as int? ?? 0,
+      image: map['imageUrl'] as String? ?? 'Unknown Service',
+      category: map['categoryName'] as String? ?? 'Unknown Category',
     );
   }
 }
@@ -91,17 +97,20 @@ class _PopularServicesScreenState extends State<PopularServicesScreen> {
 
             // Mostrar la lista de servicios populares
             return GridView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, // Número de columnas
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
                 childAspectRatio: 3 / 4, // Relación de aspecto de las tarjetas
               ),
               itemCount: services.length,
               itemBuilder: (context, index) {
                 final service = services[index];
                 return PopularServiceCard(
+                  category: service.category,
+                  image: service.image,
+                  rank: index + 1,
                   serviceName: service.service,
                   count: service.count,
                   onTap: () {
