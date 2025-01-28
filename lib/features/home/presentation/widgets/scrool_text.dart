@@ -7,13 +7,13 @@ class ScrollingText extends StatefulWidget {
   final Duration pauseDuration; // Duración de la pausa
 
   const ScrollingText({
-    Key? key,
+    super.key,
     required this.text,
     this.style,
     this.velocity = 50.0, // Velocidad del desplazamiento
     this.pauseDuration =
         const Duration(seconds: 3), // Pausa inicial y posterior
-  }) : super(key: key);
+  });
 
   @override
   _ScrollingTextState createState() => _ScrollingTextState();
@@ -32,7 +32,7 @@ class _ScrollingTextState extends State<ScrollingText>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(milliseconds: 10000),
+      duration: const Duration(milliseconds: 10000),
       vsync: this,
     )
       ..addListener(_scroll)
@@ -72,12 +72,12 @@ class _ScrollingTextState extends State<ScrollingText>
     // Volver al inicio suavemente
     _scrollController.animateTo(
       0,
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeOut,
     );
 
     // Esperar a que termine de volver al inicio antes de pausar
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     // Pausar en la posición inicial
     await Future.delayed(widget.pauseDuration);
@@ -136,10 +136,10 @@ class MeasureSize extends StatefulWidget {
   final Function(Size size) onChange;
 
   const MeasureSize({
-    Key? key,
+    super.key,
     required this.child,
     required this.onChange,
-  }) : super(key: key);
+  });
 
   @override
   _MeasureSizeState createState() => _MeasureSizeState();

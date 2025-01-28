@@ -1,4 +1,3 @@
-import 'package:ezpc_tasks_app/features/checkr/model/checkr_service.dart';
 import 'package:flutter/material.dart';
 
 class BackgroundCheckStatusScreen extends StatefulWidget {
@@ -38,9 +37,9 @@ class _BackgroundCheckStatusScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               "Your background check status is:",
-              style: const TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
             Text(

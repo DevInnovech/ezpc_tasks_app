@@ -62,7 +62,7 @@ class PopularServicesController extends StateNotifier<PopularServicesState> {
                       serviceData['categoryName'] ?? 'Unnamed category',
                   serviceName: serviceData['service'] ?? 'Unnamed Service',
                   count: serviceData['count'] ?? 0,
-                  image: serviceData['imageUrl'] ?? null,
+                  image: serviceData['imageUrl'],
                 ))
             .toList()
           ..sort((a, b) => b.count.compareTo(a.count)); // Orden descendente

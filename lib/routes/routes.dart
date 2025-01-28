@@ -3,7 +3,6 @@ import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/edit_abou
 import 'package:ezpc_tasks_app/features/About%20me/presentation/screen/about_me_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/autologin_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/register/basic_register_google.dart';
-import 'package:ezpc_tasks_app/features/checkr/screens/candidate_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/accountverificationscreen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/greates_page.dart';
@@ -227,7 +226,8 @@ class RouteNames {
 
       case RouteNames.createCandidateScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => WelcomeBackgroundCheckScreen());
+            settings: settings,
+            builder: (_) => const WelcomeBackgroundCheckScreen());
 
       case RouteNames.accountTypeSelectionScreen:
         return MaterialPageRoute(

@@ -92,7 +92,7 @@ class PopularServiceCard extends StatelessWidget {
                 // Conteo de popularidad (estrella y texto en una fila)
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.star,
                       size: 12,
                       color: Colors.orange,

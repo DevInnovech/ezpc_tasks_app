@@ -108,7 +108,7 @@ class ServicesControllerNotifier
                 .map((q) => q.toString())
                 .toList(), // Lista de preguntas
             serviceId: service['serviceId'] ?? '',
-            image: service['imageUrl'] ?? null, // ID del servicio
+            image: service['imageUrl'], // ID del servicio
           );
         });
       }).toList();

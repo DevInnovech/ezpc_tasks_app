@@ -14,13 +14,11 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByServ
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/popular_service_card.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/scrool_text.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_filter.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
