@@ -26,6 +26,7 @@ import 'package:ezpc_tasks_app/features/booking/presentation/screens/booking_scr
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/SupportChatScreen.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
+import 'package:ezpc_tasks_app/features/checkr/screens/welcomebackground.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/AllcategoriesScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/WalletScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/screens/client_main_screen%20.dart';
@@ -226,7 +227,7 @@ class RouteNames {
 
       case RouteNames.createCandidateScreen:
         return MaterialPageRoute(
-            settings: settings, builder: (_) => const CreateCandidateScreen());
+            settings: settings, builder: (_) => WelcomeBackgroundCheckScreen());
 
       case RouteNames.accountTypeSelectionScreen:
         return MaterialPageRoute(

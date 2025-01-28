@@ -102,10 +102,10 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
       body: Stack(
         children: [
           // Contenido principal
-          Column(
+          const Column(
             children: [
               // Header fijo
-              const ClientHomeHeader(),
+              ClientHomeHeader(),
 
               // Espacio adicional debajo del header para que el FloatingSearchBar tenga espacio
               SizedBox(height: 10), // Ajusta según el diseño necesario
@@ -184,7 +184,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                         children: [
                           Icon(Icons.search_off,
                               size: 40, color: Colors.grey[600]),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Text(
                             'No results found.',
                             style: TextStyle(

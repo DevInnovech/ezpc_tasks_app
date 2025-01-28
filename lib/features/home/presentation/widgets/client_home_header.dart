@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/screens/ProviderOrderDetailsScreen.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByProviderfilter.dart';
-import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByServiceScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Para autenticar al usuario
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,9 +8,7 @@ import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
-import 'package:ezpc_tasks_app/features/home/data/filter_controller.dart';
-import 'dart:async'; // Import necesario para usar Timer
-import 'package:material_floating_search_bar_2/material_floating_search_bar_2.dart';
+// Import necesario para usar Timer
 
 class ClientHomeHeader extends ConsumerStatefulWidget {
   const ClientHomeHeader({super.key});

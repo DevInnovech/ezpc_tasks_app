@@ -17,7 +17,6 @@ Future<void> main() async {
 
   Stripe.publishableKey = PublishableKey;
   await Stripe.instance.applySettings();
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

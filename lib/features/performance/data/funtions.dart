@@ -1,5 +1,3 @@
-import 'package:cloud_functions/cloud_functions.dart';
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
