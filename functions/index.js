@@ -403,3 +403,49 @@ exports.deletePaymentMethod = functions.https.onRequest(async (req, res) => {
     }
 });
 
+exports.checkrWebhook = functions.https.onRequest(async (req, res) => {
+    try {
+        if (req.method !== "POST") {
+            return res.status(405).send("Method Not Allowed");
+        }
+
+        console.log("📩 Webhook recibido de Checkr:", JSON.stringify(req.body, null, 2));
+
+        const eventType = req.body.type;
+        const reportData = req.body.data?.object;
+
+        if (!reportData || !reportData.candidate_id) {
+            console.error("❌ Error: No se encontró 'candidate_id' en el payload");
+            return res.status(400).send("Invalid payload: missing candidate_id");
+        }
+
+        const candidateId = reportData.candidate_id;
+        const reportId = reportData.id;
+        const status = reportData.status || "unknown";
+        const result = reportData.result || "unknown";
+        const completedAt = reportData.completed_at || null;
+        const assessment = reportData.assessment || "not provided";
+
+        console.log(`📝 Procesando candidate_id: ${candidateId}, status: ${status}`);
+
+        // Actualizar Firestore con la información del reporte
+        await admin.firestore().collection("background_checks").doc(candidateId).set({
+            status: status,
+            report_id: reportId,
+            completed_at: completedAt,
+            result: result,
+            assessment: assessment,
+            updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+
+        console.log(`✅ Background check actualizado para candidate_id: ${candidateId}`);
+
+        res.status(200).send("✅ Webhook recibido correctamente");
+    } catch (error) {
+        console.error("❌ Error procesando el webhook:", error);
+        res.status(500).send("Error interno del servidor");
+    }
+});
+
+
+

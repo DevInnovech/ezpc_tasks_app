@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/checkr/screens/candidate_processing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ezpc_tasks_app/features/checkr/model/candidate.dart';
@@ -39,10 +40,10 @@ class _CandidateFormScreenState extends State<CandidateFormScreen> {
       });
 
       try {
-        // Dividir y validar la ubicación de trabajo
+        // Validate and parse work location
         final locationParts = workLocationController.text.trim().split(',');
         if (locationParts.length != 2) {
-          print("Invalid work_location format: Expected 'City, State'");
+          print("Invalid work_location format");
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Work Location must be in 'City, ST' format."),
@@ -55,12 +56,11 @@ class _CandidateFormScreenState extends State<CandidateFormScreen> {
           return;
         }
 
-// Explicitly declare as List<Map<String, String>>
         final List<Map<String, String>> workLocation = [
           {
             "city": locationParts[0].trim(),
             "state": locationParts[1].trim(),
-            "country": "US" // Ensure all values are Strings
+            "country": "US"
           }
         ];
 
@@ -71,7 +71,7 @@ class _CandidateFormScreenState extends State<CandidateFormScreen> {
           lastName: lastNameController.text.trim(),
           email: emailController.text.trim(),
           phone: phoneController.text.trim(),
-          workLocations: workLocation, // Pass correctly formatted data
+          workLocations: workLocation,
           zipcode: zipCodeController.text.trim(),
         );
 
@@ -82,43 +82,43 @@ class _CandidateFormScreenState extends State<CandidateFormScreen> {
           'last_name': candidate.lastName,
           'email': candidate.email,
           'phone': candidate.phone,
-          'work_locations': workLocation, // Ensure correct type
+          'work_locations': workLocation,
           'zipcode': candidate.zipcode,
         });
 
         if (result != null && result['success']) {
+          final candidateId = result['candidateId'];
+          final invitationUrl = result['invitationUrl'];
+
           print("Checkr Response: $result");
 
-          // Guardar en Firestore
-          await FirebaseFirestore.instance.collection('background_checks').add({
+          // Save in Firestore
+          await FirebaseFirestore.instance
+              .collection('background_checks')
+              .doc(candidateId)
+              .set({
             'first_name': candidate.firstName,
             'last_name': candidate.lastName,
             'email': candidate.email,
             'phone': candidate.phone,
             'work_locations': candidate.workLocations,
             'zipcode': candidate.zipcode,
-            'checkr_id': result['candidateId'],
-            'invitation_url': result['invitationUrl'],
-            'status': 'invitation_sent',
+            'checkr_id': candidateId,
+            'invitation_url': invitationUrl,
+            'status': 'processing', // Initial status
             'created_at': Timestamp.now(),
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text("Candidate created and invitation sent successfully"),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Limpiar el formulario
-          _formKey.currentState!.reset();
-          firstNameController.clear();
-          lastNameController.clear();
-          emailController.clear();
-          phoneController.clear();
-          workLocationController.clear();
-          zipCodeController.clear();
+          // Navigate to CandidateProcessingScreen
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CandidateProcessingScreen(
+                    candidateId: candidateId, email: candidate.email),
+              ),
+            );
+          }
         } else {
           print("Error in Checkr Response: ${result?['error']}");
           ScaffoldMessenger.of(context).showSnackBar(

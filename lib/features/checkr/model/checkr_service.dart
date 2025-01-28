@@ -160,4 +160,34 @@ class CheckrService {
       return "error";
     }
   }
+
+  static Future<void> updateBackgroundCheckStatus(String candidateId) async {
+    final url = Uri.parse("$baseUrl/candidates/$candidateId");
+
+    try {
+      final response = await http.get(
+        url,
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final status = data['status'] ?? 'unknown';
+
+        print("Candidate status updated: $status");
+
+        await FirebaseFirestore.instance
+            .collection('background_checks')
+            .doc(candidateId)
+            .update({
+          'status': status,
+          'updated_at': Timestamp.now(),
+        });
+      } else {
+        print("Error fetching candidate status: ${response.body}");
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
 }
