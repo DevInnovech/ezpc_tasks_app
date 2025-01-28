@@ -7,13 +7,16 @@ class ServicesByProviderScreen extends StatefulWidget {
   final String providerName; // Nombre del proveedor seleccionado
   final String providerLastName; // Apellido del proveedor seleccionado
   final String providerDocumentID; // ID del documento del proveedor
+  final int ordenby;
+  final double? rating; // Valor opcional para filtrar por rating
 
-  const ServicesByProviderScreen({
-    super.key,
-    required this.providerName,
-    required this.providerLastName,
-    required this.providerDocumentID,
-  });
+  const ServicesByProviderScreen(
+      {super.key,
+      required this.providerName,
+      required this.providerLastName,
+      required this.providerDocumentID,
+      required this.ordenby,
+      this.rating});
 
   @override
   _ServicesByProviderScreenState createState() =>
@@ -40,7 +43,7 @@ class _ServicesByProviderScreenState extends State<ServicesByProviderScreen> {
           .where('status', isEqualTo: 1) // Solo servicios activos
           .get();
 
-      return querySnapshot.docs.map((doc) {
+      List<Task> tasks = querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data();
         data['taskId'] = doc.id; // Agregar el ID del documento como taskId
 
@@ -52,6 +55,32 @@ class _ServicesByProviderScreenState extends State<ServicesByProviderScreen> {
 
         return Task.fromMap(data); // Convertir datos al modelo Task
       }).toList();
+
+      if (widget.rating != null) {
+        // Filtrar tareas con rating mayor al valor proporcionado
+        tasks = tasks.where((task) {
+          double rating = double.tryParse(task.averageRating) ?? 0.0;
+          return rating >= widget.rating!;
+        }).toList();
+      }
+      // Ordenar las tareas por el precio en selectedTasks
+      if (widget.ordenby != 0) {
+        tasks.sort((a, b) {
+          double priceA =
+              a.selectedTasks.values.fold(0.0, (sum, price) => sum + price);
+          double priceB =
+              b.selectedTasks.values.fold(0.0, (sum, price) => sum + price);
+
+          // Orden ascendente o descendente basado en widget.ordenby
+          if (widget.ordenby == 1) {
+            return priceA.compareTo(priceB); // Ascendente
+          } else if (widget.ordenby == 2) {
+            return priceB.compareTo(priceA); // Descendente
+          }
+          return 0; // Sin cambios si no se especifica ordenby
+        });
+      }
+      return tasks;
     } catch (e) {
       throw Exception('Error al cargar las tareas: $e');
     }

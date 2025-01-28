@@ -51,8 +51,47 @@ class SearchController {
 
       // Aplicar filtros a los resultados
       final filteredResults = _applyFilters(results, filters);
+      final structuredResults = filteredResults
+          .map((result) {
+            if (result['type'] == 'service') {
+              return {
+                'category': result['category'], // Clave del mapa: categoría
+                'services':
+                    result['services'], // Valor del mapa: lista de servicios
+                'type': 'service', // Tipo adicional
+                'name': result['service'],
+                'lastName': result['category'],
+                'id': result['service'],
+              };
+            } else if (result['type'] == 'provider') {
+              return {
+                'name': result['name'] ?? 'No Name',
+                'lastName': result['lastName'] ?? 'No Last Name',
+                'email': result['email'] ?? 'No Email',
+                'type': 'provider',
+                'id': result[
+                    'id'], // Este es el ID que usaremos para buscar las tasks
+              };
+            }
+            return null;
+          })
+          .where((item) => item != null)
+          .toList();
 
-      return filteredResults;
+      // Eliminar duplicados basados en el ID
+      final uniqueResults = structuredResults
+          .toList()
+          .fold<Map<String, Map<String, dynamic>>>(
+            {},
+            (map, item) {
+              map[item!['id']] = item;
+              return map;
+            },
+          )
+          .values
+          .toList();
+
+      return uniqueResults;
     } catch (e) {
       print('Error al realizar la búsqueda: $e');
       return [];
@@ -64,32 +103,17 @@ class SearchController {
     if (filters == null || filters.isEmpty) return results.toList();
 
     // Filtrar por fecha
-    if (filters.containsKey('Date')) {
-      String dateFilter = filters['Date'];
-      DateTime now = DateTime.now();
-      DateTime filterDate;
-
-      switch (dateFilter) {
-        case 'Same Day':
-          filterDate = now;
-          break;
-        case 'Last Week':
-          filterDate = now.subtract(const Duration(days: 7));
-          break;
-        case 'Last Month':
-          filterDate = DateTime(now.year, now.month - 1, now.day);
-          break;
-        default:
-          filterDate = now;
-      }
-
+    if (filters.containsKey('onDemand') && filters['onDemand'] == true) {
       results = results.where((result) {
-        final timestamp = result['createdAt'] as Timestamp?;
-        if (timestamp == null) return false;
-        return timestamp.toDate().isAfter(filterDate);
+        final same = result['onDemand'];
+        if (result['type'] != 'provider') {
+          return true;
+        }
+        if (same == null) return false;
+        return same == true ? true : false;
       }).toSet();
     }
-
+/*
     // Filtrar por precio
     if (filters.containsKey('Price')) {
       String priceFilter = filters['Price'];
@@ -104,15 +128,21 @@ class SearchController {
         }
         return true;
       }).toSet();
-    }
+    }*/
 
-    // Filtrar por calificación
-    if (filters.containsKey('Rating')) {
-      String ratingFilter = filters['Rating'];
-      final minRating = double.tryParse(ratingFilter) ?? 0;
+    // Filtrar por calificación (Rating)
+    if (filters.containsKey('averageRating') &&
+        filters['averageRating'][0] == true) {
+      final ratingFilter = filters['averageRating'][1];
+      final minRating = double.tryParse(ratingFilter.toString()) ?? 4;
+      print('aqui ${filters['averageRating'][0]}');
       results = results.where((result) {
-        final rating = result['rating'] as double?;
-        return rating != null && rating >= minRating;
+        if (result['type'] != 'provider') {
+          return true;
+        }
+        // Asegúrate de que el tipo sea 'service' para aplicar este filtro
+        final rating = result['averageRating'] as double?;
+        return (rating != null && rating >= minRating) ? true : false;
       }).toSet();
     }
 

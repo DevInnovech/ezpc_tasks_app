@@ -6,10 +6,12 @@ import 'package:ezpc_tasks_app/features/home/presentation/screens/featured_servi
 // Modelo para un servicio (SimpleService)
 class SimpleService {
   final String name;
+  final String? image;
   final List<String> questions;
   final String serviceId;
 
   SimpleService({
+    required this.image,
     required this.name,
     required this.questions,
     required this.serviceId,
@@ -105,7 +107,8 @@ class ServicesControllerNotifier
             questions: (service['questions'] as List<dynamic>? ?? [])
                 .map((q) => q.toString())
                 .toList(), // Lista de preguntas
-            serviceId: service['serviceId'] ?? '', // ID del servicio
+            serviceId: service['serviceId'] ?? '',
+            image: service['imageUrl'] ?? null, // ID del servicio
           );
         });
       }).toList();
@@ -114,6 +117,7 @@ class ServicesControllerNotifier
       state = ServicesControllerLoaded(allServices);
     } catch (e) {
       // Manejo de errores
+      if (!mounted) return;
       state = ServicesControllerError(e.toString());
     }
   }

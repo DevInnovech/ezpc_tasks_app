@@ -1,4 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/ondemand.dart';
+import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -138,9 +141,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  Future<void> checkReferralStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      final referralPartner = data['referralPartner'] ?? '';
+
+      // Si el usuario no tiene referralPartner y no ha indicado 'no_referral'
+      // entonces mostramos el diálogo.
+      // Si referralPartner == 'no_referral', no mostramos nada.
+      if (referralPartner.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const ReferralDialog(),
+          );
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkReferralStatus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final scaffoldKey = GlobalKey<ScaffoldState>();
+
+    final accountType = ref.read(accountTypeProvider);
+
+    // Determinar el texto que se mostrará según el tipo de cuenta
+    String roleText = '';
+    if (accountType == AccountType.client) {
+      roleText = 'Role: Client';
+    } else if (accountType == AccountType.independentProvider) {
+      roleText = 'Role: Provider';
+    } else if (accountType == AccountType.employeeProvider) {
+      roleText = 'Role: Employee Provider';
+    } else if (accountType == AccountType.corporateProvider) {
+      roleText = 'Role: Corporate Provider';
+    } else {
+      roleText = 'Role: Unknown';
+    }
 
     return Scaffold(
       key: scaffoldKey,
@@ -200,15 +253,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   fontWeight: FontWeight.w700,
                                   color: whiteColor,
                                 ),
-                                const CustomText(
-                                  text: "Role: Provider",
+                                CustomText(
+                                  text: roleText,
                                   fontSize: 14.0,
                                   fontWeight: FontWeight.normal,
                                   color: whiteColor,
                                 ),
                               ],
                             ),
-                            GestureDetector(
+                            const AvailabilitySwitch()
+                            /*      GestureDetector(
                               onTap: () {
                                 scaffoldKey.currentState!.openEndDrawer();
                               },
@@ -233,6 +287,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ),
                               ),
                             ),
+                        */
                           ],
                         ),
                         Utils.verticalSpace(20),
@@ -563,8 +618,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Row(
         children: [
           Container(
-            height: 40,
-            width: 40,
+            height: 30,
+            width: 30,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
@@ -584,7 +639,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 count,
                 style: const TextStyle(
                   color: Colors.black,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -593,7 +648,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 title,
                 style: const TextStyle(
                   color: Colors.grey,
-                  fontSize: 14,
+                  fontSize: 12,
                 ),
                 textAlign: TextAlign.center,
               ),

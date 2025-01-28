@@ -13,11 +13,14 @@ import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByProv
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/ServicesByServiceScreen.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_home_header.dart';
 import 'package:ezpc_tasks_app/features/home/presentation/widgets/client_title_and_navigator.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/popular_service_card.dart';
+import 'package:ezpc_tasks_app/features/home/presentation/widgets/scrool_text.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/Referall_poup.dart';
 import 'package:ezpc_tasks_app/features/referral/presentation/widgets/referall_dialog.dart';
 import 'package:ezpc_tasks_app/features/services/models/category_model.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
+import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_filter.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
@@ -37,6 +40,7 @@ class ClientHomeScreen extends ConsumerStatefulWidget {
 
 class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
   Timer? _debounce;
+  Map<String, dynamic> selectedFilter = {};
   @override
   void initState() {
     super.initState();
@@ -122,10 +126,11 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
               children: [
                 // Espaciador
                 Utils.verticalSpace(20),
+
                 GenericFilterWidget(
                   onFilterSelected: (selectedFilters) {
                     if (selectedFilters != null) {
-                      // Aplicar los filtros seleccionados
+                      selectedFilter = selectedFilters;
                       print('Filtros seleccionados: $selectedFilters');
                     } else {
                       print('No se seleccionaron filtros');
@@ -167,7 +172,8 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
               automaticallyImplyBackButton: false,
               onQueryChanged: (query) {
                 // Actualiza los resultados de la búsqueda
-                _onSearchChanged(query, null); // Llama al método con debounce
+                _onSearchChanged(
+                    query, selectedFilter); // Llama al método con debounce
               },
               builder: (context, transition) {
                 final searchResults = ref.watch(searchResultsProvider);
@@ -199,10 +205,36 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                   );
                 }
 
-                final filteredResults = searchResults
-                    .where((result) =>
-                        result['name'] != null && result['name']!.isNotEmpty)
-                    .toList();
+                // Procesa los resultados y añade el tipo basado en la presencia de `userID`
+                /*final processedResults = searchResults.map((result) {
+                  print({'$result'});
+                  // Identificar si es provider o service basándonos en la existencia del campo `userID`
+                  final isProvider = result.containsKey('type') &&
+                      result['type'] == 'provider';
+
+                  if (isProvider) {
+                    // Para providers, devolvemos el `name`, `lastName`, y otros datos relevantes
+                    return {
+                      'name': result['name'] ?? 'No Name',
+                      'lastName': result['lastName'] ?? 'No Last Name',
+                      'type': 'provider',
+                      'id': result['id'] ?? '',
+                    };
+                  } else {
+                    // Para services, extraemos el primer `taskName` de `selectedTasks`
+                    final selectedTasks =
+                        result['selectedTasks'] as Map<String, dynamic>? ?? {};
+                    final taskName = selectedTasks.keys.isNotEmpty
+                        ? selectedTasks.keys.first
+                        : 'No Task Name';
+
+                    return {
+                      'taskName': taskName,
+                      'type': 'service',
+                      'id': result['id'] ?? '',
+                    };
+                  }
+                }).toList();*/
 
                 return Material(
                   elevation: 4,
@@ -210,19 +242,20 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                   child: ListView.builder(
                     padding: const EdgeInsets.all(8),
                     shrinkWrap: true,
-                    itemCount: filteredResults.length,
+                    itemCount: searchResults.length,
                     itemBuilder: (context, index) {
-                      final result = filteredResults[index];
+                      final result = searchResults[index];
+                      final isProvider = result['type'] == 'provider';
+
                       return ListTile(
                         leading: Icon(
-                          result['type'] == 'provider'
-                              ? Icons.person
-                              : Icons.home_repair_service,
+                          isProvider ? Icons.person : Icons.home_repair_service,
                         ),
-                        title: Text(result['name']),
-                        subtitle: Text(result['lastName'] ?? 'No Last Name'),
+                        title: Text(result['name'] ?? 'N/A'),
+                        subtitle: Text(result['lastName'] ?? '/a'),
                         onTap: () {
-                          if (result['type'] == 'provider') {
+                          if (isProvider) {
+                            // Navegación para provider
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -230,15 +263,35 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                                   providerName: result['name'],
                                   providerLastName: result['lastName'] ?? 'N/A',
                                   providerDocumentID: result['id'],
+                                  ordenby:
+                                      selectedFilter['Lowest'] == true ? 1 : 0,
+                                  rating:
+                                      selectedFilter['averageRating'][0] == true
+                                          ? double.tryParse(
+                                              selectedFilter['averageRating'][1]
+                                                  .toString())
+                                          : null,
                                 ),
                               ),
                             );
-                          } else if (result['type'] == 'service') {
+                          } else {
+                            // Navegación para service
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ServicesByServiceScreen(
-                                  serviceName: result['name'],
+                                  /*   rating: selectedFilter['averageRating'][0] ==
+                                              true &&
+                                          selectedFilter['averageRating'][0] !=
+                                              null
+                                      ? double.tryParse(
+                                          selectedFilter['averageRating'][1]
+                                              .toString())
+                                      : null,*/
+                                  ordenby:
+                                      selectedFilter['Lowest'] == true ? 1 : 0,
+                                  serviceName: result[
+                                      'name'], // Usar taskName en la navegación
                                 ),
                               ),
                             );
@@ -250,7 +303,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                 );
               },
             ),
-          ),
+          )
         ],
       ),
     );
@@ -304,70 +357,6 @@ class ServiceCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               "ID: ${service.serviceId}",
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PopularServiceCard extends StatelessWidget {
-  final String serviceName;
-  final int count;
-  final VoidCallback onTap; // Añade este parámetro
-
-  const PopularServiceCard({
-    super.key,
-    required this.serviceName,
-    required this.count,
-    required this.onTap, // Asegúrate de hacerlo obligatorio
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap, // Usa el callback aquí
-      child: Container(
-        width: 150, // Ancho de la tarjeta
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(2, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Icono representativo
-            const Icon(Icons.star, size: 40, color: Colors.blue),
-            const SizedBox(height: 8),
-
-            // Nombre del servicio
-            Text(
-              serviceName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-
-            // Conteo del servicio (popularidad)
-            Text(
-              "Used $count times",
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[600],
@@ -602,6 +591,9 @@ class HomeLoadedData extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
                           child: PopularServiceCard(
+                            rank: index + 1,
+                            category: service.categoryName,
+                            image: service.image,
                             serviceName: service.serviceName,
                             count: service.count,
                             onTap: () {
