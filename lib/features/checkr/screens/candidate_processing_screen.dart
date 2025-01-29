@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../../routes/routes.dart';
 
 class CandidateProcessingScreen extends StatefulWidget {
@@ -61,7 +60,7 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
           final status = data['status'] ?? 'Unknown';
           final result = data['result'] ?? 'Unknown';
 
-          // Si el background check ha sido aprobado, mostrar pantalla de éxito
+          // ✅ Background check aprobado (clear)
           if (status == 'complete' && result == 'clear') {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -117,6 +116,69 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
             );
           }
 
+          // ❌ Background check en "consider"
+          if (status == 'complete' && result == 'consider') {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // ❌ Imagen de advertencia
+                  Image.asset(
+                    'assets/images/Warning.png',
+                    height: 200,
+                  ),
+                  const SizedBox(height: 30),
+
+                  // ⚠️ Mensaje de elegibilidad pendiente
+                  const Text(
+                    "Additional Information Required",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 📄 Explicación al usuario
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "We regret to inform you that your background check did not meet our eligibility criteria.\n\n"
+                      "Your case requires further review, and we may need additional information from you.\n\n"
+                      "Please check your email for more details regarding the next steps.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // 📩 Botón para contactar soporte o ver más detalles
+                  ElevatedButton(
+                    onPressed: () {
+                      // Aquí podrías redirigir a una pantalla de contacto o soporte
+                      print("Open Support");
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange, // 🟠 Color de advertencia
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Contact Support",
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // 🔄 Estado "Processing"
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
