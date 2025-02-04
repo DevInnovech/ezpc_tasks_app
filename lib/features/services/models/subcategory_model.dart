@@ -1,13 +1,18 @@
 // subcategory_model.dart
 class SubCategory {
   final String id;
+
   final String name;
   final List<String>? additionalOptions;
+  final String? image;
+  final String categoryid;
 
   SubCategory({
     required this.id,
     required this.name,
+    required this.categoryid,
     this.additionalOptions,
+    this.image,
   });
 
   // Convierte la subcategoría a un mapa
@@ -25,6 +30,7 @@ class SubCategory {
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       additionalOptions: List<String>.from(map['additionalOptions'] ?? []),
+      categoryid: map['categoryid'] ?? '',
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:ezpc_tasks_app/features/services/client_services/presentation/sc
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/services/models/task_model.dart';
 
+// anulado temporalmente
 class ServiceCard extends StatelessWidget {
   final Task task;
   final double imageHeight;
@@ -164,6 +165,7 @@ class ServiceCard extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
+                    /*
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -173,7 +175,7 @@ class ServiceCard extends StatelessWidget {
                               .taskName, // Pasa el nombre de la tarea seleccionada
                         ),
                       ),
-                    );
+                    );*/
                   },
                   child: const Text(
                     'Book Now',

@@ -60,11 +60,13 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
     // Convertimos los documentos de Firestore en objetos de categoría
     final categories = categorySnapshots.docs.map((doc) async {
       final data = doc.data();
+      final categoryid = doc.id;
       final subCategorySnapshots =
           await doc.reference.collection('subCategories').get();
 
       final subCategories = subCategorySnapshots.docs.map((subDoc) {
         return SubCategory(
+          categoryid: categoryid,
           id: subDoc.id,
           name: subDoc['name'] ?? 'Unnamed SubCategory',
         );

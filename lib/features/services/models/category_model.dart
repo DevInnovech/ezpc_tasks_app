@@ -63,6 +63,7 @@ final categories = [
     name: 'Cleaning',
     subCategories: [
       SubCategory(
+        categoryid: '',
         id: '1.1',
         name: 'Commercial / Residential Cleaning',
         additionalOptions: [
@@ -81,6 +82,7 @@ final categories = [
         ],
       ),
       SubCategory(
+        categoryid: '',
         id: '1.2',
         name: 'Residential Cleaning',
         additionalOptions: [
@@ -88,6 +90,7 @@ final categories = [
         ],
       ),
       SubCategory(
+        categoryid: '',
         id: '1.3',
         name: 'Commercial Cleaning',
         additionalOptions: [
@@ -97,6 +100,7 @@ final categories = [
         ],
       ),
       SubCategory(
+        categoryid: '',
         id: '1.4',
         name: 'Car Wash',
         additionalOptions: [
@@ -129,8 +133,9 @@ final categories = [
     id: '2',
     name: 'Yard Work / Landscaping',
     subCategories: [
-      SubCategory(id: '2.1', name: 'Lawn Mowing'),
+      SubCategory(categoryid: '', id: '2.1', name: 'Lawn Mowing'),
       SubCategory(
+        categoryid: '',
         id: '2.2',
         name: 'Lawn Care',
         additionalOptions: [
@@ -166,9 +171,10 @@ final categories = [
     id: '3',
     name: 'Help Moving / Assembly',
     subCategories: [
-      SubCategory(id: '3.1', name: 'Furniture Assembly'),
-      SubCategory(id: '3.2', name: 'Appliance Installation'),
+      SubCategory(categoryid: '', id: '3.1', name: 'Furniture Assembly'),
+      SubCategory(categoryid: '', id: '3.2', name: 'Appliance Installation'),
       SubCategory(
+        categoryid: '',
         id: '3.3',
         name: 'Moving Assistance',
         additionalOptions: [
@@ -199,6 +205,7 @@ final categories = [
     name: 'Handyman',
     subCategories: [
       SubCategory(
+        categoryid: '',
         id: '4.1',
         name: 'Plumbing Repairs',
         additionalOptions: [
@@ -210,6 +217,7 @@ final categories = [
         ],
       ),
       SubCategory(
+        categoryid: '',
         id: '4.2',
         name: 'Electrical Repairs',
         additionalOptions: [
@@ -222,13 +230,14 @@ final categories = [
         ],
       ),
       SubCategory(
+        categoryid: '',
         id: '4.3',
         name: 'Painting',
         additionalOptions: ['Interior', 'Exterior', 'Wood', 'Drywall'],
       ),
-      SubCategory(id: '4.4', name: 'Drywall Repair'),
-      SubCategory(id: '4.5', name: 'Minor Repairs'),
-      SubCategory(id: '4.6', name: 'Home Maintenance Tasks'),
+      SubCategory(categoryid: '', id: '4.4', name: 'Drywall Repair'),
+      SubCategory(categoryid: '', id: '4.5', name: 'Minor Repairs'),
+      SubCategory(categoryid: '', id: '4.6', name: 'Home Maintenance Tasks'),
     ],
     pathImage: null,
     categoryId: '',
@@ -237,8 +246,8 @@ final categories = [
     id: '5',
     name: 'Errands',
     subCategories: [
-      SubCategory(id: '5.1', name: 'Need a Car?'),
-      SubCategory(id: '5.2', name: 'Need a Truck?'),
+      SubCategory(categoryid: '', id: '5.1', name: 'Need a Car?'),
+      SubCategory(categoryid: '', id: '5.2', name: 'Need a Truck?'),
     ],
     pathImage: null,
     categoryId: '',

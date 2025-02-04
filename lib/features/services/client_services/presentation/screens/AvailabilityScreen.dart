@@ -1,4 +1,5 @@
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/GeneralInformation.dart';
+import 'package:ezpc_tasks_app/features/services/client_services/widgets/select_date.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class AvailabilityScreen extends StatefulWidget {
-  final String taskId;
+  final String categoryId;
   final String selectedCategory;
   final List<String> selectedSubCategories;
   final Map<String, int> serviceSizes;
@@ -14,12 +15,12 @@ class AvailabilityScreen extends StatefulWidget {
   final String selectedTaskName;
   final double categoryPrice;
   final double taskPrice;
-  final String providerId;
+  final String? providerId;
   final double taskDuration; // Nuevo parámetro
 
   const AvailabilityScreen({
     super.key,
-    required this.taskId,
+    required this.categoryId,
     required this.selectedCategory,
     required this.selectedSubCategories,
     required this.serviceSizes,
@@ -57,16 +58,16 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   Future<void> fetchTaskAndRelatedTasks() async {
     try {
       // Obtener el documento específico de la tarea seleccionada
-      final taskDoc = await FirebaseFirestore.instance
-          .collection('tasks')
-          .doc(widget.taskId)
+      final categoryDoc = await FirebaseFirestore.instance
+          .collection('categories')
+          .doc(widget.categoryId)
           .get();
 
-      if (!taskDoc.exists) return;
+      if (!categoryDoc.exists) return;
 
-      final taskData = taskDoc.data()!;
-      final category = taskData['category'] as String;
-      final provider = taskData['providerId'] as String?;
+      final categoryData = categoryDoc.data()!;
+      final category = categoryData['name'] as String?;
+      // final provider = taskData['providerId'] as String?;
       final subCategoriesSet = widget.selectedSubCategories.toSet();
       List<Map<String, dynamic>> fetchedTasks = [];
 
@@ -127,7 +128,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           print("hola2");
         }
       }
-
+/*
       // Mover la tarea inicial al inicio
       if (provider != null) {
         final initialTaskIndex = fetchedTasks.indexWhere((task) =>
@@ -137,7 +138,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           final initialTask = fetchedTasks.removeAt(initialTaskIndex);
           fetchedTasks.insert(0, initialTask);
         }
-      }
+      }*/
 
       // Ordenar por `onDemand` y `rating`
       fetchedTasks.sort((a, b) {
@@ -149,8 +150,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
       // Actualizar estado
       setState(() {
-        selectedTask = taskData;
-        providerId = provider;
+        // selectedTask = taskData;
+        // providerId = provider;
         relatedTasks = fetchedTasks;
       });
     } catch (e) {
@@ -341,7 +342,19 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   }
 
   Widget _buildDateSelector() {
-    return Padding(
+    return WeeklyDateSelector(
+      initialDate: selectedDate,
+      onDateSelected: (newDate) {
+        setState(() {
+          selectedDate = newDate;
+          changeDate(
+              0); // Refrescar los slots y disponibilidad con el nuevo día
+        });
+      },
+      primaryColor: primaryColor,
+    );
+
+    /* Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -374,7 +387,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           ),
         ],
       ),
-    );
+    );*/
   }
 
   List<List<Map<String, dynamic>>> formatTimeSlotsForDisplay(
@@ -746,7 +759,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => GeneralInformationScreen(
-                          taskId: widget.taskId,
+                          taskId: "widget.taskId",
                           timeSlot: selectedTask!['start'],
                           endSlot: selectedTask!['end'],
                           date: selectedDate,
@@ -874,7 +887,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => GeneralInformationScreen(
-                      taskId: widget.taskId,
+                      taskId: "widget.taskId",
                       timeSlot: selectedTask!['start'],
                       endSlot: selectedTask!['end'],
                       date: selectedDate,

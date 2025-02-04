@@ -16,6 +16,7 @@ class CategoryRepository {
           pathImage: data['pathImage'],
           subCategories: (data['subCategories'] as List<dynamic>?)!
               .map((subCategory) => SubCategory(
+                    categoryid: data['id'],
                     additionalOptions:
                         (subCategory['additionalOptions'] as List<dynamic>?)
                                 ?.cast<String>() ??

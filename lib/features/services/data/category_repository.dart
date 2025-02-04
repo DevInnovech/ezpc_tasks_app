@@ -65,6 +65,7 @@ class CategoryRepository {
         name: 'Cleaning',
         subCategories: [
           SubCategory(
+            categoryid: '1',
             id: '1.1',
             name: 'Commercial / Residential Cleaning',
             additionalOptions: [
@@ -83,6 +84,7 @@ class CategoryRepository {
             ],
           ),
           SubCategory(
+            categoryid: '1',
             id: '1.2',
             name: 'Residential Cleaning',
             additionalOptions: [
@@ -90,6 +92,7 @@ class CategoryRepository {
             ],
           ),
           SubCategory(
+            categoryid: '1',
             id: '1.3',
             name: 'Commercial Cleaning',
             additionalOptions: [
@@ -99,6 +102,7 @@ class CategoryRepository {
             ],
           ),
           SubCategory(
+            categoryid: '1',
             id: '1.4',
             name: 'Car Wash',
             additionalOptions: [
@@ -131,8 +135,9 @@ class CategoryRepository {
         id: '2',
         name: 'Yard Work / Landscaping',
         subCategories: [
-          SubCategory(id: '2.1', name: 'Lawn Mowing'),
+          SubCategory(categoryid: '2', id: '2.1', name: 'Lawn Mowing'),
           SubCategory(
+            categoryid: '2',
             id: '2.2',
             name: 'Lawn Care',
             additionalOptions: [
@@ -168,9 +173,11 @@ class CategoryRepository {
         id: '3',
         name: 'Help Moving / Assembly',
         subCategories: [
-          SubCategory(id: '3.1', name: 'Furniture Assembly'),
-          SubCategory(id: '3.2', name: 'Appliance Installation'),
+          SubCategory(categoryid: '3', id: '3.1', name: 'Furniture Assembly'),
           SubCategory(
+              categoryid: '3', id: '3.2', name: 'Appliance Installation'),
+          SubCategory(
+            categoryid: '3',
             id: '3.3',
             name: 'Moving Assistance',
             additionalOptions: [
@@ -201,6 +208,7 @@ class CategoryRepository {
         name: 'Handyman',
         subCategories: [
           SubCategory(
+            categoryid: '4',
             id: '4.1',
             name: 'Plumbing Repairs',
             additionalOptions: [
@@ -212,6 +220,7 @@ class CategoryRepository {
             ],
           ),
           SubCategory(
+            categoryid: '4',
             id: '4.2',
             name: 'Electrical Repairs',
             additionalOptions: [
@@ -224,13 +233,15 @@ class CategoryRepository {
             ],
           ),
           SubCategory(
+            categoryid: '4',
             id: '4.3',
             name: 'Painting',
             additionalOptions: ['Interior', 'Exterior', 'Wood', 'Drywall'],
           ),
-          SubCategory(id: '4.4', name: 'Drywall Repair'),
-          SubCategory(id: '4.5', name: 'Minor Repairs'),
-          SubCategory(id: '4.6', name: 'Home Maintenance Tasks'),
+          SubCategory(categoryid: '4', id: '4.4', name: 'Drywall Repair'),
+          SubCategory(categoryid: '4', id: '4.5', name: 'Minor Repairs'),
+          SubCategory(
+              categoryid: '4', id: '4.6', name: 'Home Maintenance Tasks'),
         ],
         pathImage: null,
         categoryId: '',
@@ -239,8 +250,8 @@ class CategoryRepository {
         id: '5',
         name: 'Errands',
         subCategories: [
-          SubCategory(id: '5.1', name: 'Need a Car?'),
-          SubCategory(id: '5.2', name: 'Need a Truck?'),
+          SubCategory(categoryid: '5', id: '5.1', name: 'Need a Car?'),
+          SubCategory(categoryid: '5', id: '5.2', name: 'Need a Truck?'),
         ],
         pathImage: null,
         categoryId: '',

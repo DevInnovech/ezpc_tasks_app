@@ -3,11 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'AvailabilityScreen.dart';
 
 class BookingScreen extends StatefulWidget {
-  final String taskId;
-  final String taskName; // Nuevo parámetro
+  final String categoryId;
+  final String selectedService;
 
-  const BookingScreen(
-      {super.key, required this.taskId, required this.taskName});
+  const BookingScreen({
+    super.key,
+    required this.categoryId,
+    required this.selectedService,
+  });
 
   @override
   _BookingScreenState createState() => _BookingScreenState();
@@ -24,7 +27,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Map<String, dynamic> taskData = {};
   Map<String, double> selectedServices = {};
-  Map<String, double> availableServices = {};
+  List<Map<String, dynamic>> availableServices = [];
   bool isLoading = true;
 
   bool isCategoryExpanded = true;
@@ -34,43 +37,41 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
-    fetchTaskData();
+    fetchCategoryServices();
   }
 
-  Future<void> fetchTaskData() async {
+  Future<void> fetchCategoryServices() async {
     try {
-      final taskDoc = await FirebaseFirestore.instance
-          .collection('tasks')
-          .doc(widget.taskId)
+      final categoryDoc = await FirebaseFirestore.instance
+          .collection('categories')
+          .doc(widget.categoryId)
           .get();
 
-      if (taskDoc.exists) {
-        setState(() {
-          taskData = taskDoc.data()!;
-          selectedCategory = taskData['category'] as String?;
-          selectedTaskName = widget.taskName; // Usa el taskName pasado
-          baseTaskPrice = (taskData['price'] ?? 0.0).toDouble();
-          providerId = taskData['providerId'] as String?;
+      if (categoryDoc.exists) {
+        final categoryData = categoryDoc.data();
+        if (categoryData != null) {
+          setState(() {
+            selectedCategory = categoryData['name'] as String?;
+            availableServices = (categoryData['services'] as List<dynamic>)
+                .map((service) => {
+                      "name": service['name'],
+                      "price": (service['price'] ?? 0.0).toDouble(),
+                    })
+                .toList();
 
-          // Cargar servicios disponibles
-          availableServices = (taskData['selectedTasks']
-                  as Map<String, dynamic>)
-              .map((key, value) => MapEntry(key, (value as num).toDouble()));
-
-          // Seleccionar automáticamente la tarea predeterminada
-          if (selectedTaskName != null &&
-              availableServices.containsKey(selectedTaskName)) {
-            selectedServices = {
-              selectedTaskName!: availableServices[selectedTaskName!]!
-            };
-          }
-
-          isLoading = false;
-          calculateTotalPrice();
-        });
+            // Marcar el servicio seleccionado
+            selectedTaskName = widget.selectedService;
+            selectedServices[selectedTaskName!] = availableServices.firstWhere(
+                (service) => service["name"] == selectedTaskName,
+                orElse: () => {"price": 0.0})["price"];
+            serviceHours[selectedTaskName!] = 1;
+            isLoading = false;
+            calculateTotalPrice();
+          });
+        }
       }
     } catch (e) {
-      debugPrint('Error fetching task data: $e');
+      debugPrint('Error fetching category services: $e');
       setState(() {
         isLoading = false;
       });
@@ -157,19 +158,6 @@ class _BookingScreenState extends State<BookingScreen> {
             const SizedBox(height: 20),
             _buildSectionTitle("Hours"),
             _buildWhiteCard(_buildHoursCard()),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Price Breakdown"),
-            _buildWhiteCard(_buildPriceBreakdown()),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Total Price"),
-            Text(
-              "\$${totalPrice.toStringAsFixed(2)}",
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF404C8C),
-              ),
-            ),
           ],
         ),
       ),
@@ -187,16 +175,17 @@ class _BookingScreenState extends State<BookingScreen> {
               padding: const EdgeInsets.symmetric(vertical: 16.0),
             ),
             onPressed: () {
+              print(hours);
               if (selectedCategory != null &&
                   selectedServices.isNotEmpty &&
-                  providerId != null) {
+                  hours > 0) {
                 final updatedServiceSizes = Map<String, int>.from(serviceHours);
                 updatedServiceSizes['Hours'] = hours;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AvailabilityScreen(
-                      taskId: widget.taskId,
+                      categoryId: widget.categoryId,
                       selectedCategory: selectedCategory!,
                       selectedSubCategories: selectedServices.keys.toList(),
                       serviceSizes: updatedServiceSizes,
@@ -204,7 +193,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       selectedTaskName: selectedTaskName!,
                       categoryPrice: baseTaskPrice,
                       taskPrice: totalPrice - baseTaskPrice,
-                      providerId: providerId!,
+                      providerId: providerId,
                       taskDuration: hours.toDouble(),
                     ),
                   ),
@@ -282,26 +271,25 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _buildServicesContent() {
     return Column(
-      children: availableServices.entries.map((entry) {
-        final serviceName = entry.key;
-        final price = entry.value;
+      children: availableServices.map((service) {
+        final serviceName = service["name"];
         final isSelected = selectedServices.containsKey(serviceName);
 
         return CheckboxListTile(
           title: Text(
-            "$serviceName (\$${price.toStringAsFixed(2)}/hour)",
+            serviceName,
             style: const TextStyle(fontSize: 16),
           ),
           value: isSelected,
           onChanged: (isSelected) {
             setState(() {
               if (isSelected == true) {
-                selectedServices[serviceName] = price;
+                selectedServices[serviceName] = 0.0; // Precio omitido
                 serviceHours[serviceName] =
                     1; // Inicializar con 1 hora por defecto
               } else {
                 selectedServices.remove(serviceName);
-                serviceHours.remove(serviceName); // Eliminar si se deselecciona
+                serviceHours.remove(serviceName);
               }
               calculateTotalPrice();
             });
@@ -378,12 +366,33 @@ class _BookingScreenState extends State<BookingScreen> {
       children: [
         for (var entry in selectedServices.entries)
           _buildServiceHoursRow(entry.key, entry.value),
+        const SizedBox(height: 10), // Espaciado antes del total
+        Divider(
+          color: Theme.of(context).primaryColor, // Usa el color primario
+          thickness: 1.5,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                "Total: ${serviceHours.values.fold(0, (sum, hours) => sum + hours)} hrs",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF404C8C),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildServiceHoursRow(String serviceName, double servicePrice) {
-    final hoursForService = serviceHours[serviceName] ?? 1;
+    final hoursForService = serviceHours[serviceName] ?? 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -391,22 +400,13 @@ class _BookingScreenState extends State<BookingScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  serviceName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF404C8C),
-                  ),
-                ),
-                Text(
-                  "\$${servicePrice.toStringAsFixed(2)}/hour",
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
+            child: Text(
+              serviceName,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF404C8C),
+              ),
             ),
           ),
           Row(
@@ -439,77 +439,6 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPriceBreakdown() {
-    double servicesTotal = 0.0;
-
-    // Calcular el total por cada servicio basado en sus horas específicas
-    selectedServices.forEach((serviceName, price) {
-      final hoursForService =
-          serviceHours[serviceName] ?? 1; // Por defecto 1 hora
-      servicesTotal += price * hoursForService;
-    });
-
-    double taxRate = 0.1; // 10% impuestos
-    double taxAmount = servicesTotal * taxRate;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Mostrar el desglose de cada servicio
-        ...selectedServices.entries.map((entry) {
-          final serviceName = entry.key;
-          final price = entry.value;
-          final hoursForService = serviceHours[serviceName] ?? 1;
-
-          return _buildPriceRow(
-            "$serviceName ($hoursForService hr${hoursForService > 1 ? 's' : ''}):",
-            price * hoursForService,
-          );
-        }),
-        const Divider(
-          height: 20,
-          thickness: 1,
-          color: Colors.grey,
-        ),
-        _buildPriceRow("Tasks Price (Subtotal):", servicesTotal),
-        _buildPriceRow("Taxes (10%):", taxAmount),
-        const Divider(
-          height: 20,
-          thickness: 1,
-          color: Colors.grey,
-        ),
-        _buildPriceRow(
-          "Total:",
-          servicesTotal + taxAmount,
-          isBold: true,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPriceRow(String label, double value, {bool isBold = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        Text(
-          "\$${value.toStringAsFixed(2)}",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: isBold ? const Color(0xFF404C8C) : Colors.black87,
-          ),
-        ),
-      ],
     );
   }
 
