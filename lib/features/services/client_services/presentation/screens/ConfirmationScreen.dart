@@ -193,11 +193,6 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
   }
 
   Widget _buildPaymentInfoCard() {
-    final categoryPrice = widget.bookingData['categoryPrice'] ?? 0.0;
-    final taskPrice = widget.bookingData['taskPrice'] ?? 0.0;
-    final taxes = (categoryPrice + taskPrice) * 0.1; // 10% de impuestos
-    final totalPrice = widget.bookingData['totalPrice'] ?? 0.0;
-
     return Card(
       color: Colors.white,
       elevation: 4,
@@ -212,46 +207,71 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
               style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
             const Divider(),
-            _buildPriceRow("Category Price", categoryPrice),
-            _buildPriceRow("Task Price", taskPrice),
-            _buildPriceRow("Taxes (10%)", taxes),
-            const Divider(),
-            _buildPriceRow(
-              "Total",
-              totalPrice,
-              isBold: true,
-              textColor: const Color(0xFF404C8C),
-            ),
+            _buildPriceBreakdown(
+                widget.bookingData['selectedSubCategoriesmap']),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPriceRow(String label, double price,
-      {bool isBold = false, Color textColor = Colors.black}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14.0,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
+  Widget _buildPriceBreakdown(Map<String, dynamic> newPrices) {
+    double servicesTotal =
+        newPrices.values.fold(0.0, (sum, price) => sum + price);
+
+    double taxRate = 0.1; // 10% impuestos
+    double taxAmount = servicesTotal * taxRate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...newPrices.entries.map((entry) {
+          return _buildPriceRow(
+            entry.key, // Nombre del servicio
+            entry.value, // Precio sin multiplicar por horas
+          );
+        }),
+        const Divider(
+          height: 20,
+          thickness: 1,
+          color: Colors.grey,
+        ),
+        _buildPriceRow("Tasks Price (Subtotal):", servicesTotal),
+        _buildPriceRow("Taxes (10%):", taxAmount),
+        const Divider(
+          height: 20,
+          thickness: 1,
+          color: Colors.grey,
+        ),
+        _buildPriceRow(
+          "Total:",
+          (servicesTotal + taxAmount),
+          isBold: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRow(String label, dynamic value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           ),
-          Text(
-            "\$${price.toStringAsFixed(2)}",
-            style: TextStyle(
-              fontSize: 14.0,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: textColor,
-            ),
+        ),
+        Text(
+          "\$${value}",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: isBold ? const Color(0xFF404C8C) : Colors.black87,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

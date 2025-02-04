@@ -597,6 +597,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         taskData['workingHours'] ?? {},
         taskId,
       );
+
       return const Card(
         elevation: 4,
         margin: EdgeInsets.only(bottom: 16.0),
@@ -614,6 +615,20 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     }
 
     final timeSlots = taskSlots[key]!;
+
+    // ✅ Calcular el precio total basado en los servicios seleccionados
+    double totalTaskPrice = 0.0;
+
+    for (var service in widget.selectedSubCategories) {
+      final servicePrice =
+          (taskData['selectedTasks'][service] ?? 0.0).toDouble();
+      final hoursForService = widget.serviceSizes[service] ?? 1;
+      totalTaskPrice += servicePrice * hoursForService;
+    }
+
+    double taxRate = 0.1; // 10% de impuestos
+    double taxAmount = totalTaskPrice * taxRate;
+    totalTaskPrice += taxAmount;
 
     return GestureDetector(
       onTap: () {
@@ -680,12 +695,25 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          providerName,
-                          style: const TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              providerName,
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "\$${totalTaskPrice.toStringAsFixed(2)}",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4.0),
                         Row(
@@ -737,22 +765,24 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           ),
           onPressed: selectedTask != null && providerId != null
               ? () {
+                  final Map<String, dynamic> newPrices = {
+                    for (var subCategory in widget.selectedSubCategories)
+                      subCategory: relatedTasks
+                              .firstWhere(
+                                (task) => task['id'] == selectedCard!['id'],
+                                orElse: () => {},
+                              )
+                              .containsKey('selectedTasks')
+                          ? (relatedTasks.firstWhere(
+                                    (task) => task['id'] == selectedCard!['id'],
+                                  )['selectedTasks'][subCategory] *
+                                  widget.serviceSizes[subCategory] ??
+                              0.0)
+                          : 0.0,
+                  };
                   if (totalPrice != widget.totalPrice) {
                     // Crear un mapa con el desglose de precios por tarea
-                    final Map<String, double> newPrices = {
-                      for (var subCategory in widget.selectedSubCategories)
-                        subCategory: relatedTasks
-                                .firstWhere(
-                                  (task) => task['id'] == selectedCard!['id'],
-                                  orElse: () => {},
-                                )
-                                .containsKey('selectedTasks')
-                            ? (relatedTasks.firstWhere(
-                                  (task) => task['id'] == selectedCard!['id'],
-                                )['selectedTasks'][subCategory] ??
-                                0.0)
-                            : 0.0,
-                    };
+
                     showPriceChangeDialog(totalPrice, newPrices);
                   } else {
                     Navigator.push(
@@ -772,6 +802,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                           categoryPrice: widget.categoryPrice,
                           taskPrice: widget.taskPrice,
                           providerId: providerId!,
+                          selectedSubCategoriesmap: newPrices,
                         ),
                       ),
                     );
@@ -791,6 +822,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     );
   }
 
+/*
   Widget _buildPriceRow(String label, String value,
       {bool isHighlighted = false}) {
     return Padding(
@@ -818,100 +850,155 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       ),
     );
   }
-
+*/
   void showPriceChangeDialog(
-      double newTotalPrice, Map<String, double> newPrices) {
+      double newTotalPrice, Map<String, dynamic> newPrices) {
     showDialog(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.5), // Oscurece el fondo
       builder: (context) {
-        return AlertDialog(
+        return Dialog(
+          backgroundColor:
+              Colors.transparent, // Hace que el diálogo no tenga fondo propio
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.0),
           ),
-          title: const Text(
-            "Price Change",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF404C8C),
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "The total price has changed based on the selected provider:",
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16.0),
-              _buildPriceRow(
-                "Previous Price (Total):",
-                widget.totalPrice.toString(),
-              ),
-              const Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-              ...newPrices.entries.map((entry) {
-                return _buildPriceRow(
-                  "New price for '${entry.key}':",
-                  entry.value.toString(),
-                );
-              }),
-              const Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-              _buildPriceRow(
-                "New Total Price:",
-                newTotalPrice.toString(),
-                isHighlighted: true,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Cancel
-              child: const Text(
-                "Cancel",
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GeneralInformationScreen(
-                      taskId: "widget.taskId",
-                      timeSlot: selectedTask!['start'],
-                      endSlot: selectedTask!['end'],
-                      date: selectedDate,
-                      selectedCategory: widget.selectedCategory,
-                      selectedSubCategories: widget.selectedSubCategories,
-                      serviceSizes: widget.serviceSizes,
-                      totalPrice: newTotalPrice,
-                      userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                      selectedTaskName: widget.selectedTaskName,
-                      categoryPrice: widget.categoryPrice,
-                      taskPrice: widget.taskPrice,
-                      providerId: providerId!,
+          child: _buildWhiteCard(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Título del diálogo
+                  const Text(
+                    "Price Breakdown",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF404C8C),
                     ),
                   ),
-                );
-              },
-              child: const Text(
-                "Continue",
-                style: TextStyle(color: Color(0xFF404C8C)),
+                  const SizedBox(height: 16),
+
+                  // Desglose de precios
+                  _buildPriceBreakdown(newPrices),
+
+                  const SizedBox(height: 20),
+
+                  // Botones de acción
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context), // Cancel
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GeneralInformationScreen(
+                                taskId: "widget.taskId",
+                                timeSlot: selectedTask!['start'],
+                                endSlot: selectedTask!['end'],
+                                date: selectedDate,
+                                selectedCategory: widget.selectedCategory,
+                                selectedSubCategories:
+                                    widget.selectedSubCategories,
+                                serviceSizes: widget.serviceSizes,
+                                totalPrice: newTotalPrice,
+                                userId:
+                                    FirebaseAuth.instance.currentUser?.uid ??
+                                        '',
+                                selectedTaskName: widget.selectedTaskName,
+                                categoryPrice: widget.categoryPrice,
+                                taskPrice: widget.taskPrice,
+                                providerId: providerId!,
+                                selectedSubCategoriesmap: newPrices,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Continue",
+                          style: TextStyle(color: Color(0xFF404C8C)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildPriceBreakdown(Map<String, dynamic> newPrices) {
+    double servicesTotal =
+        newPrices.values.fold(0.0, (sum, price) => sum + price);
+
+    double taxRate = 0.1; // 10% impuestos
+    double taxAmount = servicesTotal * taxRate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Mostrar el desglose de cada servicio
+        ...newPrices.entries.map((entry) {
+          return _buildPriceRow(
+            entry.key, // Nombre del servicio
+            entry.value, // Precio sin multiplicar por horas
+          );
+        }),
+        const Divider(
+          height: 20,
+          thickness: 1,
+          color: Colors.grey,
+        ),
+        _buildPriceRow("Tasks Price (Subtotal):", servicesTotal),
+        _buildPriceRow("Taxes (10%):", taxAmount),
+        const Divider(
+          height: 20,
+          thickness: 1,
+          color: Colors.grey,
+        ),
+        _buildPriceRow(
+          "Total:",
+          (servicesTotal + taxAmount),
+          isBold: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRow(String label, dynamic value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          "\$${value}",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: isBold ? const Color(0xFF404C8C) : Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 
@@ -950,4 +1037,33 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             ),
     );
   }
+}
+
+Widget _buildWhiteCard(Widget child) {
+  return Card(
+    color: Colors.white,
+    elevation: 6,
+    shadowColor: Colors.grey.withOpacity(0.3),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20.0),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: child,
+    ),
+  );
+}
+
+Widget _buildSectionTitle(String title) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 8.0),
+    child: Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF404C8C),
+      ),
+    ),
+  );
 }

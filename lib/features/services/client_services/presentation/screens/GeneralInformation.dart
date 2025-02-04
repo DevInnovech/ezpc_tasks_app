@@ -11,6 +11,7 @@ class GeneralInformationScreen extends StatefulWidget {
   final DateTime date;
   final String selectedCategory;
   final List<String> selectedSubCategories;
+  final Map<String, dynamic> selectedSubCategoriesmap;
   final Map<String, int> serviceSizes;
   final double totalPrice;
   final String userId;
@@ -27,6 +28,7 @@ class GeneralInformationScreen extends StatefulWidget {
     required this.date,
     required this.selectedCategory,
     required this.selectedSubCategories,
+    required this.selectedSubCategoriesmap,
     required this.serviceSizes,
     required this.totalPrice,
     required this.userId,
@@ -387,11 +389,11 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
                 // Client Information Card
                 _buildClientInfoCard(),
                 const SizedBox(height: 16.0),
-
+/*
                 // Provider Information Card
                 _buildProviderInfoCard(),
                 const SizedBox(height: 16.0),
-
+*/
                 // Apply for Another Person Checkbox
                 _buildApplyForAnotherPersonCheckbox(),
                 const SizedBox(height: 16.0),
@@ -426,6 +428,9 @@ class _GeneralInformationScreenState extends State<GeneralInformationScreen> {
                             .format(widget.date), // Solo la fecha
                         'selectedCategory': widget.selectedCategory,
                         'selectedSubCategories': widget.selectedSubCategories,
+                        'selectedSubCategoriesmap':
+                            widget.selectedSubCategoriesmap,
+
                         'serviceSizes': widget.serviceSizes,
                         'totalPrice': widget.totalPrice,
                         'clientName': nameController.text,
