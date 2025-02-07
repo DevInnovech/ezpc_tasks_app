@@ -438,6 +438,7 @@ class HomeLoadedData extends StatelessWidget {
                           : data.categories.length)
                       .map((e) => Padding(
                             padding: const EdgeInsets.only(right: 10),
+
                             // en cliente category item tambien debe estar la pagina de categorias
                             child: ClientCategoryItem(item: e),
                           ))
@@ -633,13 +634,14 @@ class ClientCategoryItem extends StatelessWidget {
     return InkWell(
       onTap: () {
         // Navegar a la pantalla de detalles de la categoría
-        Navigator.pushNamed(
+        print(item.toMap());
+        /* Navigator.pushNamed(
           context,
-          RouteNames.clientCategoryScreen,
-          /*   arguments: {
+          RouteNames.clientCategoryScreen,*/
+        /*   arguments: {
             'category': item, // Pasa la información de la categoría
           },*/
-        );
+        //  );
       },
       child: Column(
         children: [
@@ -652,7 +654,7 @@ class ClientCategoryItem extends StatelessWidget {
                 image: item.pathimage != null
                     ? NetworkImage(item.pathimage!)
                     : const AssetImage(
-                        'assets/images/default_category.jpg', // Imagen por defecto
+                        KImages.appLogo, // Imagen por defecto
                       ) as ImageProvider,
                 fit: BoxFit.cover,
               ),

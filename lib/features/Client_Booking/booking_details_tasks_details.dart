@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ezpc_tasks_app/features/services/client_services/data/PaymentKeys.dart';
 import 'package:ezpc_tasks_app/shared/widgets/purchase_info_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/features/home/models/provider_model.dart';
 import 'package:ezpc_tasks_app/features/Client_Booking/data%20&%20models/order_details_model.dart';
@@ -124,27 +125,63 @@ class _OrderDetailsState extends State<OrderDetails> {
             ),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _updateExtraTimeStatus(orderId, 'Declined');
+                onPressed: () async {
+                  bool confirmDecline = await showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Confirm Decline'),
+                      content: const Text(
+                          'Are you sure you want to decline this request?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Confirm'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmDecline) {
+                    Navigator.pop(context);
+                    _updateExtraTimeStatus(orderId, 'Declined');
+                  }
                 },
                 child:
                     const Text('Decline', style: TextStyle(color: Colors.red)),
               ),
               TextButton(
                 onPressed: () async {
-                  Navigator.pop(context); // Cerrar el diálogo antes de proceder
+                  bool confirmAccept = await showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Confirm Acceptance'),
+                      content: const Text(
+                          'Are you sure you want to accept this extra time request?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Confirm'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (!confirmAccept) return;
 
+                  Navigator.pop(context); // Cerrar el diálogo antes de proceder
                   final extraTimeFee = extraTime['fee'] ?? 0.0;
 
-                  // Iniciar el flujo de pago
                   final isPaymentSuccessful =
                       await _processPayment(extraTimeFee, orderId);
 
                   if (isPaymentSuccessful) {
-                    // Actualizar el estado de `Extra Time` a "Accepted"
                     await _updateExtraTimeStatus(orderId, 'Accepted');
-
                     ScaffoldMessenger.of(context1).showSnackBar(
                       const SnackBar(
                         content:
@@ -152,7 +189,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                       ),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context1).showSnackBar(
                       const SnackBar(
                         content: Text("Payment failed. Please try again."),
                       ),
@@ -168,11 +205,67 @@ class _OrderDetailsState extends State<OrderDetails> {
     );
   }
 
-  Future<bool> _processPayment(double fee, String orderId) async {
+  Future<Map<String, dynamic>> makeIntentForPayment(String amountToBeCharged,
+      String currency, bool saveCard, String orderId) async {
     try {
+      // Convertir el monto a centavos
+      final int amountInCents = (double.parse(amountToBeCharged) * 100).toInt();
+
+      // Obtener el usuario autenticado
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception("User not authenticated.");
+      }
+
+      // Crear los datos para enviar al backend
+      Map<String, dynamic> requestData = {
+        "amount": amountInCents,
+        "currency": currency,
+        "email": user.email,
+        "userId": user.uid,
+        "orderId": orderId,
+        "saveCard": saveCard, // Indica si se desea guardar la tarjeta
+      };
+
+      // Realizar la solicitud POST al endpoint de la Firebase Function
+      var response = await http.post(
+        Uri.parse('https://stripepaymentintentrequest-kdtiuzlqjq-uc.a.run.app'),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (!responseData.containsKey('paymentIntent')) {
+          throw Exception("paymentIntent not found in response");
+        }
+        return responseData;
+      } else {
+        throw Exception(
+            "Failed to create payment intent: ${response.statusCode} - ${response.body}");
+      }
+    } catch (error) {
+      debugPrint("Error creating payment intent: $error");
+      throw Exception("Failed to create payment intent: $error");
+    }
+  }
+
+//verifica cris
+  /* Future<bool> _processPayment(double fee, String orderId) async {
+    try {
+
+      
       // Crear intención de pago
-      final intentPaymentData =
-          await makeIntentForPayment(fee.toString(), "USD");
+
+      final intentPaymentData =  // Llamar la función con los argumentos requeridos
+              await paymentSheetInitialization(
+                totalPrice, // Monto total
+                "USD", // Moneda
+                true, // Guardar tarjeta para uso futuro
+              );
+       // await makeIntentForPayment(fee.toString(), "USD");
 
       // Verificar si el client_secret existe
       if (intentPaymentData["client_secret"] == null) {
@@ -202,32 +295,55 @@ class _OrderDetailsState extends State<OrderDetails> {
       return false; // Retornar fallo
     }
   }
-
-  Future<Map<String, dynamic>> makeIntentForPayment(
-      String amount, String currency) async {
+*/
+  Future<bool> _processPayment(double fee, String orderId) async {
     try {
-      final int amountInCents = (double.parse(amount) * 100).toInt();
+      // Crear intención de pago
+      final intentPaymentData =
+          await makeIntentForPayment(fee.toString(), "USD", true, orderId
+              // Guardar tarjeta para uso futuro
+              );
 
-      final response = await http.post(
-        Uri.parse("https://api.stripe.com/v1/payment_intents"),
-        headers: {
-          "Authorization": "Bearer $SecretKey",
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: {
-          "amount": amountInCents.toString(),
-          "currency": currency,
-          "payment_method_types[]": "card",
-        },
+      // Verificar si el client_secret existe
+      if (intentPaymentData["paymentIntent"] == null) {
+        throw Exception("Payment intent failed to generate.");
+      }
+
+      // Inicializar el Payment Sheet
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
+          paymentIntentClientSecret: intentPaymentData["paymentIntent"],
+          merchantDisplayName: "Ezpc Tasks",
+          allowsDelayedPaymentMethods: true,
+        ),
       );
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception("Failed to create payment intent: ${response.body}");
-      }
+      // Mostrar el Payment Sheet
+      await stripe.Stripe.instance.presentPaymentSheet();
+
+      // Actualizar estado del pago en Firestore
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(orderId)
+          .update({'extraTime.paymentStatus': 'Paid'});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Payment successful!")),
+      );
+
+      return true; // Retornar éxito
+    } on stripe.StripeException catch (e) {
+      debugPrint("Stripe payment error: ${e.error.localizedMessage}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Payment error: ${e.error.localizedMessage}")),
+      );
+      return false;
     } catch (e) {
-      throw Exception("Error creating payment intent: $e");
+      debugPrint("Payment error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Payment failed: $e")),
+      );
+      return false;
     }
   }
 

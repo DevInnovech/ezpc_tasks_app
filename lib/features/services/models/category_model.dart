@@ -14,7 +14,6 @@ class Category {
     required this.categoryId,
     required this.subCategories,
     this.pathimage,
-    required pathImage,
   });
 
   // Convertir la categoría a un mapa
@@ -37,7 +36,6 @@ class Category {
         map['subCategories']?.map((x) => SubCategory.fromMap(x)) ?? [],
       ),
       pathimage: map['pathimage'],
-      pathImage: null,
     );
   }
 
@@ -126,7 +124,6 @@ final categories = [
         ],
       ),
     ],
-    pathImage: null,
     categoryId: '',
   ),
   Category(
@@ -164,7 +161,6 @@ final categories = [
         ],
       ),
     ],
-    pathImage: null,
     categoryId: '',
   ),
   Category(
@@ -197,7 +193,6 @@ final categories = [
         ],
       ),
     ],
-    pathImage: null,
     categoryId: '',
   ),
   Category(
@@ -239,7 +234,6 @@ final categories = [
       SubCategory(categoryid: '', id: '4.5', name: 'Minor Repairs'),
       SubCategory(categoryid: '', id: '4.6', name: 'Home Maintenance Tasks'),
     ],
-    pathImage: null,
     categoryId: '',
   ),
   Category(
@@ -249,7 +243,6 @@ final categories = [
       SubCategory(categoryid: '', id: '5.1', name: 'Need a Car?'),
       SubCategory(categoryid: '', id: '5.2', name: 'Need a Truck?'),
     ],
-    pathImage: null,
     categoryId: '',
   ),
 ];

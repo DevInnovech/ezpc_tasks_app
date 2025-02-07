@@ -26,7 +26,6 @@ final categoryProvider = FutureProvider<List<Category>>((ref) async {
                 .toList() ??
             [],
         categoryId: doc['id'] ?? '',
-        pathImage: null,
       );
     }).toList();
   } catch (e) {

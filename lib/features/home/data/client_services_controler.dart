@@ -71,13 +71,13 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
           name: subDoc['name'] ?? 'Unnamed SubCategory',
         );
       }).toList();
-
+      print(data['imageUrl']);
       return Category(
         id: doc.id,
         name: data['name'] ?? 'Unnamed Category',
         subCategories: subCategories,
-        pathImage: data['imageUrl'] ?? "",
-        categoryId: '',
+        pathimage: data['imageUrl'] ?? "",
+        categoryId: data['id'],
       );
     }).toList();
 
@@ -129,7 +129,7 @@ class HomeControllerNotifier extends StateNotifier<HomeControllerState> {
               id: '',
               name: 'Unknown',
               subCategories: [],
-              pathImage: null,
+              pathimage: null,
               categoryId: ''),
         ),
         providerId: int.tryParse(data['providerId']?.toString() ?? '0') ?? 0,

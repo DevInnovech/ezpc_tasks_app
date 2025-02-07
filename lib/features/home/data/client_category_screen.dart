@@ -13,7 +13,7 @@ class CategoryRepository {
         return Category(
           id: data['id'],
           name: data['name'],
-          pathImage: data['pathImage'],
+          pathimage: data['pathImage'],
           subCategories: (data['subCategories'] as List<dynamic>?)!
               .map((subCategory) => SubCategory(
                     categoryid: data['id'],

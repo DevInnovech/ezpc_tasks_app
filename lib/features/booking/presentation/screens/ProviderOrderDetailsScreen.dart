@@ -933,17 +933,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   void _handleExtraTimeRequest(
       BuildContext context, WidgetRef ref, String bookingId) async {
     try {
-      // Fetch the booking data directly
       final bookingData = await ref.read(bookingDataProvider(bookingId).future);
+      final extraTimeData = bookingData['extraTime'] ?? {};
+      final int rejectionCount = extraTimeData['rejectionCount'] ?? 0;
+      final bool extraTimeRequested = extraTimeData.isNotEmpty;
 
-      // Check if extra time is requested
-      final extraTimeRequested = bookingData['extraTime'] != null;
-
-      if (!extraTimeRequested) {
-        // Open the dialog for choosing extra time
+      if (!extraTimeRequested ||
+          (extraTimeData['status'] == 'Declined' && rejectionCount < 2)) {
         _openExtraTimeDialog(context, ref, widget.order, bookingId);
       } else {
-        // Show the status of the extra time request
         _openExtraTimeStatusPopup(context, ref, bookingId);
       }
     } catch (e) {
@@ -999,6 +997,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     String reason = extraTimeDetails.reason;
     double fee = extraTimeDetails.fee;
 
+    Map<String, dynamic> taskPricestemp = {};
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1047,6 +1047,16 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                           }
 
                           final taskPrices = snapshot.data!;
+                          taskPricestemp = taskPrices;
+                          // Si hay una sola subcategoría, asignar su precio automáticamente
+                          if (subCategories.length == 1) {
+                            selectedService = subCategories.first;
+                            fee = double.parse(
+                                    taskPrices[selectedService].toString()) *
+                                (availableDurations.indexOf(selectedDuration) +
+                                    1);
+                          }
+
                           return DropdownButton<String>(
                             value: selectedService.isNotEmpty
                                 ? selectedService
@@ -1058,7 +1068,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                                 : (value) {
                                     setState(() {
                                       selectedService = value!;
-                                      fee = taskPrices[selectedService] ?? 0.0;
+                                      fee = double.parse(
+                                              taskPrices[selectedService]
+                                                  .toString()) *
+                                          (availableDurations
+                                                  .indexOf(selectedDuration) +
+                                              1);
                                     });
                                   },
                             items: taskPrices.keys.map((String service) {
@@ -1087,6 +1102,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                         onChanged: (value) {
                           setState(() {
                             selectedDuration = value!;
+                            fee = double.parse(taskPricestemp[selectedService]
+                                    .toString()) *
+                                (availableDurations.indexOf(value) + 1);
                           });
                         },
                         items: availableDurations.map((value) {
@@ -1167,13 +1185,55 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                             return;
                           }
 
+                          bool confirmRequest = await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0)),
+                              title: const Text('Confirm Extra Time Request',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20)),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Duration: $selectedDuration'),
+                                  Text('Time Slot: $selectedTimeSlot'),
+                                  Text('Reason: $reason'),
+                                  Text('Fee: \$${fee.toStringAsFixed(2)}'),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Are you sure you want to submit this request?',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Confirm'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (!confirmRequest) return;
+
                           final extraTimeRequest = ExtraTimeDetails(
                             selectedDuration: selectedDuration,
                             selectedTimeSlot: selectedTimeSlot,
                             reason: reason,
                             fee: fee,
                           );
-                          await sendExtraTimeRequest(bookingId,
+
+                          await sendExtraTimeRequest(context, bookingId,
                               extraTimeRequest, orderDetails['customerId']);
                           Navigator.pop(context);
                         },
@@ -1212,6 +1272,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             final selectedTasks =
                 taskData['selectedTasks'] as Map<String, dynamic>;
             taskPrices[subCategory] = selectedTasks[subCategory] ?? 0.0;
+            print(taskPrices[subCategory]);
           }
         }
       }
@@ -1227,9 +1288,71 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     return '${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $period';
   }
 
-  Future<void> sendExtraTimeRequest(String bookingId,
+  Future<void> sendExtraTimeRequest(BuildContext context, String bookingId,
       ExtraTimeDetails extraTimeDetails, String clientId) async {
     try {
+      // Mostrar confirmación antes de enviar
+      bool confirmRequest = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          title: const Text(
+            'Confirm Extra Time Request',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Duration: ${extraTimeDetails.selectedDuration}'),
+              Text('Time Slot: ${extraTimeDetails.selectedTimeSlot}'),
+              Text('Reason: ${extraTimeDetails.reason}'),
+              Text('Fee: \$${extraTimeDetails.fee.toStringAsFixed(2)}'),
+              const SizedBox(height: 12),
+              const Text(
+                'Are you sure you want to submit this request?',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Confirm'),
+            ),
+          ],
+        ),
+      );
+
+      if (!confirmRequest) return;
+
+      // Obtener estado actual
+      final bookingSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .get();
+      final bookingData = bookingSnapshot.data() ?? {};
+      final extraTimeData = bookingData['extraTime'] ?? {};
+      final int rejectionCount = extraTimeData['rejectionCount'] ?? 0;
+      final String currentStatus = extraTimeData['status'] ?? '';
+
+      // Permitir solo dos envíos en caso de rechazo
+      if (currentStatus == 'Declined' && rejectionCount >= 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('You have reached the maximum attempts for extra time.'),
+          ),
+        );
+        return;
+      }
+
       // Actualizar la información de extra time en la reserva
       await FirebaseFirestore.instance
           .collection('bookings')
@@ -1241,6 +1364,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
           'reason': extraTimeDetails.reason,
           'status': 'Pending',
           'fee': extraTimeDetails.fee,
+          'rejectionCount':
+              currentStatus == 'Declined' ? rejectionCount + 1 : 0,
         },
       });
 
@@ -1253,10 +1378,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         'clientId': clientId,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      ref.refresh(bookingDataProvider(bookingId));
-      debugPrint("Extra time request sent successfully.");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Extra time request sent successfully.')),
+      );
     } catch (e) {
       debugPrint("Error sending extra time request: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send extra time request.')),
+      );
     }
   }
 
@@ -1305,11 +1435,13 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                 extraTimeData['selectedTimeSlot'] ?? 'Not specified';
             final String status = extraTimeData['status'] ?? 'Pending';
             final double fee = extraTimeData['fee']?.toDouble() ?? 0.0;
+            final int rejectionCount = extraTimeData['rejectionCount'] ?? 0;
 
             final bool isAccepted = status == 'Accepted';
             final bool isCancelled = status == 'Cancelled';
             final bool isDeclined = status == 'Declined';
             final bool canCancel = !isAccepted && !isCancelled && !isDeclined;
+            final bool canRetry = isCancelled && rejectionCount < 2;
 
             return AlertDialog(
               shape: RoundedRectangleBorder(
@@ -1350,6 +1482,14 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                  if (isCancelled && canRetry)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'You can submit one more extra time request.',
+                        style: TextStyle(color: Colors.blueGrey),
+                      ),
+                    ),
                 ],
               ),
               actions: [
@@ -1362,6 +1502,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                       'Cancel Request',
                       style: TextStyle(color: Colors.red),
                     ),
+                  ),
+                if (canRetry)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _openExtraTimeDialog(
+                          context, ref, widget.order, bookingId);
+                    },
+                    child: const Text('Retry Request'),
                   ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),

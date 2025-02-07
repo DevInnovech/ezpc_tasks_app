@@ -78,24 +78,28 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             .where((booking) =>
                 booking['status']?.toLowerCase() == 'pending' ||
                 booking['status']?.toLowerCase() == 'accepted')
-            .toList();
+            .toList()
+          ..sort((a, b) => (a['date'] ?? '').compareTo(b['date'] ?? ''));
       } else if (index == 1) {
         // 'in progress' y 'started' para tareas en progreso
         filteredBookings = bookings
             .where((booking) =>
                 booking['status']?.toLowerCase() == 'in progress' ||
                 booking['status']?.toLowerCase() == 'started')
-            .toList();
+            .toList()
+          ..sort((a, b) => (a['date'] ?? '').compareTo(b['date'] ?? ''));
       } else if (index == 2) {
         // Solo 'completed' para tareas completadas
         filteredBookings = bookings
             .where((booking) => booking['status']?.toLowerCase() == 'completed')
-            .toList();
+            .toList()
+          ..sort((a, b) => (b['date'] ?? '').compareTo(a['date'] ?? ''));
       } else if (index == 3) {
         // Solo 'cancelled' para tareas canceladas
         filteredBookings = bookings
             .where((booking) => booking['status']?.toLowerCase() == 'cancelled')
-            .toList();
+            .toList()
+          ..sort((a, b) => (b['date'] ?? '').compareTo(a['date'] ?? ''));
       }
     });
   }

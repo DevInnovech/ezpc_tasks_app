@@ -81,22 +81,26 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen> {
       return orders.where((order) {
         final status = order['status']?.toLowerCase() ?? '';
         return status == 'pending' || status == 'accepted';
-      }).toList();
+      }).toList()
+        ..sort((a, b) => (a['date'] ?? '').compareTo(b['date'] ?? ''));
     } else if (index == 1) {
       return orders.where((order) {
         final status = order['status']?.toLowerCase() ?? '';
         return status == 'in progress' || status == 'started';
-      }).toList();
+      }).toList()
+        ..sort((a, b) => (a['date'] ?? '').compareTo(b['date'] ?? ''));
     } else if (index == 2) {
       return orders.where((order) {
         final status = order['status']?.toLowerCase() ?? '';
         return status == 'completed';
-      }).toList();
+      }).toList()
+        ..sort((a, b) => (b['date'] ?? '').compareTo(a['date'] ?? ''));
     } else {
       return orders.where((order) {
         final status = order['status']?.toLowerCase() ?? '';
         return status == 'cancelled';
-      }).toList();
+      }).toList()
+        ..sort((a, b) => (b['date'] ?? '').compareTo(a['date'] ?? ''));
     }
   }
 

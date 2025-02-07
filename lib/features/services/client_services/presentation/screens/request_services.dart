@@ -33,7 +33,7 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
       id: '',
       name: 'Default Category',
       subCategories: [],
-      pathImage: null,
+      pathimage: null,
       categoryId: '',
     ),
     subCategoryId: '',
@@ -138,7 +138,7 @@ class _PremierServiceScreenState extends ConsumerState<PremierServiceScreen> {
             id: doc.id,
             name: categoryData['subCategory'] ?? '',
             subCategories: subCategories,
-            pathImage: null,
+            pathimage: null,
             categoryId: '',
           );
         }).toList();

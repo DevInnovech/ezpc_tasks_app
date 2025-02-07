@@ -118,6 +118,10 @@ class ServiceScreen extends ConsumerWidget {
                   } else if (taskState.tasks.isEmpty) {
                     return _buildEmptyState();
                   }
+
+                  // Ordenar tareas alfabéticamente
+                  final sortedTasks = List<Task>.from(taskState.tasks)
+                    ..sort((a, b) => a.taskName.compareTo(b.taskName));
                   // Retornamos la ListView para el RefreshIndicator
                   return ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
