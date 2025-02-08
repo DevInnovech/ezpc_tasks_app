@@ -22,13 +22,15 @@ class PasswordAccountpage extends ConsumerStatefulWidget {
 class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
   final _formKey = GlobalKey<FormState>();
 
-  bool _isChecked = false; // Estado del checkbox
-  bool _isAccepted = false; // Estado de aceptación de términos
+  bool _isChecked = false;
+  bool _isAccepted = false;
+  bool _isLoading = false;
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final accountType = ref.watch(accountTypeProvider);
@@ -37,7 +39,6 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
     String name;
     String companyID;
     String lastName;
-    //  DateTime dob = args['dob'];
     String phoneNumber;
     String address;
     String description;
@@ -46,10 +47,9 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
     User? userSpecial;
     var dob;
 
-    // Obtener los argumentos de la página anterior
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<dynamic, dynamic>;
-    print(args);
+
     switch (accountType) {
       case AccountType.employeeProvider:
         email = args['email'];
@@ -61,7 +61,6 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
         phoneNumber = args['phoneNumber'];
         employercode = args['employercode'];
         address = args['address'];
-
         break;
       case AccountType.corporateProvider:
         email = args['email'];
@@ -73,7 +72,6 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
         description = args['description'];
         phoneNumber = args['phoneNumber'];
         address = args['address'];
-
         break;
       default:
         email = args['email'];
@@ -167,98 +165,110 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                     const Text('I agree to the Terms and Conditions'),
                   ],
                 ),
-                PrimaryButton(
-                  text: 'Continue',
-                  onPressed: _isAccepted
-                      ? () async {
-                          if (_formKey.currentState!.validate()) {
-                            // Llamar a la función de registro
-                            String username = usernameController.text;
-                            String password = passwordController.text;
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : PrimaryButton(
+                        text: 'Continue',
+                        onPressed: _isAccepted
+                            ? () async {
+                                if (_formKey.currentState!.validate()) {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
 
-                            // Crear instancia de AuthService
-                            var authService =
-                                AuthService(); // Instancia de AuthService
+                                  String username = usernameController.text;
+                                  String password = passwordController.text;
 
-                            // Llamar a la función de registro
-                            var user = await authService.SignUpMethod(
-                              email: email,
-                              name: name,
-                              lastName: lastName,
-                              //       dob: dob,
-                              phoneNumber: phoneNumber,
-                              username: username,
-                              password: password,
-                              address: address,
-                              role: accountType == AccountType.client
-                                  ? 'Client'
-                                  : accountType == AccountType.corporateProvider
-                                      ? 'Corporate Provider'
-                                      : accountType ==
-                                              AccountType.independentProvider
-                                          ? 'Independent Provider'
-                                          : accountType ==
-                                                  AccountType.employeeProvider
-                                              ? 'Employee Provider'
-                                              : '',
-                              description: description,
-                              communicationPreference: '',
-                              experienceYears: 0,
-                              languages: '',
-                              preferredPaymentMethod: '',
-                              profileImageUrl: '', accountType: '',
-                              companyID:
-                                  accountType == AccountType.corporateProvider
-                                      ? companyID
-                                      : null,
-                              employeeCode: accountType ==
-                                      AccountType.corporateProvider
-                                  ? employercode
-                                  : accountType == AccountType.employeeProvider
-                                      ? employercode
-                                      : null,
-                              special_register: specialRegister,
-                              user_special: userSpecial,
-                            );
+                                  var authService = AuthService();
 
-                            if (user != null) {
-                              // Navegar a la siguiente pantalla dependiendo del tipo de cuenta
-                              if (accountType == AccountType.client) {
-                                Navigator.pushNamed(
-                                  context,
-                                  RouteNames.addCardPaymentMethodScreen,
-                                );
-                              } else {
-                                // Redirigir a la pantalla de agregar cuenta bancaria
-                                Navigator.pushNamed(
-                                  context,
-                                  RouteNames.addBankAccountInformationScreen,
-                                );
+                                  var user = await authService.SignUpMethod(
+                                    email: email,
+                                    name: name,
+                                    lastName: lastName,
+                                    phoneNumber: phoneNumber,
+                                    username: username,
+                                    password: password,
+                                    address: address,
+                                    role: accountType == AccountType.client
+                                        ? 'Client'
+                                        : accountType ==
+                                                AccountType.corporateProvider
+                                            ? 'Corporate Provider'
+                                            : accountType ==
+                                                    AccountType
+                                                        .independentProvider
+                                                ? 'Independent Provider'
+                                                : accountType ==
+                                                        AccountType
+                                                            .employeeProvider
+                                                    ? 'Employee Provider'
+                                                    : '',
+                                    description: description,
+                                    communicationPreference: '',
+                                    experienceYears: 0,
+                                    languages: '',
+                                    preferredPaymentMethod: '',
+                                    profileImageUrl: '',
+                                    accountType: '',
+                                    companyID: accountType ==
+                                            AccountType.corporateProvider
+                                        ? companyID
+                                        : null,
+                                    employeeCode: accountType ==
+                                            AccountType.corporateProvider
+                                        ? employercode
+                                        : accountType ==
+                                                AccountType.employeeProvider
+                                            ? employercode
+                                            : null,
+                                    special_register: specialRegister,
+                                    user_special: userSpecial,
+                                  );
+
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+
+                                  if (user != null) {
+                                    showSuccessMessage(context);
+                                    await Future.delayed(
+                                        const Duration(seconds: 2));
+
+                                    if (accountType == AccountType.client) {
+                                      Navigator.pushNamed(
+                                        context,
+                                        RouteNames.addCardPaymentMethodScreen,
+                                      );
+                                    } else {
+                                      Navigator.pushNamed(
+                                        context,
+                                        RouteNames
+                                            .addBankAccountInformationScreen,
+                                      );
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text('Failed to create account'),
+                                      ),
+                                    );
+                                  }
+                                }
                               }
-                            } else {
-                              // Manejo de error si el registro falla
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Failed to create account')),
-                              );
-                            }
-                          }
-                        }
-                      : () {
-                          // Mostrar SnackBar si no ha aceptado los términos
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'You must accept the Terms and Conditions to continue.',
-                                textAlign: TextAlign.center,
-                              ),
-                              backgroundColor: Colors
-                                  .red, // Fondo rojo para enfatizar el error
-                              duration: Duration(seconds: 3),
-                            ),
-                          );
-                        },
-                ),
+                            : () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'You must accept the Terms and Conditions to continue.',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    backgroundColor: Colors.red,
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
+                              },
+                      ),
               ],
             ),
           ),
@@ -272,12 +282,12 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
 
     showDialog(
       context: context,
-      barrierDismissible: true, // Permitir cerrar tocando fuera
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              backgroundColor: Colors.white, // Fondo blanco
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -302,8 +312,7 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                     child: Column(
                       children: [
                         Text(
-                          'Here are the terms and conditions...\n' *
-                              20, // Texto largo de ejemplo
+                          'Here are the terms and conditions...\n' * 20,
                           textAlign: TextAlign.justify,
                         ),
                       ],
@@ -322,10 +331,10 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                           });
                           Navigator.pop(context);
                         }
-                      : null, // Deshabilitado hasta que lea completo
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple, // Primary color
-                    foregroundColor: Colors.white, // Texto blanco
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -338,12 +347,34 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
         );
       },
     ).then((_) {
-      // Verificar si no se aceptaron los términos
       if (!_isAccepted) {
         setState(() {
-          _isChecked = false; // Desmarcar el checkbox
+          _isChecked = false;
         });
       }
     });
+  }
+
+  void showSuccessMessage(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Registration Successful'),
+          content: const Text(
+            'Your account has been registered successfully. We have sent a confirmation email to your address.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
