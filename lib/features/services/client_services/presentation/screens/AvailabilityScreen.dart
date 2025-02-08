@@ -964,7 +964,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           color: Colors.grey,
         ),
         _buildPriceRow("Tasks Price (Subtotal):", servicesTotal),
-        _buildPriceRow("Taxes (10%):", taxAmount),
+        _buildPriceRow(
+            "Taxes (10%):", double.parse(taxAmount.toStringAsFixed(2))),
         const Divider(
           height: 20,
           thickness: 1,
