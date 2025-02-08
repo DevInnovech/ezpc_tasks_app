@@ -10,11 +10,48 @@ import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_form2.dart';
 import 'package:ezpc_tasks_app/shared/widgets/primary_button.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class GooglePlaceApiHelper {
+  static Future<Map<String, double>> getPlaceDetails(String placeId) async {
+    const String apiKey =
+        "AIzaSyDwxlmeFfLFPceI3B4J35xq7UqHan7iA6s"; // Reemplaza con tu API Key
+    final String url =
+        "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$apiKey";
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      final location = jsonData['result']['geometry']['location'];
+      return {
+        'lat': location['lat'].toDouble(),
+        'lng': location['lng'].toDouble(),
+      };
+    } else {
+      throw Exception("Failed to load place details");
+    }
+  }
+}
 
 class CreateAccountPage1 extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
+  final MaskedTextController phoneController =
+      MaskedTextController(mask: '(000) 000-0000');
 
   CreateAccountPage1({super.key});
+  bool _isLocationInPennsylvania(double lat, double lng) {
+    // Coordenadas aproximadas de los límites de Pensilvania
+    const double minLat = 39.7198;
+    const double maxLat = 42.2698;
+    const double minLng = -80.5199;
+    const double maxLng = -74.6895;
+
+    return (lat >= minLat && lat <= maxLat) && (lng >= minLng && lng <= maxLng);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +59,6 @@ class CreateAccountPage1 extends StatelessWidget {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastNameController = TextEditingController();
     final TextEditingController dobController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController();
     final TextEditingController addressController = TextEditingController();
 
     return Scaffold(
@@ -100,6 +136,25 @@ class CreateAccountPage1 extends StatelessWidget {
                           if (value == null) {
                             return "Date of Birth is required";
                           }
+
+                          try {
+                            DateTime dob = DateTime.parse(value.toString());
+                            DateTime today = DateTime.now();
+                            int age = today.year - dob.year;
+
+                            if (dob.month > today.month ||
+                                (dob.month == today.month &&
+                                    dob.day > today.day)) {
+                              age--;
+                            }
+
+                            if (age < 18) {
+                              return "You must be at least 18 years old";
+                            }
+                          } catch (e) {
+                            return "Invalid date format";
+                          }
+
                           return null;
                         },
                       ),
@@ -109,11 +164,20 @@ class CreateAccountPage1 extends StatelessWidget {
                       child: CustomForm2(
                         label: 'Phone Number',
                         controller: phoneController,
-                        hintText: 'Phone Number',
+                        hintText: '(123) 456-7890',
                         textValidator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Phone Number cannot be empty';
                           }
+
+                          // Extract only numeric values
+                          final String numericValue =
+                              value.replaceAll(RegExp(r'\D'), '');
+
+                          if (numericValue.length != 10) {
+                            return 'Enter a valid phone number (10 digits required)';
+                          }
+
                           return null;
                         },
                       ),
@@ -121,21 +185,130 @@ class CreateAccountPage1 extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8.0),
+                const Text(
+                  "Location",
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 GooglePlaceAutoCompleteTextField(
-                  //          useModernStyle: true,
                   textEditingController: addressController,
                   googleAPIKey:
                       "AIzaSyDwxlmeFfLFPceI3B4J35xq7UqHan7iA6s", // Reemplaza con tu API Key
-
                   debounceTime: 800,
                   isLatLngRequired: true,
-                  getPlaceDetailWithLatLng: (prediction) {
+                  countries: ["us"], // Solo EE.UU.
+                  getPlaceDetailWithLatLng: (prediction) async {
                     debugPrint("Place Details: $prediction");
+
+                    // Verificar si prediction es nulo
+                    if (prediction == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                "Error: No location selected. Please try again.")),
+                      );
+                      return;
+                    }
+
+                    double? lat;
+                    double? lng;
+
+                    // Verificar si prediction tiene lat/lng directamente
+                    if (prediction.lat != null && prediction.lng != null) {
+                      lat = double.tryParse(prediction.lat.toString());
+                      lng = double.tryParse(prediction.lng.toString());
+                    }
+
+                    // Si no hay lat/lng, intentar obtenerlas con placeId
+                    if ((lat == null || lng == null) &&
+                        prediction.placeId != null) {
+                      try {
+                        final placeDetails =
+                            await GooglePlaceApiHelper.getPlaceDetails(
+                                prediction.placeId!);
+                        lat = placeDetails['lat'];
+                        lng = placeDetails['lng'];
+                      } catch (e) {
+                        debugPrint("Error getting place details: $e");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  "Could not get location details. Try another place.")),
+                        );
+                        return;
+                      }
+                    }
+
+                    // Si sigue sin lat/lng, mostrar error
+                    if (lat == null || lng == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                "Invalid location data. Please try again.")),
+                      );
+                      return;
+                    }
+
+                    // Verificar si está en Pensilvania
+                    bool isInPennsylvania = _isLocationInPennsylvania(lat, lng);
+
+                    if (isInPennsylvania) {
+                      addressController.text =
+                          prediction.description ?? "Unknown Location";
+                      addressController.selection = TextSelection.fromPosition(
+                        TextPosition(offset: addressController.text.length),
+                      );
+                    } else {
+                      addressController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                "Please select a location within Pennsylvania.")),
+                      );
+                    }
                   },
-                  itemClick: (prediction) {
-                    addressController.text = prediction.description!;
-                    addressController.selection = TextSelection.fromPosition(
-                        TextPosition(offset: prediction.description!.length));
+                  itemClick: (prediction) async {
+                    if (prediction.placeId != null) {
+                      try {
+                        final placeDetails =
+                            await GooglePlaceApiHelper.getPlaceDetails(
+                                prediction.placeId!);
+                        final lat = placeDetails['lat'];
+                        final lng = placeDetails['lng'];
+
+                        if (lat != null &&
+                            lng != null &&
+                            _isLocationInPennsylvania(lat, lng)) {
+                          addressController.text = prediction.description!;
+                          addressController.selection =
+                              TextSelection.fromPosition(TextPosition(
+                                  offset: prediction.description!.length));
+                        } else {
+                          addressController.clear();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    "Please select a location within Pennsylvania.")),
+                          );
+                        }
+                      } catch (e) {
+                        debugPrint("Error getting place details: $e");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  "Could not get location details. Try another place.")),
+                        );
+                      }
+                    } else {
+                      addressController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                "Invalid location data. Please try again.")),
+                      );
+                    }
                   },
                 ),
                 const SizedBox(height: 16.0),

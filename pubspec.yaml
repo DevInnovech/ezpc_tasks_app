@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  flutter_masked_text2: ^0.9.1
   animated_toggle_switch: ^0.8.4
   app_settings: ^5.2.0
   banner_carousel: ^1.2.1
@@ -82,7 +83,7 @@ dependencies:
   path: any
   path_provider: ^2.1.4
   pin_code_fields: ^8.0.1
-  shadcn_ui: ^0.18.5
+  shadcn_ui: ^0.15.3
   share_plus: ^10.1.2
   shared_preferences: ^2.3.2
   shimmer: ^3.0.0
