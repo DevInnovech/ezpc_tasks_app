@@ -707,7 +707,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                             ),
                             Text(
                               "\$${totalTaskPrice.toStringAsFixed(2)}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: primaryColor,
@@ -991,7 +991,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           ),
         ),
         Text(
-          "\$${value}",
+          "\$$value",
           style: TextStyle(
             fontSize: 16,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,

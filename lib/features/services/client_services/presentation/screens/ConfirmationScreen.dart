@@ -264,7 +264,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
           ),
         ),
         Text(
-          "\$${value}",
+          "\$$value",
           style: TextStyle(
             fontSize: 16,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
