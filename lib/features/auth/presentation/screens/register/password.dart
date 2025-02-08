@@ -1,3 +1,4 @@
+import 'package:ezpc_tasks_app/features/Stripe_Connect/redirectToStripeConnect.dart';
 import 'package:ezpc_tasks_app/features/auth/data/auth_service.dart';
 import 'package:ezpc_tasks_app/features/auth/models/account_type.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
@@ -228,6 +229,7 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                                   RouteNames.addCardPaymentMethodScreen,
                                 );
                               } else {
+                                // Redirigir a la pantalla de agregar cuenta bancaria
                                 Navigator.pushNamed(
                                   context,
                                   RouteNames.addBankAccountInformationScreen,

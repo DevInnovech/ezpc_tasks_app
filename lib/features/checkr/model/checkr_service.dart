@@ -19,7 +19,7 @@ class CheckrService {
     try {
       // Validate work_locations before sending the request
       if (candidateData['work_locations'] == null ||
-          !(candidateData['work_locations'] is List) ||
+          candidateData['work_locations'] is! List ||
           (candidateData['work_locations'] as List).isEmpty) {
         return {
           'success': false,

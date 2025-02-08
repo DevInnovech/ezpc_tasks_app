@@ -150,17 +150,39 @@ class _CandidateFormScreenState extends State<CandidateFormScreen> {
     required String? Function(String?)? validator,
     TextInputType? keyboardType,
     String? hintText,
+    IconData? prefixIcon,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 20.0),
       child: TextFormField(
         controller: controller,
+        style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
           labelText: label,
           hintText: hintText,
+          prefixIcon: prefixIcon != null
+              ? Icon(prefixIcon, color: Colors.deepPurple)
+              : null,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(12.0),
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Colors.red),
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade50,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          labelStyle: const TextStyle(color: Colors.deepPurple),
         ),
         keyboardType: keyboardType,
         validator: validator,
@@ -171,110 +193,162 @@ class _CandidateFormScreenState extends State<CandidateFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Enter Candidate Details"),
+        title: const Text(
+          "Candidate Details",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.deepPurple,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildTextField(
-                  controller: firstNameController,
-                  label: "First Name",
-                  validator: (value) => value == null || value.isEmpty
-                      ? "First Name is required"
-                      : null,
+                Text(
+                  'Personal Information',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple,
+                      ),
                 ),
-                buildTextField(
-                  controller: lastNameController,
-                  label: "Last Name",
-                  validator: (value) => value == null || value.isEmpty
-                      ? "Last Name is required"
-                      : null,
-                ),
-                buildTextField(
-                  controller: emailController,
-                  label: "Email",
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Email is required";
-                    }
-                    final emailRegex =
-                        RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
-                    if (!emailRegex.hasMatch(value)) {
-                      return "Enter a valid email";
-                    }
-                    return null;
-                  },
-                ),
-                buildTextField(
-                  controller: phoneController,
-                  label: "Phone",
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Phone is required";
-                    }
-                    if (value.length < 10) {
-                      return "Enter a valid phone number";
-                    }
-                    return null;
-                  },
-                ),
-                buildTextField(
-                  controller: workLocationController,
-                  label: "Work Location",
-                  hintText: "City, ST (e.g., San Jose, CA)",
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Work Location is required";
-                    }
-                    final locationParts = value.split(',');
-                    if (locationParts.length != 2 ||
-                        locationParts[0].trim().isEmpty ||
-                        locationParts[1].trim().isEmpty) {
-                      return "Work Location must be in 'City, ST' format";
-                    }
-                    return null;
-                  },
-                ),
-                buildTextField(
-                  controller: zipCodeController,
-                  label: "Zipcode",
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Zipcode is required";
-                    }
-                    if (!RegExp(r'^\d{5}(-\d{4})?$').hasMatch(value)) {
-                      return "Enter a valid Zipcode";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton(
-                          onPressed: _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 24),
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: Colors.grey.shade200,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          buildTextField(
+                            controller: firstNameController,
+                            label: "First Name",
+                            prefixIcon: Icons.person_outline,
+                            validator: (value) => value == null || value.isEmpty
+                                ? "First Name is required"
+                                : null,
+                          ),
+                          buildTextField(
+                            controller: lastNameController,
+                            label: "Last Name",
+                            prefixIcon: Icons.person_outline,
+                            validator: (value) => value == null || value.isEmpty
+                                ? "Last Name is required"
+                                : null,
+                          ),
+                          buildTextField(
+                            controller: emailController,
+                            label: "Email",
+                            prefixIcon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Email is required";
+                              }
+                              final emailRegex = RegExp(
+                                  r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                              if (!emailRegex.hasMatch(value)) {
+                                return "Enter a valid email";
+                              }
+                              return null;
+                            },
+                          ),
+                          buildTextField(
+                            controller: phoneController,
+                            label: "Phone",
+                            prefixIcon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Phone is required";
+                              }
+                              if (value.length < 10) {
+                                return "Enter a valid phone number";
+                              }
+                              return null;
+                            },
+                          ),
+                          buildTextField(
+                            controller: workLocationController,
+                            label: "Work Location",
+                            prefixIcon: Icons.location_on_outlined,
+                            hintText: "City, ST (e.g., San Jose, CA)",
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Work Location is required";
+                              }
+                              final locationParts = value.split(',');
+                              if (locationParts.length != 2 ||
+                                  locationParts[0].trim().isEmpty ||
+                                  locationParts[1].trim().isEmpty) {
+                                return "Work Location must be in 'City, ST' format";
+                              }
+                              return null;
+                            },
+                          ),
+                          buildTextField(
+                            controller: zipCodeController,
+                            label: "Zipcode",
+                            prefixIcon: Icons.map_outlined,
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Zipcode is required";
+                              }
+                              if (!RegExp(r'^\d{5}(-\d{4})?$')
+                                  .hasMatch(value)) {
+                                return "Enter a valid Zipcode";
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : _submitForm,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: isLoading
+                                  ? const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    )
+                                  : const Text(
+                                      "Submit Application",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
-                          child: const Text(
-                            "Submit",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

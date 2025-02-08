@@ -449,3 +449,72 @@ exports.checkrWebhook = functions.https.onRequest(async (req, res) => {
 
 
 
+exports.stripeRedirect = functions.https.onRequest(async (req, res) => {
+    const { type } = req.query;
+    
+    // Validar el tipo de redirección
+    if (type !== 'return' && type !== 'reauth') {
+      res.status(400).send('Invalid redirect type');
+      return;
+    }
+  
+    try {
+      // Obtener los parámetros relevantes de Stripe
+      const stripeAccountId = req.query.account_id;
+      let route = '';
+      
+      if (type === 'return') {
+        // Guardar el estado de onboarding en Firestore si es necesario
+        if (stripeAccountId) {
+          await admin.firestore()
+            .collection('stripe_accounts')
+            .doc(stripeAccountId)
+            .set({
+              onboardingCompleted: true,
+              completedAt: admin.firestore.FieldValue.serverTimestamp(),
+            }, { merge: true });
+          
+          route = 'create-candidate';
+        } else {
+          route = 'add-bank';
+        }
+      } else if (type === 'reauth') {
+        route = 'add-bank';
+      }
+  
+      // Construir la URL de redirección a la app
+      const appScheme = 'ezpcapp';
+      const redirectUrl = `${appScheme}://add-bank`;
+
+      // Página HTML con redirección automática
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Redirecting...</title>
+            <script>
+              window.location.href = "${redirectUrl}";
+              
+              // Fallback para dispositivos móviles
+              setTimeout(function() {
+                window.location.href = "${redirectUrl}";
+              }, 1000);
+            </script>
+          </head>
+          <body>
+            <p>Redirecting back to app...</p>
+            <p>If you are not redirected automatically, <a href="${redirectUrl}">click here</a></p>
+          </body>
+        </html>
+      `;
+  
+      // Enviar la página HTML
+      res.set('Content-Type', 'text/html');
+      res.send(html);
+  
+    } catch (error) {
+      console.error('Error in stripe redirect:', error);
+      res.status(500).send('Internal server error');
+    }
+  });

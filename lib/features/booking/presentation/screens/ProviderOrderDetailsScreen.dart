@@ -1578,8 +1578,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                       ),
                     ),
                   if (isCancelled && canRetry)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
                       child: Text(
                         'You can submit one more extra time request.',
                         style: TextStyle(color: Colors.blueGrey),

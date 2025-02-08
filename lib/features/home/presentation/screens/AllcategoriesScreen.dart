@@ -211,7 +211,7 @@ class ServicesByCategory extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           category.name,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.black,
