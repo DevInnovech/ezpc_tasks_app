@@ -1,7 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart'; // Importa el paquete carousel_slider
 import 'package:ezpc_tasks_app/features/auth/presentation/screens/autologin_screen.dart';
+import 'package:ezpc_tasks_app/features/notification/listen.dart';
+import 'package:ezpc_tasks_app/features/notification/local_notification.dart';
+import 'package:ezpc_tasks_app/features/notification/permisos.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/data/PaymentKeys.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,6 +17,11 @@ import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -20,6 +30,8 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
 // Verificar preferencias guardadas
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -38,9 +50,25 @@ Future<void> main() async {
   runApp(ProviderScope(child: Ezpc(initialRoute: initialRoute)));
 }
 
-class Ezpc extends StatelessWidget {
+class Ezpc extends StatefulWidget {
   final String initialRoute;
   const Ezpc({super.key, required this.initialRoute});
+
+  @override
+  State<Ezpc> createState() => _EzpcState();
+}
+
+class _EzpcState extends State<Ezpc> {
+  NotificationService notificationservice = NotificationService();
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    notificationservice.requestNotificationPermission();
+    notificationservice.listenForTokenChanges();
+    notificationservice.firebaseInit(context);
+    notificationservice.setupInteractedMessage(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +81,7 @@ class Ezpc extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: KString.appName,
-          initialRoute: initialRoute,
+          initialRoute: widget.initialRoute,
           onGenerateRoute: RouteNames.generateRoutes,
           onUnknownRoute: (RouteSettings settings) {
             return MaterialPageRoute(
@@ -63,8 +91,9 @@ class Ezpc extends StatelessWidget {
               ),
             );
           },
+          builder: EasyLoading.init(),
           theme: MyTheme.theme,
-          home: initialRoute == RouteNames.autoLoginScreen
+          home: widget.initialRoute == RouteNames.autoLoginScreen
               ? const AutoLoginScreen()
               : null, // Pantalla de auto-login si es necesario
           //  home: const HomeScreen(),

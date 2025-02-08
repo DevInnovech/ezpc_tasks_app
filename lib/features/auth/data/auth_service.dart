@@ -3,6 +3,7 @@ import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -10,6 +11,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'; // Para generar el número aleatorio
 
 class AuthService {
+  Future<void> updateUserToken() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (token != null && userId != null) {
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'fcmToken': token,
+      });
+
+      print("Token actualizado en Firestore: $token");
+    } else {
+      print("No se pudo actualizar el token.");
+    }
+  }
+
   AndroidOptions getAndroidOptions() => const AndroidOptions(
         encryptedSharedPreferences: true,
       );
@@ -47,6 +63,7 @@ class AuthService {
         if (true) {
           // Correo verificado, permitir el acceso
           print('Login successful! Email is verified.');
+          await updateUserToken();
           return userCredential;
         } else {
           // Correo no verificado, lanzar una excepción personalizada
@@ -108,7 +125,7 @@ class AuthService {
 
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
-
+      await updateUserToken();
       return userCredential;
     } catch (e) {
       print("Error signing in with Google: $e");

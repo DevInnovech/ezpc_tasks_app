@@ -5,6 +5,7 @@ import 'package:ezpc_tasks_app/features/booking/presentation/screens/Map_Screen.
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/reviewpop.dart';
 import 'package:ezpc_tasks_app/features/booking/presentation/widgets/component/single_expansion_tile.dart';
 import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
+import 'package:ezpc_tasks_app/features/notification/send.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:ezpc_tasks_app/shared/widgets/button_state.dart';
@@ -14,6 +15,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 
 class OrderDetailsScreen extends ConsumerStatefulWidget {
@@ -522,6 +524,69 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     return null;
   }
 
+  Widget _buildConditionalButtone(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('bookings')
+            .doc(widget.order['bookingId'])
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          final bookingData = snapshot.data!.data() as Map<String, dynamic>;
+          final taskStatus = bookingData['status']?.toLowerCase() ?? 'pending';
+          final String? slot = bookingData['timeSlot'];
+          final String? endslot = bookingData['endSlot'];
+          final providerStatus =
+              bookingData['ProviderStatus']?.toLowerCase() ?? 'pending';
+
+          return ElevatedButton(
+            onPressed: () async {
+// Obtener el token del usuario
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(bookingData['customerId'])
+                  .get();
+
+              if (userDoc.exists) {
+                String? userToken = userDoc.data()?['fcmToken'];
+
+                if (userToken != null) {
+                  EasyLoading.show();
+                  SendNotification.sendNotificationToUser(
+                      //"fHQ7_j7nRpu-1I-PacmMoC:APA91bH9gHFDQjsAS4A4ZQ15of1_AgGzIoyIm4gGA5WGnIHd2q4utYyMcOg4uWo94CdIie97QXA4JWs8UJiIe5IqBxhZLEVBSm4Iop-rwIN2Lcd8_AZWI_A",
+                      userToken,
+                      "Task Started",
+                      "Your task has been marked as 'In Progress'.",
+                      {
+                        'bookingId': widget.order['bookingId'],
+                        'status': 'in_progress',
+                      }); // Enviar notificación
+                  EasyLoading.dismiss();
+                } else {
+                  print("❌ No se encontró el token FCM del usuario.");
+                }
+              }
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Task has started!')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              "Send",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          );
+        });
+  }
+
   Widget _buildConditionalButton(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -629,6 +694,32 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                 'ProviderStatus': 'in_progress',
                 'updatedAt': FieldValue.serverTimestamp(),
               });
+
+// Obtener el token del usuario
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(bookingData['customerId'])
+                  .get();
+
+              if (userDoc.exists) {
+                String? userToken = userDoc.data()?['fcmToken'];
+
+                if (userToken != null) {
+                  EasyLoading.show();
+                  SendNotification.sendNotificationToUser(
+                      //"fHQ7_j7nRpu-1I-PacmMoC:APA91bH9gHFDQjsAS4A4ZQ15of1_AgGzIoyIm4gGA5WGnIHd2q4utYyMcOg4uWo94CdIie97QXA4JWs8UJiIe5IqBxhZLEVBSm4Iop-rwIN2Lcd8_AZWI_A",
+                      userToken,
+                      "Task Started",
+                      "Your task has been marked as 'In Progress'.",
+                      {
+                        'bookingId': widget.order['bookingId'],
+                        'status': 'in_progress',
+                      }); // Enviar notificación
+                  EasyLoading.dismiss();
+                } else {
+                  print("❌ No se encontró el token FCM del usuario.");
+                }
+              }
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Task has started!')),
@@ -812,6 +903,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               padding: const EdgeInsets.all(10.0),
               child: _buildButtonSection(context, ref),
             ),
+            /*   Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: _buildConditionalButtone(context),
+            ),*/
           ],
         ),
       ),

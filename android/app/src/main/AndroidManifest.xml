@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
 
     <!-- Configurar la aplicación -->
@@ -45,17 +47,34 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+       
         <!-- No eliminar esta meta-data, es necesaria para el Flutter Tool -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
+        <!-- Para configurar el canal de notificación por defecto -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="ecomm-channel" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAniwsNy7RlHjkeU8x_k44dPsw4isyK-d0" />
-
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
     </application>
+
 
     <!-- Consultar actividades que puedan manejar la visualización de texto plano -->
     <queries>
