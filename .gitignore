@@ -63,3 +63,5 @@ storage.rules
 # Otros archivos innecesarios
 .eslintcache
 .DS_Store
+
+lib/features/notification/generekey.dart

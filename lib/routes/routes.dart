@@ -63,6 +63,7 @@ import 'package:ezpc_tasks_app/features/splash/splash_main.dart';
 import 'package:ezpc_tasks_app/features/splash/splash_screen.dart';
 import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/two_factor_setup_screen.dart';
 import 'package:ezpc_tasks_app/features/two_factor_auth/presentation/screen/verification_screen.dart';
+import 'package:ezpc_tasks_app/screens/notification_screen.dart';
 import 'package:flutter/material.dart';
 
 //ultima union
@@ -184,6 +185,8 @@ class RouteNames {
 
   static const String clientCategoryScreen = '/clientCategoryScreen';
 
+  static const String notificationScreen = '/notification'; // Nueva ruta
+
   static Route<dynamic> generateRoutes(RouteSettings settings) {
     switch (settings.name) {
       case RouteNames.splashScreen:
@@ -192,6 +195,14 @@ class RouteNames {
       case RouteNames.autoLoginScreen:
         return MaterialPageRoute(
             settings: settings, builder: (_) => const AutoLoginScreen());
+      case RouteNames.notificationScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => NotificationScreen(
+                  title: args["title"],
+                  body: args["body"],
+                )); // Nueva ruta
 
       case RouteNames.onBoardingScreen:
         return MaterialPageRoute(
