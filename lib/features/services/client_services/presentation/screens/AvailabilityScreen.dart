@@ -1,10 +1,13 @@
 import 'package:ezpc_tasks_app/features/services/client_services/presentation/screens/GeneralInformation.dart';
 import 'package:ezpc_tasks_app/features/services/client_services/widgets/select_date.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
+import 'package:ezpc_tasks_app/shared/widgets/custom_filter2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:material_floating_search_bar_2/material_floating_search_bar_2.dart';
+import 'dart:async';
 
 class AvailabilityScreen extends StatefulWidget {
   final String categoryId;
@@ -47,6 +50,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
   DateTime selectedDate = DateTime.now();
   String? providerId;
   double totalPrice = 0;
+  Timer? _debounce;
+  Map<String, dynamic> selectedFilter = {};
 
   @override
   void initState() {
@@ -54,6 +59,8 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     totalPrice = widget.totalPrice;
     fetchTaskAndRelatedTasks();
   }
+
+  List<Map<String, dynamic>> allTasks = [];
 
   Future<void> fetchTaskAndRelatedTasks() async {
     try {
@@ -67,7 +74,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
       final categoryData = categoryDoc.data()!;
       final category = categoryData['name'] as String?;
-      // final provider = taskData['providerId'] as String?;
       final subCategoriesSet = widget.selectedSubCategories.toSet();
       List<Map<String, dynamic>> fetchedTasks = [];
 
@@ -106,57 +112,108 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
           for (var doc in userDocs.docs) {
             final userData = doc.data();
+            final rating = userData['rating'] ?? 0.0;
+            debugPrint(
+                "🔹 Tarea ${taskMap['id']} - Rating obtenido de Firestore: $rating");
             fetchedTasks.add({
               ...taskMap,
               'providerId': doc.id,
               'providerName': userData['name'] ?? 'Unknown',
-              'lastName': userData['name'] ?? 'Unknown',
               'providerPhoto': userData['profileImageUrl'] ?? '',
               'onDemand': userData['onDemand'] ?? false,
-              'rating': userData['rating'] ?? 0.0,
+              'rating': rating,
             });
           }
         } else {
           // Tareas no corporativas
           final userData = await fetchUserData(taskMap['providerId']);
+          final rating = userData['rating'] ?? 0.0;
+          debugPrint(
+              "🔹 Tarea ${taskMap['id']} - Rating obtenido de Firestore: $rating");
           fetchedTasks.add({
             ...taskMap,
             'providerPhoto': userData['profileImageUrl'] ?? '',
             'onDemand': userData['onDemand'] ?? false,
-            'rating': userData['rating'] ?? 0.0,
+            'rating': rating,
           });
-          print("hola2");
         }
       }
-/*
-      // Mover la tarea inicial al inicio
-      if (provider != null) {
-        final initialTaskIndex = fetchedTasks.indexWhere((task) =>
-            task['providerId'] == provider && task['id'] == widget.taskId);
 
-        if (initialTaskIndex != -1) {
-          final initialTask = fetchedTasks.removeAt(initialTaskIndex);
-          fetchedTasks.insert(0, initialTask);
-        }
-      }*/
+      // Guardamos la copia original
+      allTasks = List.from(fetchedTasks);
 
-      // Ordenar por `onDemand` y `rating`
-      fetchedTasks.sort((a, b) {
-        final onDemandA = a['onDemand'] == true;
-        final onDemandB = b['onDemand'] == true;
-        if (onDemandA != onDemandB) return onDemandB ? 1 : -1;
-        return (b['rating'] ?? 0.0).compareTo(a['rating'] ?? 0.0);
-      });
-
-      // Actualizar estado
-      setState(() {
-        // selectedTask = taskData;
-        // providerId = provider;
-        relatedTasks = fetchedTasks;
-      });
+      // Aplicamos los filtros con los datos nuevos
+      applyFilters();
     } catch (e) {
       debugPrint('Error fetching tasks: $e');
     }
+  }
+
+  void applyFilters() {
+    if (allTasks.isEmpty) return; // Si no hay datos, no filtramos
+
+    List<Map<String, dynamic>> filteredTasks = List.from(allTasks);
+
+    // Verificar los valores de rating antes del filtro
+    debugPrint(
+        "🔹 Ratings antes de aplicar cualquier filtro: ${filteredTasks.map((task) => task['rating']).toList()}");
+
+    // Filtro "Same Day"
+    if (selectedFilter['onDemand'] == true) {
+      filteredTasks =
+          filteredTasks.where((task) => task['onDemand'] == true).toList();
+    }
+
+    // Filtro "Precio más bajo"
+    if (selectedFilter['Lowest'] == true) {
+      filteredTasks.sort((a, b) {
+        double getTotalPrice(Map<String, dynamic> task) {
+          double totalPrice = 0.0;
+          for (var service in widget.selectedSubCategories) {
+            final servicePrice =
+                (task['selectedTasks'][service] ?? 0.0).toDouble();
+            final hoursForService = widget.serviceSizes[service] ?? 1;
+            totalPrice += servicePrice * hoursForService;
+          }
+          return totalPrice * 1.1; // Agregamos el 10% de impuestos
+        }
+
+        final priceA = getTotalPrice(a);
+        final priceB = getTotalPrice(b);
+        return priceA.compareTo(priceB);
+      });
+    }
+
+    // Filtro "averageRating"
+    if (selectedFilter['averageRating'] != null &&
+        selectedFilter['averageRating'][0] == true) {
+      double minRating = selectedFilter['averageRating'][1] ?? 0.0;
+
+      debugPrint("🔸 Filtrando ratings >= $minRating");
+
+      filteredTasks = filteredTasks.where((task) {
+        var rawRating = task['rating'];
+        debugPrint(
+            "🔹 Tarea ${task['id']} - Rating ORIGINAL: $rawRating - Tipo: ${rawRating.runtimeType}");
+
+        double rating = (task['rating'] is num)
+            ? task['rating'].toDouble()
+            : double.tryParse(task['rating'].toString()) ?? 0.0;
+
+        bool pasaFiltro = rating >= minRating;
+        debugPrint(
+            "🔹 Tarea ${task['id']} - Convertido: $rating - Pasa filtro: $pasaFiltro");
+
+        return pasaFiltro;
+      }).toList();
+    }
+
+    // Aplicamos los cambios al estado
+    setState(() {
+      relatedTasks = filteredTasks;
+    });
+
+    debugPrint("🔹 Tareas después de aplicar filtros: ${relatedTasks.length}");
   }
 
   Future<Map<String, dynamic>> fetchUserData(String providerId) async {
@@ -288,15 +345,13 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       // No hay intervalos para este día, retorna los intervalos por defecto
       return _generateDefaultIntervals(workingHours);
     }
-    // print(dayAvailability);
+
     // Acceder a la disponibilidad específica de la fecha
     final dateAvailability = dayAvailability[formattedDate];
     if (dateAvailability == null || dateAvailability is! List) {
       // No hay intervalos para esta fecha, retorna los intervalos por defecto
       return _generateDefaultIntervals(workingHours);
     }
-
-    // print(dateAvailability);
 
     final List<Map<String, dynamic>> dayIntervals =
         List<Map<String, dynamic>>.from(dateAvailability);
@@ -308,10 +363,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     for (var interval in dayIntervals) {
       final index = allIntervals.indexWhere((slot) =>
           slot['start'] == interval['start'] && slot['end'] == interval['end']);
-      print(index);
       if (index != -1) {
-        //aqui quede
-
         allIntervals[index]['status'] =
             interval['status']; // Ocupado o Bloqueado
         if (interval.containsKey('taskId')) {
@@ -319,7 +371,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         }
       }
     }
-    print(allIntervals);
     return allIntervals;
   }
 
@@ -353,41 +404,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
       },
       primaryColor: primaryColor,
     );
-
-    /* Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            onPressed: () => changeDate(-1),
-            icon: const Icon(Icons.chevron_left),
-          ),
-          Column(
-            children: [
-              Text(
-                DateFormat('EEEE').format(selectedDate),
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                DateFormat('d MMMM yyyy').format(selectedDate),
-                style: const TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-          IconButton(
-            onPressed: () => changeDate(1),
-            icon: const Icon(Icons.chevron_right),
-          ),
-        ],
-      ),
-    );*/
   }
 
   List<List<Map<String, dynamic>>> formatTimeSlotsForDisplay(
@@ -580,7 +596,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
     final lastName = taskData['lastName'] ?? '';
     final providerName = '$firstName $lastName';
     final isSelected = selectedCard == taskData;
-    print(ProviderId);
 
     final key = "$taskId-$ProviderId";
 
@@ -1021,6 +1036,14 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
           : Column(
               children: [
                 _buildDateSelector(),
+                CustomFilterWidgetCopy(
+                  onFilterSelected: (selectedFilters) {
+                    setState(() {
+                      selectedFilter = selectedFilters ?? {};
+                      applyFilters();
+                    });
+                  },
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     controller: _scrollController,
