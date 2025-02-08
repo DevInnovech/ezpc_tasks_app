@@ -181,7 +181,8 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
 
                                   var authService = AuthService();
 
-                                  var user = await authService.SignUpMethod(
+                                  var documentId =
+                                      await authService.SignUpMethod(
                                     email: email,
                                     name: name,
                                     lastName: lastName,
@@ -229,21 +230,24 @@ class _PasswordAccountpageState extends ConsumerState<PasswordAccountpage> {
                                     _isLoading = false;
                                   });
 
-                                  if (user != null) {
+                                  if (documentId != null) {
                                     showSuccessMessage(context);
                                     await Future.delayed(
                                         const Duration(seconds: 2));
 
+                                    // Aquí pasamos el ID del documento a la siguiente pantalla
                                     if (accountType == AccountType.client) {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames.addCardPaymentMethodScreen,
+                                        arguments: {'documentId': documentId},
                                       );
                                     } else {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames
                                             .addBankAccountInformationScreen,
+                                        arguments: {'documentId': documentId},
                                       );
                                     }
                                   } else {

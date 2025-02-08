@@ -25,8 +25,29 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
         .snapshots();
   }
 
-  void navigateToAuthentication() {
-    Navigator.pushReplacementNamed(context, RouteNames.authenticationScreen);
+  Future<void> updateUserStatus(String email) async {
+    try {
+      // Busca el documento del usuario por su email
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final userDoc = querySnapshot.docs.first;
+
+        // Actualiza el estado del usuario a "approved"
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userDoc.id)
+            .update({'status': 'Approved'});
+      } else {
+        print("User with email $email not found.");
+      }
+    } catch (e) {
+      print("Error updating user status: $e");
+    }
   }
 
   @override
@@ -34,13 +55,13 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        automaticallyImplyLeading: false, // 🔥 Elimina el botón de atrás
+        automaticallyImplyLeading: false,
         title: const Text(
           "Background Check Status",
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF6A0DAD), // 🎨 Morado correcto
+        backgroundColor: const Color(0xFF6A0DAD),
         elevation: 0,
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -52,8 +73,11 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(
-                child: Text("Candidate data not found.",
-                    style: TextStyle(fontSize: 16, color: Colors.red)));
+              child: Text(
+                "Candidate data not found.",
+                style: TextStyle(fontSize: 16, color: Colors.red),
+              ),
+            );
           }
 
           final data = snapshot.data!.data()!;
@@ -62,19 +86,19 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
 
           // ✅ Background check aprobado (clear)
           if (status == 'complete' && result == 'clear') {
+            // Actualizar el estado del usuario a "approved"
+            updateUserStatus(widget.email);
+
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // ✅ Imagen de éxito
                   Image.asset(
                     'assets/images/Success.png',
                     height: 200,
                   ),
                   const SizedBox(height: 30),
-
-                  // 🎉 Mensaje de éxito
                   const Text(
                     "Congratulations!",
                     style: TextStyle(
@@ -84,8 +108,6 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // 📩 Mensaje de aprobación
                   const Text(
                     "Your background check has been completed successfully. "
                     "We are now ready to proceed!",
@@ -93,8 +115,6 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 30),
-
-                  // ✅ Botón de "Continue"
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pushReplacementNamed(
@@ -103,8 +123,7 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color(0xFF6A0DAD), // 🎨 Morado correcto
+                      backgroundColor: const Color(0xFF6A0DAD),
                       padding: const EdgeInsets.symmetric(
                           vertical: 14, horizontal: 40),
                       shape: RoundedRectangleBorder(
@@ -128,14 +147,11 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // ❌ Imagen de advertencia
                   Image.asset(
                     'assets/images/Warning.png',
                     height: 200,
                   ),
                   const SizedBox(height: 30),
-
-                  // ⚠️ Mensaje de elegibilidad pendiente
                   const Text(
                     "Additional Information Required",
                     style: TextStyle(
@@ -145,8 +161,6 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // 📄 Explicación al usuario
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
@@ -158,15 +172,12 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  // 📩 Botón para contactar soporte o ver más detalles
                   ElevatedButton(
                     onPressed: () {
-                      // Aquí podrías redirigir a una pantalla de contacto o soporte
                       print("Open Support");
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange, // 🟠 Color de advertencia
+                      backgroundColor: Colors.orange,
                       padding: const EdgeInsets.symmetric(
                           vertical: 14, horizontal: 40),
                       shape: RoundedRectangleBorder(
@@ -189,26 +200,21 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const SizedBox(height: 40), // Subir la imagen un poco más
-                // Imagen representativa
+                const SizedBox(height: 40),
                 Image.asset(
                   'assets/images/BackgroundVerification.png',
                   height: 180,
-                ), // Aumentamos el tamaño ligeramente
+                ),
                 const SizedBox(height: 30),
-
-                // Título y estado del background check
                 const Text(
                   "Background Check Status",
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF6A0DAD), // 🎨 Morado correcto
+                    color: Color(0xFF6A0DAD),
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Estado del background check
                 Container(
                   padding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 25),
@@ -225,17 +231,15 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
                       fontWeight: FontWeight.bold,
                       color: status == 'processing'
                           ? Colors.orange
-                          : const Color(0xFF6A0DAD), // 🎨 Morado correcto
+                          : const Color(0xFF6A0DAD),
                     ),
                   ),
                 ),
                 const SizedBox(height: 30),
-
-                // Nota informativa para el usuario
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    "Your background check request has been submitted, Please check your email to complete the process.\n"
+                    "Your background check request has been submitted. Please check your email to complete the process.\n"
                     "You will receive a response within 2 to 5 business days.",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 15, color: Colors.grey),
