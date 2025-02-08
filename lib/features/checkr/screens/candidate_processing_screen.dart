@@ -96,7 +96,12 @@ class _CandidateProcessingScreenState extends State<CandidateProcessingScreen> {
 
                   // ✅ Botón de "Continue"
                   ElevatedButton(
-                    onPressed: navigateToAuthentication,
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        RouteNames.authenticationScreen,
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
                           const Color(0xFF6A0DAD), // 🎨 Morado correcto
