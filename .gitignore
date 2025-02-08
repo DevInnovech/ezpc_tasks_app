@@ -50,6 +50,9 @@ node_modules/
 package-lock.json
 functions/package-lock.json
 
+# Ignorar archivos de bloqueo de notificaiconees
+lib/features/notification/service-account.json
+
 # Archivos de configuración específicos del entorno
 .env
 .env.*
@@ -64,4 +67,3 @@ storage.rules
 .eslintcache
 .DS_Store
 
-lib/features/notification/generekey.dart
