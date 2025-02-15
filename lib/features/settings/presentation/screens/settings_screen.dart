@@ -9,6 +9,7 @@ import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -25,6 +26,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   String _name = '';
   String _email = '';
   String _profileImageUrl = '';
+  String? _companyID;
   int _roleSwitchCounter = 1;
   @override
   void initState() {
@@ -48,55 +50,86 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   Future<void> _loadUserData() async {
     User? currentUser = _auth.currentUser;
+    if (currentUser == null) return;
 
-    if (currentUser != null) {
-      try {
-        // Obtener documento del usuario
-        DocumentSnapshot userDoc =
-            await _firestore.collection('users').doc(currentUser.uid).get();
+    try {
+      // Obtener documento del usuario en Firestore
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(currentUser.uid).get();
 
-        if (!userDoc.exists) {
-          throw Exception('User document not found in Firestore.');
-        }
-
-        Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
-
-        // Actualizar datos en el estado
-        setState(() {
-          _name = '${data['name'] ?? ''} ${data['lastName'] ?? ''}'.trim();
-          _email = data['email'] ?? '';
-          _profileImageUrl = data['profileImageUrl'] ?? '';
-        });
-
-        // Inicializar el contador y sincronizar el currentRole con el rol principal
-        final String role = data['role'] ?? '';
-        final String secondaryRole = data['secondaryRole'] ?? '';
-        String currentRole = data['currentRole'] ?? '';
-
-        if (currentRole.isEmpty) {
-          // Si no hay currentRole, sincronizarlo con el rol principal
-          currentRole = role;
-          await _firestore.collection('users').doc(currentUser.uid).update({
-            'currentRole': currentRole,
-          });
-          debugPrint(
-              'Primera vez iniciando sesión. currentRole sincronizado con role: $role');
-        }
-
-        // Inicializar el contador en 1 (rol principal)
-        setState(() {
-          _roleSwitchCounter = 1;
-        });
-
-        debugPrint('Rol inicial: $currentRole');
-        debugPrint('Contador inicial: $_roleSwitchCounter');
-      } catch (e, stackTrace) {
-        debugPrint('Error al cargar los datos del usuario: $e\n$stackTrace');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load user data')),
-        );
+      if (!userDoc.exists) {
+        throw Exception('User document not found in Firestore.');
       }
+
+      Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+
+      // Actualizar datos en el estado
+      setState(() {
+        _name = '${data['name'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+        _email = data['email'] ?? '';
+        _profileImageUrl = data['profileImageUrl'] ?? '';
+      });
+
+      // Obtener rol actual y asegurarse de que se mantenga después de reiniciar
+      final String role = data['role'] ?? '';
+      final String secondaryRole = data['secondaryRole'] ?? '';
+      String currentRole = data['currentRole'] ?? '';
+
+      if (currentRole.isEmpty) {
+        currentRole = role;
+        await _firestore.collection('users').doc(currentUser.uid).update({
+          'currentRole': currentRole,
+        });
+      }
+
+      // Actualizar el tipo de cuenta en Riverpod
+      final accountTypeNotifier = ref.read(accountTypeProvider.notifier);
+      if (currentRole == 'Employee Provider') {
+        accountTypeNotifier.selectAccountType(AccountType.employeeProvider);
+      } else if (currentRole == 'Client') {
+        accountTypeNotifier.selectAccountType(AccountType.client);
+      } else if (currentRole == 'Independent Provider') {
+        accountTypeNotifier.selectAccountType(AccountType.independentProvider);
+      } else if (currentRole == 'Corporate Provider') {
+        accountTypeNotifier.selectAccountType(AccountType.corporateProvider);
+      }
+
+      // Verificar y guardar `companyID`
+      String? companyID;
+      DocumentSnapshot providerDoc =
+          await _firestore.collection('providers').doc(currentUser.uid).get();
+
+      if (providerDoc.exists) {
+        companyID = providerDoc['Company'];
+        if (companyID != null) {
+          await _saveCompanyID(companyID);
+        }
+      } else {
+        companyID =
+            await _loadCompanyID(); // Cargar `companyID` de SharedPreferences si Firestore no lo tiene
+      }
+
+      setState(() {
+        _companyID = companyID;
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Error al cargar los datos del usuario: $e\n$stackTrace');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load user data')),
+      );
     }
+  }
+
+// Guardar `companyID` en SharedPreferences
+  Future<void> _saveCompanyID(String companyID) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('companyID', companyID);
+  }
+
+// Cargar `companyID` de SharedPreferences
+  Future<String?> _loadCompanyID() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('companyID');
   }
 
   @override

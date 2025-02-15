@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ezpc_tasks_app/features/chat/presentation/screens/chat_screen.dart';
 import 'package:ezpc_tasks_app/features/settings/models/company_models.dart';
 import 'package:ezpc_tasks_app/routes/routes.dart';
 import 'package:ezpc_tasks_app/shared/utils/constans/k_images.dart';
 import 'package:ezpc_tasks_app/shared/widgets/custom_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ezpc_tasks_app/shared/utils/theme/constraints.dart';
 
@@ -81,6 +83,77 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     }
   }
 
+  String _generateChatRoomId(String userId, String providerId) {
+    return userId.compareTo(providerId) < 0
+        ? '${userId}_$providerId'
+        : '${providerId}_$userId';
+  }
+
+  void _openChatWithProvider(String businessName) async {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You need to be logged in to chat.')),
+      );
+      return;
+    }
+
+    try {
+      // 1️⃣ Buscar el ID del usuario cuyo "name" coincida con el Business Name en "users"
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('name', isEqualTo: businessName)
+          .limit(1)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No provider found with name: $businessName')),
+        );
+        return;
+      }
+
+      final providerId = userSnapshot.docs.first.id; // ID del usuario/proveedor
+
+      // 2️⃣ Generar el chatRoomId entre el usuario y el proveedor
+      final chatRoomId = _generateChatRoomId(currentUserId, providerId);
+
+      // 3️⃣ Verificar si la sala de chat ya existe o crearla
+      final chatRoomRef =
+          FirebaseFirestore.instance.collection('chats').doc(chatRoomId);
+      final chatRoomSnapshot = await chatRoomRef.get();
+
+      if (!chatRoomSnapshot.exists) {
+        await chatRoomRef.set({
+          'createdAt': DateTime.now().millisecondsSinceEpoch,
+          'customerId': currentUserId,
+          'providerId': providerId,
+          'unreadCounts': {},
+          'onlineUsers': [],
+        });
+      }
+
+      // 4️⃣ Abrir la pantalla del chat con el proveedor
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CustomerChatScreen(
+            chatRoomId: chatRoomId,
+            customerId: currentUserId,
+            providerId: providerId,
+            orderId: "", // No hay orderId en este caso
+            isFakeData: false,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening chat: $e')),
+      );
+      print('Error opening chat: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,8 +198,12 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    onPressed: () =>
-                        Navigator.pushNamed(context, RouteNames.chatListScreen),
+                    onPressed: () {
+                      if (company != null) {
+                        _openChatWithProvider(
+                            company!.name); // Buscar por Business Name
+                      }
+                    },
                     icon: const Icon(
                       Icons.chat,
                       color: Colors.white,
