@@ -121,7 +121,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
               'providerName': userData['name'] ?? 'Unknown',
               'providerPhoto': userData['profileImageUrl'] ?? '',
               'onDemand': userData['onDemand'] ?? false,
-              'rating': rating,
+              'averageRating': rating ?? 0.0,
             });
           }
         } else {
@@ -154,17 +154,71 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
     List<Map<String, dynamic>> filteredTasks = List.from(allTasks);
 
-    // Verificar los valores de rating antes del filtro
     debugPrint(
-        "🔹 Ratings antes de aplicar cualquier filtro: ${filteredTasks.map((task) => task['rating']).toList()}");
+        "🔹 Ratings antes de aplicar cualquier filtro: ${filteredTasks.map((task) => task['averageRating']).toList()}");
 
-    // Filtro "Same Day"
+    // 1️⃣ Filtro "Same Day"
     if (selectedFilter['onDemand'] == true) {
       filteredTasks =
           filteredTasks.where((task) => task['onDemand'] == true).toList();
     }
 
-    // Filtro "Precio más bajo"
+    // 2️⃣ Filtro "averageRating" (se aplica ANTES del ordenamiento)
+    if (selectedFilter['averageRating'] != null &&
+        selectedFilter['averageRating'][0] == true) {
+      double minRating = selectedFilter['averageRating'][1] ?? 0.0;
+      debugPrint("🔸 Filtrando ratings >= $minRating");
+
+      filteredTasks = filteredTasks.where((task) {
+        double rating = 0.0;
+
+        if (task.containsKey('averageRating') &&
+            task['averageRating'] != null) {
+          if (task['averageRating'] is num) {
+            rating = task['averageRating'].toDouble();
+          } else if (task['averageRating'] is String) {
+            rating = double.tryParse(task['averageRating']) ?? 0.0;
+          }
+        }
+
+        debugPrint(
+            "🔹 Tarea ${task['id']} - Rating: $rating - Pasa filtro: ${rating >= minRating}");
+        return rating >= minRating;
+      }).toList();
+
+      // 🔥 Si no hay tareas con ese mínimo, reducir al máximo rating disponible
+      if (filteredTasks.isEmpty) {
+        double maxAvailableRating = allTasks.map((task) {
+          if (task.containsKey('averageRating') &&
+              task['averageRating'] != null) {
+            if (task['averageRating'] is num) {
+              return task['averageRating'].toDouble();
+            } else if (task['averageRating'] is String) {
+              return double.tryParse(task['averageRating']) ?? 0.0;
+            }
+          }
+          return 0.0;
+        }).reduce((a, b) => a > b ? a : b);
+
+        debugPrint(
+            "⚠️ No hay tareas con rating >= $minRating. Se ajusta a $maxAvailableRating.");
+
+        filteredTasks = allTasks.where((task) {
+          double rating = 0.0;
+          if (task.containsKey('averageRating') &&
+              task['averageRating'] != null) {
+            if (task['averageRating'] is num) {
+              rating = task['averageRating'].toDouble();
+            } else if (task['averageRating'] is String) {
+              rating = double.tryParse(task['averageRating']) ?? 0.0;
+            }
+          }
+          return rating >= maxAvailableRating;
+        }).toList();
+      }
+    }
+
+    // 3️⃣ Filtro "Precio más bajo" (se aplica DESPUÉS del filtro de rating)
     if (selectedFilter['Lowest'] == true) {
       filteredTasks.sort((a, b) {
         double getTotalPrice(Map<String, dynamic> task) {
@@ -182,30 +236,6 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
         final priceB = getTotalPrice(b);
         return priceA.compareTo(priceB);
       });
-    }
-
-    // Filtro "averageRating"
-    if (selectedFilter['averageRating'] != null &&
-        selectedFilter['averageRating'][0] == true) {
-      double minRating = selectedFilter['averageRating'][1] ?? 0.0;
-
-      debugPrint("🔸 Filtrando ratings >= $minRating");
-
-      filteredTasks = filteredTasks.where((task) {
-        var rawRating = task['rating'];
-        debugPrint(
-            "🔹 Tarea ${task['id']} - Rating ORIGINAL: $rawRating - Tipo: ${rawRating.runtimeType}");
-
-        double rating = (task['rating'] is num)
-            ? task['rating'].toDouble()
-            : double.tryParse(task['rating'].toString()) ?? 0.0;
-
-        bool pasaFiltro = rating >= minRating;
-        debugPrint(
-            "🔹 Tarea ${task['id']} - Convertido: $rating - Pasa filtro: $pasaFiltro");
-
-        return pasaFiltro;
-      }).toList();
     }
 
     // Aplicamos los cambios al estado
